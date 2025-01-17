@@ -1,9 +1,10 @@
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_controller.dart';
+
 import 'package:get/get.dart';
 
 class MerchantHomePage extends GetView<MerchantController> {

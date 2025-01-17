@@ -1,6 +1,6 @@
-import 'package:antarkanma/app/data/models/product_model.dart';
-import 'package:antarkanma/app/data/models/variant_model.dart';
-import 'package:antarkanma/app/data/models/merchant_model.dart';
+import 'package:antarkanma_merchant/app/data/models/product_model.dart';
+import 'package:antarkanma_merchant/app/data/models/variant_model.dart';
+import 'package:antarkanma_merchant/app/data/models/merchant_model.dart';
 
 class CartItemModel {
   final ProductModel product;

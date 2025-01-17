@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:get/get.dart';
 import '../controllers/splash_controller.dart';
 

@@ -1,4 +1,4 @@
-import 'package:antarkanma/app/data/models/merchant_model.dart';
+import 'package:antarkanma_merchant/app/data/models/merchant_model.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 

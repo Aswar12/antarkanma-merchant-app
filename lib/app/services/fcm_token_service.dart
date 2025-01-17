@@ -1,7 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/providers/notification_provider.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/data/providers/notification_provider.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
 
 class FCMTokenService extends GetxService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;

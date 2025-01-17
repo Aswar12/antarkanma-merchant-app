@@ -1,4 +1,4 @@
-import 'package:antarkanma/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
 
 class DeliveryModel {
   final int id;

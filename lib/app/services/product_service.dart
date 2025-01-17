@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart' as dio;
-import 'package:antarkanma/config.dart';
+import 'package:antarkanma_merchant/config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/product_model.dart';
-import 'package:antarkanma/app/data/models/paginated_response.dart';
+import 'package:antarkanma_merchant/app/data/models/product_model.dart';
+import 'package:antarkanma_merchant/app/data/models/paginated_response.dart';
 
 class ProductService extends GetxService {
   final dio.Dio _dio = dio.Dio();

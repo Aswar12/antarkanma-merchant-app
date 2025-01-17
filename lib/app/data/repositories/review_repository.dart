@@ -1,5 +1,5 @@
-import 'package:antarkanma/app/data/models/product_review_model.dart';
-import 'package:antarkanma/app/data/providers/product_provider.dart';
+import 'package:antarkanma_merchant/app/data/models/product_review_model.dart';
+import 'package:antarkanma_merchant/app/data/providers/product_provider.dart';
 
 class ReviewRepository {
   final ProductProvider provider;

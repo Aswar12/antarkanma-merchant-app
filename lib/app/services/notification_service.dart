@@ -1,13 +1,14 @@
 import 'dart:convert';
-import 'package:antarkanma/app/services/transaction_service.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
+import 'package:antarkanma_merchant/app/services/transaction_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:antarkanma/theme.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_order_controller.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_controller.dart';
-import 'package:antarkanma/app/routes/app_pages.dart';
+import 'package:antarkanma_merchant/theme.dart';
+
+import 'package:antarkanma_merchant/app/routes/app_pages.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

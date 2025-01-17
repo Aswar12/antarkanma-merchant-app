@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:antarkanma/app/constants/app_colors.dart';
+import 'package:antarkanma_merchant/app/constants/app_colors.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 

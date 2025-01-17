@@ -1,7 +1,7 @@
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_profile_controller.dart';
-import 'package:antarkanma/app/modules/merchant/views/add_operational_hours_bottom_sheet.dart';
-import 'package:antarkanma/app/widgets/logout_confirmation_dialog.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/views/add_operational_hours_bottom_sheet.dart';
+import 'package:antarkanma_merchant/app/widgets/logout_confirmation_dialog.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

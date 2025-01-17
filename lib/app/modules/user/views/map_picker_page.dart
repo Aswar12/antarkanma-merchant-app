@@ -1,7 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:antarkanma/app/controllers/map_picker_controller.dart';
-import 'package:antarkanma/theme.dart'; // Ensure theme.dart is imported
+import 'package:antarkanma_merchant/app/controllers/map_picker_controller.dart';
+import 'package:antarkanma_merchant/theme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';

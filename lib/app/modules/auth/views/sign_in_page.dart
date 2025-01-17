@@ -1,4 +1,4 @@
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../controllers/auth_controller.dart';

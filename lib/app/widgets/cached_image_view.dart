@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 class CachedImageView extends StatelessWidget {
   final String imageUrl;

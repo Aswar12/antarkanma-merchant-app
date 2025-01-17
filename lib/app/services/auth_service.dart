@@ -1,13 +1,13 @@
 import 'dart:io';
-import 'package:antarkanma/app/data/models/user_model.dart';
-import 'package:antarkanma/app/data/providers/auth_provider.dart';
-import 'package:antarkanma/app/utils/validators.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
-import 'package:antarkanma/app/services/storage_service.dart';
-import 'package:antarkanma/app/routes/app_pages.dart';
+import 'package:antarkanma_merchant/app/data/models/user_model.dart';
+import 'package:antarkanma_merchant/app/data/providers/auth_provider.dart';
+import 'package:antarkanma_merchant/app/utils/validators.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/app/services/storage_service.dart';
+import 'package:antarkanma_merchant/app/routes/app_pages.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import 'package:dio/dio.dart';
-import 'package:antarkanma/app/services/fcm_token_service.dart';
+import 'package:antarkanma_merchant/app/services/fcm_token_service.dart';
 
 class AuthService extends GetxService {
   final StorageService _storageService = StorageService.instance;
@@ -21,7 +21,6 @@ class AuthService extends GetxService {
     super.onInit();
   }
 
-  // FCM token management
   Future<void> _handleFCMToken({bool register = true}) async {
     try {
       final fcmTokenService = Get.find<FCMTokenService>();
@@ -38,7 +37,6 @@ class AuthService extends GetxService {
     }
   }
 
-  // Rest of the methods remain unchanged...
   Future<bool> verifyToken(String token) async {
     try {
       final response = await _authProvider.refreshToken(token);
@@ -95,6 +93,18 @@ class AuthService extends GetxService {
       }
 
       final userData = response.data['data']['user'];
+      
+      // Check if user is a merchant
+      if (userData['role'] != 'MERCHANT') {
+        if (!isAutoLogin) {
+          showCustomSnackbar(
+              title: 'Login Gagal',
+              message: 'Akun ini bukan akun merchant',
+              isError: true);
+        }
+        return false;
+      }
+
       final token = response.data['data']['access_token'];
 
       if (token != null) {
@@ -109,15 +119,12 @@ class AuthService extends GetxService {
         }
 
         currentUser.value = UserModel.fromJson(userData);
-        print("User logged in successfully: ${currentUser.value}"); // Debug log
         isLoggedIn.value = true;
 
-        // Register FCM token after successful login
         await _handleFCMToken(register: true);
 
-        // Only redirect and show snackbar if not auto-login
         if (!isAutoLogin) {
-          _redirectBasedOnRole();
+          Get.offAllNamed(Routes.merchantMainPage);
           showCustomSnackbar(title: 'Sukses', message: 'Login berhasil');
         }
         return true;
@@ -154,18 +161,29 @@ class AuthService extends GetxService {
         'phone_number': phoneNumber,
         'password': password,
         'password_confirmation': confirmPassword,
+        'role': 'MERCHANT', // Force register as merchant
       };
 
       final response = await _authProvider.register(userData);
       if (response.statusCode == 200) {
         final userData = response.data['data']['user'];
+        
+        // Verify the registered user is a merchant
+        if (userData['role'] != 'MERCHANT') {
+          showCustomSnackbar(
+              title: 'Error',
+              message: 'Gagal mendaftar sebagai merchant',
+              isError: true);
+          return false;
+        }
+
         final token = response.data['data']['access_token'];
         if (token != null && userData != null) {
           await _storageService.saveToken(token);
           await _storageService.saveUser(userData);
           currentUser.value = UserModel.fromJson(userData);
           isLoggedIn.value = true;
-          _redirectBasedOnRole();
+          Get.offAllNamed(Routes.merchantMainPage);
           return true;
         }
         showCustomSnackbar(
@@ -184,24 +202,6 @@ class AuthService extends GetxService {
           message: 'Gagal registrasi: ${e.toString()}',
           isError: true);
       return false;
-    }
-  }
-
-  void _redirectBasedOnRole() {
-    if (currentUser.value == null) return;
-
-    switch (currentUser.value!.role) {
-      case 'USER':
-        Get.offAllNamed(Routes.userMainPage);
-        break;
-      case 'MERCHANT':
-        Get.offAllNamed(Routes.merchantMainPage);
-        break;
-      case 'COURIER':
-        Get.offAllNamed(Routes.courierMainPage);
-        break;
-      default:
-        Get.offAllNamed(Routes.login);
     }
   }
 
@@ -242,35 +242,29 @@ class AuthService extends GetxService {
         ),
       });
 
-      try {
-        final response =
-            await _authProvider.updateProfilePhoto(token, formData);
+      final response = await _authProvider.updateProfilePhoto(token, formData);
 
-        if (response.statusCode == 200) {
-          // Get fresh user data
-          final userResponse = await _authProvider.getProfile(token);
-          if (userResponse.statusCode == 200) {
-            final userData = userResponse.data['data'];
-            await _storageService.saveUser(userData);
-            currentUser.value = UserModel.fromJson(userData);
+      if (response.statusCode == 200) {
+        // Get fresh user data
+        final userResponse = await _authProvider.getProfile(token);
+        if (userResponse.statusCode == 200) {
+          final userData = userResponse.data['data'];
+          await _storageService.saveUser(userData);
+          currentUser.value = UserModel.fromJson(userData);
 
-            showCustomSnackbar(
-                title: 'Sukses', message: 'Foto profil berhasil diperbarui');
-            return true;
-          }
+          showCustomSnackbar(
+              title: 'Sukses', message: 'Foto profil berhasil diperbarui');
+          return true;
         }
-
-        final errorMessage =
-            response.data['message'] ?? 'Gagal memperbarui foto profil';
-        print('Upload failed: $errorMessage');
-        print('Response data: ${response.data}');
-        showCustomSnackbar(
-            title: 'Error', message: errorMessage, isError: true);
-        return false;
-      } catch (e) {
-        print('Error during API call: $e');
-        throw e;
       }
+
+      final errorMessage =
+          response.data['message'] ?? 'Gagal memperbarui foto profil';
+      print('Upload failed: $errorMessage');
+      print('Response data: ${response.data}');
+      showCustomSnackbar(
+          title: 'Error', message: errorMessage, isError: true);
+      return false;
     } catch (e) {
       print('Error in updateProfilePhoto: $e');
       String errorMessage = 'Gagal memperbarui foto profil';
@@ -487,7 +481,6 @@ class AuthService extends GetxService {
       final token = _storageService.getToken();
       if (token != null) {
         await _authProvider.logout(token);
-        // Unregister FCM token before logging out
         await _handleFCMToken(register: false);
       }
     } catch (e) {
@@ -500,7 +493,6 @@ class AuthService extends GetxService {
 
   Future<void> _clearAuthData({bool fullClear = false}) async {
     if (fullClear) {
-      // Clear all data except remember me settings if enabled
       if (_storageService.getRememberMe()) {
         final credentials = _storageService.getSavedCredentials();
         await _storageService.clearAll();
@@ -516,11 +508,9 @@ class AuthService extends GetxService {
       await _storageService.clearAuth();
     }
 
-    // Clear observable states
     isLoggedIn.value = false;
     currentUser.value = null;
 
-    // Clear any cached data
     await _storageService.clearOrders();
     await _storageService.clearLocationData();
   }
@@ -543,12 +533,9 @@ class AuthService extends GetxService {
   String get userPhone => currentUser.value?.phoneNumber ?? '';
   String get userRole => currentUser.value?.role ?? '';
   bool get isMerchant => userRole == 'MERCHANT';
-  bool get isCourier => userRole == 'COURIER';
-  bool get isUser => userRole == 'USER';
   int? get userId => currentUser.value?.id;
   String? get userProfilePhotoUrl => currentUser.value?.profilePhotoUrl;
   String? get userProfilePhotoPath => currentUser.value?.profilePhotoPath;
-
   bool get isRememberMeEnabled => _storageService.getRememberMe();
 
   @override

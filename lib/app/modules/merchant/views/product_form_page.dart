@@ -1,12 +1,11 @@
 import 'dart:io';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_product_form_controller.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/variant_model.dart';
-import 'package:antarkanma/app/data/models/product_category_model.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_product_form_controller.dart';
-import 'package:antarkanma/app/utils/thousand_separator_formatter.dart';
+import 'package:antarkanma_merchant/app/data/models/variant_model.dart';
+import 'package:antarkanma_merchant/app/utils/thousand_separator_formatter.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 

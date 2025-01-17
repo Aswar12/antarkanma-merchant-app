@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_print
 
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/order_item_model.dart';
-import 'package:antarkanma/app/data/providers/order_item_provider.dart';
+import 'package:antarkanma_merchant/app/data/models/order_item_model.dart';
+import 'package:antarkanma_merchant/app/data/providers/order_item_provider.dart';
 
 class OrderItemService extends GetxService {
   final OrderItemProvider _orderItemProvider = OrderItemProvider();

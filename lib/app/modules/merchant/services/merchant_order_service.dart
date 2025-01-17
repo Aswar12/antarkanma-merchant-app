@@ -1,8 +1,8 @@
-import 'package:antarkanma/app/data/models/transaction_model.dart';
-import 'package:antarkanma/app/data/models/response/api_response.dart';
-import 'package:antarkanma/app/data/providers/merchant_provider.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
-import 'package:antarkanma/app/services/storage_service.dart';
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/data/models/response/api_response.dart';
+import 'package:antarkanma_merchant/app/data/providers/merchant_provider.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/services/storage_service.dart';
 import 'package:get_storage/get_storage.dart';
 
 class MerchantOrderService {

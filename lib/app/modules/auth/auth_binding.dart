@@ -1,4 +1,4 @@
-import 'package:antarkanma/app/controllers/auth_controller.dart';
+import 'package:antarkanma_merchant/app/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
 class AuthBinding extends Bindings {

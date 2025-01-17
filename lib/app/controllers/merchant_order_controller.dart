@@ -1,16 +1,16 @@
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/transaction_model.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
-import 'package:antarkanma/app/services/storage_service.dart';
-import 'package:antarkanma/app/services/merchant_service.dart';
-import 'package:antarkanma/app/services/transaction_service.dart';
-import 'package:antarkanma/app/data/models/order_item_model.dart';
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/services/storage_service.dart';
+import 'package:antarkanma_merchant/app/services/merchant_service.dart';
+import 'package:antarkanma_merchant/app/services/transaction_service.dart';
+import 'package:antarkanma_merchant/app/data/models/order_item_model.dart';
 import 'package:flutter/foundation.dart';
 
 class MerchantOrderController extends GetxController {
-  final AuthService _authService = Get.find<AuthService>();
-  final StorageService _storageService = StorageService.instance;
-  final MerchantService _merchantService = Get.find<MerchantService>();
+  final AuthService _authService;
+  final StorageService _storageService;
+  final MerchantService _merchantService;
   late final TransactionService _transactionService;
 
   // Define valid order statuses
@@ -22,7 +22,13 @@ class MerchantOrderController extends GetxController {
     OrderItemStatus.canceled
   ];
 
-  MerchantOrderController() {
+  MerchantOrderController({
+    required AuthService authService,
+    required MerchantService merchantService,
+    required StorageService storageService,
+  })  : _authService = authService,
+        _merchantService = merchantService,
+        _storageService = storageService {
     try {
       _transactionService = Get.find<TransactionService>();
       debugPrint('\n=== MerchantOrderController Debug ===');
@@ -94,8 +100,7 @@ class MerchantOrderController extends GetxController {
 
     try {
       isLoading.value = true;
-      errorMessage.value = '';
-
+      errorMessage('');      
       final mId = await getMerchantId();
       if (mId == null) {
         throw Exception('Merchant ID not found');

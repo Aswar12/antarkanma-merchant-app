@@ -1,11 +1,11 @@
 // ignore_for_file: override_on_non_overriding_member
 
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/user_location_model.dart';
-import 'package:antarkanma/app/data/providers/user_location_provider.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
-import 'package:antarkanma/app/services/storage_service.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/app/data/models/user_location_model.dart';
+import 'package:antarkanma_merchant/app/data/providers/user_location_provider.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/services/storage_service.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 
 class UserLocationService extends GetxService {
   final StorageService _storageService = StorageService.instance;

@@ -1,9 +1,10 @@
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_controller.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_profile_controller.dart';
-import 'package:antarkanma/theme.dart';
+
+import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 
 class AddOperationalHoursBottomSheet extends StatefulWidget {
   const AddOperationalHoursBottomSheet({super.key});

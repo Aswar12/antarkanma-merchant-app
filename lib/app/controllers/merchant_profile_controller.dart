@@ -1,13 +1,13 @@
-import 'package:antarkanma/app/services/auth_service.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/services/merchant_service.dart';
-import 'package:antarkanma/app/data/models/merchant_model.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_controller.dart';
+import 'package:antarkanma_merchant/app/services/merchant_service.dart';
+import 'package:antarkanma_merchant/app/data/models/merchant_model.dart';
 
 class MerchantProfileController extends GetxController {
-  final AuthService _authService = AuthService();
-  final MerchantService _merchantService = MerchantService();
+  final AuthService _authService;
+  final MerchantService _merchantService;
   late final MerchantController _merchantController;
 
   // Observable states
@@ -16,6 +16,12 @@ class MerchantProfileController extends GetxController {
   var merchantData = Rxn<MerchantModel>();
   var hasError = false.obs;
   var errorMessage = ''.obs;
+
+  MerchantProfileController({
+    required AuthService authService,
+    required MerchantService merchantService,
+  })  : _authService = authService,
+        _merchantService = merchantService;
 
   @override
   void onInit() {
@@ -151,7 +157,7 @@ class MerchantProfileController extends GetxController {
 
   // Getters
   MerchantModel? get merchant => merchantData.value;
-  String? get merchantLogo => merchant?.merchantLogoUrl;  // Updated to use merchantLogoUrl
+  String? get merchantLogo => merchant?.merchantLogoUrl;
   String? get merchantName => merchant?.merchantName;
   String? get merchantDescription => merchant?.description;
   String? get merchantAddress => merchant?.address;

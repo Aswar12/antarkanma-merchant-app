@@ -1,7 +1,7 @@
-import 'package:antarkanma/app/controllers/product_detail_controller.dart';
-import 'package:antarkanma/app/data/models/product_review_model.dart';
-import 'package:antarkanma/app/widgets/profile_image.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/controllers/product_detail_controller.dart';
+import 'package:antarkanma_merchant/app/data/models/product_review_model.dart';
+import 'package:antarkanma_merchant/app/widgets/profile_image.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -10,9 +10,9 @@ class ProductReviewSection extends StatelessWidget {
   final ProductDetailController controller;
 
   const ProductReviewSection({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,37 +48,37 @@ class ProductReviewSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor1,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: backgroundColor3.withOpacity(0.2)),
+            border: Border.all(color: backgroundColor3.withAlpha(51)), // 0.2 opacity = 51 in alpha
           ),
           child: Column(
             children: [
-              Text(
-                controller.averageRating.toStringAsFixed(1),
+              Obx(() => Text(
+                controller.averageRating.value.toStringAsFixed(1),
                 style: primaryTextStyle.copyWith(
                   fontSize: 24,
                   fontWeight: semiBold,
                 ),
-              ),
+              )),
               const SizedBox(height: 1),
-              Row(
+              Obx(() => Row(
                 children: List.generate(5, (index) {
                   return Icon(
-                    index < controller.averageRating
+                    index < controller.averageRating.value
                         ? Icons.star
                         : Icons.star_border,
                     color: Colors.amber,
                     size: 14,
                   );
                 }),
-              ),
+              )),
               const SizedBox(height: 2),
-              Text(
+              Obx(() => Text(
                 '${controller.reviewCount} Ulasan',
                 style: subtitleTextStyle.copyWith(
                   fontSize: 12,
                   fontWeight: medium,
                 ),
-              ),
+              )),
             ],
           ),
         ),
@@ -112,96 +112,100 @@ class ProductReviewSection extends StatelessWidget {
   }
 
   Widget _buildRatingFilter(int rating, String label) {
-    final isSelected = controller.selectedRatingFilter.value == rating;
-    return GestureDetector(
-      onTap: () => controller.setRatingFilter(rating),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 4,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? logoColorSecondary : backgroundColor1,
-          border: Border.all(
-            color: isSelected ? logoColorSecondary : backgroundColor3,
-            width: 1,
+    return Obx(() {
+      final isSelected = controller.selectedRatingFilter.value == rating;
+      return GestureDetector(
+        onTap: () => controller.setRatingFilter(rating),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
           ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          label,
-          style: primaryTextStyle.copyWith(
-            fontSize: 12,
-            color: isSelected ? backgroundColor1 : primaryTextColor,
-            fontWeight: medium,
+          decoration: BoxDecoration(
+            color: isSelected ? logoColorSecondary : backgroundColor1,
+            border: Border.all(
+              color: isSelected ? logoColorSecondary : backgroundColor3,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            label,
+            style: primaryTextStyle.copyWith(
+              fontSize: 12,
+              color: isSelected ? backgroundColor1 : primaryTextColor,
+              fontWeight: medium,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildReviews() {
-    if (controller.reviews.isEmpty) {
-      return Center(
+    return Obx(() {
+      if (controller.reviews.isEmpty) {
+        return Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.rate_review_outlined,
+                size: 48,
+                color: backgroundColor3,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Belum ada ulasan untuk produk ini.',
+                style: secondaryTextStyle.copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Jadilah yang pertama memberikan ulasan!',
+                style: subtitleTextStyle.copyWith(fontSize: 14),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: controller.fetchReviews,
         child: Column(
           children: [
-            Icon(
-              Icons.rate_review_outlined,
-              size: 48,
-              color: backgroundColor3,
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: controller.visibleReviews.length,
+              itemBuilder: (context, index) {
+                final review = controller.visibleReviews[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: _buildReviewItem(review),
+                );
+              },
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Belum ada ulasan untuk produk ini.',
-              style: secondaryTextStyle.copyWith(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Jadilah yang pertama memberikan ulasan!',
-              style: subtitleTextStyle.copyWith(fontSize: 14),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: controller.fetchReviews,
-      child: Column(
-        children: [
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.visibleReviews.length,
-            itemBuilder: (context, index) {
-              final review = controller.visibleReviews[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: _buildReviewItem(review),
-              );
-            },
-          ),
-          if (controller.hasMoreReviews) ...[
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: controller.toggleReviews,
-                child: Text(
-                  controller.isExpanded.value
-                      ? 'Lihat lebih sedikit'
-                      : 'Lihat semua ulasan',
-                  style: primaryTextOrange.copyWith(
-                    fontSize: 12,
-                    fontWeight: medium,
+            if (controller.hasMoreReviews) ...[
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: controller.toggleReviews,
+                  child: Text(
+                    controller.isExpanded.value
+                        ? 'Lihat lebih sedikit'
+                        : 'Lihat semua ulasan',
+                    style: primaryTextOrange.copyWith(
+                      fontSize: 12,
+                      fontWeight: medium,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
   Widget _buildReviewItem(ProductReviewModel review) {
@@ -210,7 +214,7 @@ class ProductReviewSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor1,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: backgroundColor3.withOpacity(0.15)),
+        border: Border.all(color: backgroundColor3.withAlpha(38)), // 0.15 opacity = 38 in alpha
       ),
       child: IntrinsicHeight(
         child: Row(

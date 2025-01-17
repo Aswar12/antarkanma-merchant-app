@@ -1,5 +1,5 @@
-import 'package:antarkanma/app/data/models/order_item_model.dart';
-import 'package:antarkanma/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/data/models/order_item_model.dart';
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

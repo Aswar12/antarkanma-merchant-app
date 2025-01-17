@@ -1,10 +1,10 @@
+import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/theme.dart';
-import 'package:antarkanma/app/data/models/transaction_model.dart';
-import 'package:antarkanma/app/data/models/order_item_model.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_order_controller.dart';
-import 'package:antarkanma/app/modules/merchant/widgets/merchant_order_card.dart';
+import 'package:antarkanma_merchant/theme.dart';
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/data/models/order_item_model.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/widgets/merchant_order_card.dart';
 
 class MerchantOrderPage extends StatefulWidget {
   const MerchantOrderPage({super.key});

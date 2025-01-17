@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/controllers/homepage_controller.dart';
-import 'package:antarkanma/app/services/category_service.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/controllers/category_controller.dart';
+import 'package:antarkanma_merchant/app/services/category_service.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 class CategoryWidget extends StatefulWidget {
   const CategoryWidget({Key? key}) : super(key: key);
@@ -12,7 +12,7 @@ class CategoryWidget extends StatefulWidget {
 }
 
 class _CategoryWidgetState extends State<CategoryWidget> {
-  final HomePageController homeController = Get.find<HomePageController>();
+  final CategoryController categoryController = Get.find<CategoryController>();
   final CategoryService categoryService = Get.find<CategoryService>();
   final ScrollController _scrollController = ScrollController();
 
@@ -21,7 +21,7 @@ class _CategoryWidgetState extends State<CategoryWidget> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (categoryService.categories.isEmpty) {
-        categoryService.getCategories(); // Updated method name
+        categoryService.fetchCategories();
       }
     });
   }
@@ -36,12 +36,12 @@ class _CategoryWidgetState extends State<CategoryWidget> {
     return Container(
       margin: EdgeInsets.only(right: Dimenssions.width10),
       child: Obx(() {
-        bool isSelected = homeController.selectedCategory.value == category;
+        bool isSelected = categoryController.selectedCategory.value == category;
         return Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              homeController.updateSelectedCategory(category);
+              categoryController.updateSelectedCategory(category);
               _scrollController.animateTo(
                 0,
                 duration: const Duration(milliseconds: 300),
@@ -111,13 +111,13 @@ class _CategoryWidgetState extends State<CategoryWidget> {
                 ),
                 child: Row(
                   children: [
-                    if (homeController.selectedCategory.value != "Semua")
-                      _buildCategoryItem(homeController.selectedCategory.value),
+                    if (categoryController.selectedCategory.value != "Semua")
+                      _buildCategoryItem(categoryController.selectedCategory.value),
                     _buildCategoryItem("Semua"),
                     ...categoryService.categories
                         .where((category) =>
                             category.name !=
-                            homeController.selectedCategory.value)
+                            categoryController.selectedCategory.value)
                         .map((category) => _buildCategoryItem(category.name))
                         .toList(),
                   ],

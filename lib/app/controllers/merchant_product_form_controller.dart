@@ -1,20 +1,20 @@
+import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:antarkanma/app/data/models/variant_model.dart';
-import 'package:antarkanma/app/data/models/product_category_model.dart';
-import 'package:antarkanma/app/services/merchant_service.dart';
-import 'package:antarkanma/app/services/product_category_service.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/app/data/models/variant_model.dart';
+import 'package:antarkanma_merchant/app/data/models/product_category_model.dart';
+import 'package:antarkanma_merchant/app/services/merchant_service.dart';
+import 'package:antarkanma_merchant/app/services/category_service.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_product_controller.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_controller.dart';
-import 'package:antarkanma/app/modules/merchant/views/merchant_main_page.dart';
-import 'package:antarkanma/app/utils/thousand_separator_formatter.dart';
+
+import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_main_page.dart';
+import 'package:antarkanma_merchant/app/utils/thousand_separator_formatter.dart';
 
 class MerchantProductFormController extends GetxController {
   final MerchantService merchantService;
-  final ProductCategoryService _categoryService = Get.find<ProductCategoryService>();
+  final CategoryService _categoryService = Get.find<CategoryService>();
   final formKey = GlobalKey<FormState>();
 
   final nameController = TextEditingController();
@@ -61,7 +61,7 @@ class MerchantProductFormController extends GetxController {
   Future<void> loadCategories() async {
     try {
       isLoading.value = true;
-      final loadedCategories = await _categoryService.getCategories();
+      final loadedCategories = await _categoryService.fetchCategories();
       categories.assignAll(loadedCategories);
     } catch (e) {
       print('Error loading categories: $e');
@@ -289,7 +289,7 @@ class MerchantProductFormController extends GetxController {
           title: 'Sukses',
           message: isEditing.value ? 'Produk berhasil diperbarui' : 'Produk berhasil ditambahkan'
         );
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 1));
         await _navigateToProductPage();
         return true;
       } else {

@@ -1,18 +1,13 @@
 import 'package:get/get.dart';
 import '../../../services/auth_service.dart';
-import '../../../services/product_service.dart';
-import '../../../services/category_service.dart';
 import '../../../services/transaction_service.dart';
 import '../../../services/merchant_service.dart';
 import '../../../services/storage_service.dart';
 import '../../../routes/app_pages.dart';
-import '../../../controllers/homepage_controller.dart';
 import '../../../data/models/user_model.dart';
 
 class SplashController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
-  final ProductService _productService = Get.find<ProductService>();
-  final CategoryService _categoryService = Get.find<CategoryService>();
   final TransactionService _transactionService = Get.find<TransactionService>();
   final MerchantService _merchantService = Get.find<MerchantService>();
   final StorageService _storageService = StorageService.instance;
@@ -49,10 +44,15 @@ class SplashController extends GetxController {
           
           if (success) {
             print('Auto-login successful');
-            await _loadRoleSpecificData();
+            if (_authService.currentUser.value?.role != 'MERCHANT') {
+              _storageService.clearAll();
+              Get.offAllNamed(Routes.login);
+              return;
+            }
+            await _loadMerchantData();
             _isLoading.value = false;
             await Future.delayed(const Duration(seconds: 1));
-            _navigateBasedOnRole();
+            Get.offAllNamed(Routes.merchantMainPage);
             return;
           }
         }
@@ -68,11 +68,16 @@ class SplashController extends GetxController {
         if (isValid) {
           _loadingText.value = 'Memuat data user...';
           _authService.currentUser.value = UserModel.fromJson(userData);
+          if (_authService.currentUser.value?.role != 'MERCHANT') {
+            _storageService.clearAll();
+            Get.offAllNamed(Routes.login);
+            return;
+          }
           _authService.isLoggedIn.value = true;
-          await _loadRoleSpecificData();
+          await _loadMerchantData();
           _isLoading.value = false;
           await Future.delayed(const Duration(seconds: 1));
-          _navigateBasedOnRole();
+          Get.offAllNamed(Routes.merchantMainPage);
           return;
         }
       }
@@ -89,69 +94,12 @@ class SplashController extends GetxController {
     }
   }
 
-  Future<void> _loadRoleSpecificData() async {
-    final role = _authService.currentUser.value?.role;
-    if (role == null) return;
-
-    switch (role) {
-      case 'USER':
-        _loadingText.value = 'Memuat data kategori...';
-        await _categoryService.getCategories();
-
-        _loadingText.value = 'Memuat data produk populer...';
-        if (!Get.isRegistered<HomePageController>()) {
-          final homeController = HomePageController();
-          Get.put(homeController, permanent: true);
-        }
-        final homeController = Get.find<HomePageController>();
-
-        await homeController.loadPopularProducts();
-
-        if (homeController.popularProducts.isEmpty) {
-          print('Warning: No popular products loaded');
-          _loadingText.value = 'Mencoba memuat ulang data produk...';
-          await homeController.refreshProducts(showMessage: false);
-        }
-        break;
-
-      case 'MERCHANT':
-        _loadingText.value = 'Memuat data merchant...';
-        await Future.wait([
-          _merchantService.getMerchant(),
-          _merchantService.getMerchantProducts(),
-          _transactionService.getTransactions(),
-        ]);
-        break;
-
-      case 'COURIER':
-        _loadingText.value = 'Memuat data pengiriman...';
-        await _transactionService.getTransactions(
-          status: 'pending,in_progress',
-          pageSize: 10,
-        );
-        break;
-    }
-  }
-
-  void _navigateBasedOnRole() {
-    final role = _authService.currentUser.value?.role;
-    if (role == null) {
-      Get.offAllNamed(Routes.login);
-      return;
-    }
-
-    switch (role) {
-      case 'USER':
-        Get.offAllNamed(Routes.userMainPage);
-        break;
-      case 'MERCHANT':
-        Get.offAllNamed(Routes.merchantMainPage);
-        break;
-      case 'COURIER':
-        Get.offAllNamed(Routes.courierMainPage);
-        break;
-      default:
-        Get.offAllNamed(Routes.login);
-    }
+  Future<void> _loadMerchantData() async {
+    _loadingText.value = 'Memuat data merchant...';
+    await Future.wait([
+      _merchantService.getMerchant(),
+      _merchantService.getMerchantProducts(),
+      _transactionService.getTransactions(),
+    ]);
   }
 }

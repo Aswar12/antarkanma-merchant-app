@@ -1,9 +1,9 @@
 // ignore_for_file: avoid_print
 
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/user_location_model.dart';
-import 'package:antarkanma/app/services/user_location_service.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/app/data/models/user_location_model.dart';
+import 'package:antarkanma_merchant/app/services/user_location_service.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 
 class UserLocationController extends GetxController {
   final UserLocationService _locationService;

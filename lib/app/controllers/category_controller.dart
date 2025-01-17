@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/product_category_model.dart';  // Updated import
-import 'package:antarkanma/app/data/providers/category_provider.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
-import 'package:antarkanma/app/services/storage_service.dart';
+import 'package:antarkanma_merchant/app/data/models/product_category_model.dart';
+import 'package:antarkanma_merchant/app/data/providers/category_provider.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/services/storage_service.dart';
 
 class CategoryController extends GetxController {
   final CategoryProvider _provider = CategoryProvider();
@@ -10,13 +10,19 @@ class CategoryController extends GetxController {
   final StorageService _storage = StorageService.instance;
 
   static const String CATEGORIES_STORAGE_KEY = 'categories';
-  final RxList<ProductCategory> categories = <ProductCategory>[].obs;  // Updated type
+  final RxList<ProductCategory> categories = <ProductCategory>[].obs;
   final RxBool isLoading = false.obs;
+  final RxString selectedCategory = "Semua".obs;
 
   @override
   void onInit() {
     super.onInit();
-    getCategories();  // Updated method name
+    getCategories();
+  }
+
+  void updateSelectedCategory(String category) {
+    selectedCategory.value = category;
+    update();
   }
 
   Future<List<ProductCategory>> getCategories() async {
@@ -49,10 +55,37 @@ class CategoryController extends GetxController {
     } finally {
       isLoading.value = false;
     }
-    return categories; // Ensure we return the categories
+    return categories;
   }
 
   Future<void> refreshCategories() async {
     await getCategories();
+  }
+
+  ProductCategory? findCategoryById(int id) {
+    try {
+      return categories.firstWhere((category) => category.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  ProductCategory? findCategoryByName(String name) {
+    try {
+      return categories.firstWhere(
+        (category) => category.name.toLowerCase() == name.toLowerCase(),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void resetSelection() {
+    selectedCategory.value = "Semua";
+    update();
+  }
+
+  bool isCategorySelected(String categoryName) {
+    return selectedCategory.value == categoryName;
   }
 }

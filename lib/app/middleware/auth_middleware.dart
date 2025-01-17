@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
-import 'package:antarkanma/app/routes/app_pages.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 
 class AuthMiddleware extends GetMiddleware {

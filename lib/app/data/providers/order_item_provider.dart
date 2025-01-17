@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:antarkanma/config.dart';
+import 'package:antarkanma_merchant/config.dart';
 
 class OrderItemProvider {
   final Dio _dio = Dio();

@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import 'package:antarkanma/app/services/storage_service.dart';
-import 'package:antarkanma/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/services/storage_service.dart';
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
 import 'package:flutter/foundation.dart';
 
 class TransactionCacheService extends GetxService {

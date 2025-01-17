@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:antarkanma/app/data/models/cart_item_model.dart';
+import 'package:antarkanma_merchant/app/data/models/cart_item_model.dart';
 
 class OrderItemStatus {
   static const String pending = 'PENDING';

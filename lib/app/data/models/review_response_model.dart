@@ -1,4 +1,4 @@
-import 'package:antarkanma/app/data/models/product_review_model.dart';
+import 'package:antarkanma_merchant/app/data/models/product_review_model.dart';
 
 class ReviewResponseModel {
   final List<ProductReviewModel> reviews;

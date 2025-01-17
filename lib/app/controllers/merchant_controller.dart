@@ -1,11 +1,11 @@
-import 'package:antarkanma/app/data/models/merchant_model.dart';
+import 'package:antarkanma_merchant/app/data/models/merchant_model.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/services/merchant_service.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/services/merchant_service.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
 
 class MerchantController extends GetxController {
-  final MerchantService _merchantService = MerchantService();
-  final AuthService _authService = AuthService();
+  final MerchantService _merchantService;
+  final AuthService _authService;
 
   var currentIndex = 0.obs;
   var isLoading = false.obs;
@@ -14,6 +14,12 @@ class MerchantController extends GetxController {
   var errorMessage = ''.obs;
   var lastFetchTime = DateTime.now().obs;
   final cacheValidityDuration = const Duration(minutes: 5);
+
+  MerchantController({
+    required MerchantService merchantService,
+    required AuthService authService,
+  })  : _merchantService = merchantService,
+        _authService = authService;
 
   @override
   void onInit() {

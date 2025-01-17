@@ -1,8 +1,8 @@
-import 'package:antarkanma/app/controllers/auth_controller.dart';
-import 'package:antarkanma/app/widgets/custom_input_field.dart';
+import 'package:antarkanma_merchant/app/controllers/auth_controller.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 class SignUpPage extends StatelessWidget {
   final GlobalKey<FormState> _signUpFormKey = GlobalKey<FormState>();

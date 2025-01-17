@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:antarkanma/app/data/models/product_model.dart';
-import 'package:antarkanma/app/services/merchant_service.dart';
+import 'package:antarkanma_merchant/app/data/models/product_model.dart';
+import 'package:antarkanma_merchant/app/services/merchant_service.dart';
 
 class MerchantProductController extends GetxController {
   final MerchantService merchantService;

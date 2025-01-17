@@ -1,13 +1,13 @@
 // ignore_for_file: unused_field, unnecessary_null_comparison, library_private_types_in_public_api, deprecated_member_use
 
-import 'package:antarkanma/app/modules/user/views/map_picker_page.dart';
-import 'package:antarkanma/app/widgets/custom_input_field.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/app/modules/user/views/map_picker_page.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_input_field.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma/app/data/models/user_location_model.dart';
-import 'package:antarkanma/app/controllers/user_location_controller.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/data/models/user_location_model.dart';
+import 'package:antarkanma_merchant/app/controllers/user_location_controller.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:latlong2/latlong.dart';
 
 class AddEditAddressPage extends GetView<UserLocationController> {

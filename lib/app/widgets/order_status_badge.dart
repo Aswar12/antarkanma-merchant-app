@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 class OrderStatusBadge extends StatelessWidget {
   final String status;

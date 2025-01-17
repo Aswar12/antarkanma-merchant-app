@@ -1,4 +1,4 @@
-import 'package:antarkanma/config.dart';
+import 'package:antarkanma_merchant/config.dart';
 import 'package:dio/dio.dart';
 
 class CategoryProvider {

@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
-import 'package:antarkanma/config.dart';
-import 'package:antarkanma/app/services/storage_service.dart';
-import 'package:antarkanma/app/services/auth_service.dart';
-import 'package:antarkanma/app/routes/app_pages.dart';
-import 'package:antarkanma/app/widgets/custom_snackbar.dart';
+import 'package:antarkanma_merchant/config.dart';
+import 'package:antarkanma_merchant/app/services/storage_service.dart';
+import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:antarkanma_merchant/app/routes/app_pages.dart';
+import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 import 'package:flutter/foundation.dart';
 
 class TransactionProvider {

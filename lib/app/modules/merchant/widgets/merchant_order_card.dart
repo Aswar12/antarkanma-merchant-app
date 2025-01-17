@@ -1,11 +1,11 @@
+import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:antarkanma/app/data/models/transaction_model.dart';
-import 'package:antarkanma/app/widgets/order_status_badge.dart';
-import 'package:antarkanma/app/utils/order_utils.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_order_controller.dart';
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/widgets/order_status_badge.dart';
+import 'package:antarkanma_merchant/app/utils/order_utils.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 class MerchantOrderCard extends StatelessWidget {
   final TransactionModel transaction;

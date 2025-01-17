@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:antarkanma/config.dart';
+import 'package:antarkanma_merchant/config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 

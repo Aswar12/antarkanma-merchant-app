@@ -16,10 +16,12 @@ class ProductCategory {
   factory ProductCategory.fromJson(Map<String, dynamic> json) {
     try {
       return ProductCategory(
-        id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+        id: json['id'] is int
+            ? json['id']
+            : int.tryParse(json['id'].toString()) ?? 0,
         name: json['name']?.toString() ?? 'Unknown',
         description: json['description']?.toString(),
-        createdAt: json['created_at'] != null 
+        createdAt: json['created_at'] != null
             ? DateTime.tryParse(json['created_at'].toString())
             : null,
         updatedAt: json['updated_at'] != null

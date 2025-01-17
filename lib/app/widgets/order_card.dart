@@ -1,21 +1,22 @@
+import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:antarkanma/app/controllers/order_controller.dart';
-import 'package:antarkanma/app/data/models/transaction_model.dart';
-import 'package:antarkanma/app/widgets/order_status_badge.dart';
-import 'package:antarkanma/app/utils/order_utils.dart';
-import 'package:antarkanma/theme.dart';
+
+import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
+import 'package:antarkanma_merchant/app/widgets/order_status_badge.dart';
+import 'package:antarkanma_merchant/app/utils/order_utils.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 class OrderCard extends StatelessWidget {
   final TransactionModel transaction;
   final Function(TransactionModel) onTap;
 
   const OrderCard({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   Future<void> _showCancelDialog() async {
     await showDialog(
@@ -50,8 +51,8 @@ class OrderCard extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Get.back();
-              final controller = Get.find<OrderController>();
-              await controller.cancelOrder(transaction.id.toString());
+              final controller = Get.find<MerchantOrderController>();
+              
             },
             style: TextButton.styleFrom(
               backgroundColor: alertColor,
@@ -73,7 +74,7 @@ class OrderCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(Dimenssions.height12),
       decoration: BoxDecoration(
-        color: backgroundColor3.withOpacity(0.13),
+        color: backgroundColor3.withValues(red: 33, green: 33, blue: 33, alpha: 33),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(Dimenssions.radius15),
           topRight: Radius.circular(Dimenssions.radius15),
@@ -88,7 +89,7 @@ class OrderCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(Dimenssions.height6),
                   decoration: BoxDecoration(
-                    color: logoColorSecondary.withOpacity(0.26),
+                    color: logoColorSecondary.withValues(red: 66, green: 66, blue: 66, alpha: 66),
                     borderRadius: BorderRadius.circular(Dimenssions.radius8),
                   ),
                   child: Icon(
@@ -160,7 +161,7 @@ class OrderCard extends StatelessWidget {
             Divider(
               height: 1,
               thickness: 1,
-              color: backgroundColor3.withOpacity(0.26),
+              color: backgroundColor3.withValues(red: 66, green: 66, blue: 66, alpha: 66),
             ),
             SizedBox(height: Dimenssions.height8),
           ],
@@ -182,7 +183,7 @@ class OrderCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Dimenssions.radius8),
               border: Border.all(
-                color: backgroundColor3.withOpacity(0.51),
+                color: backgroundColor3.withValues(red: 130, green: 130, blue: 130, alpha: 130),
                 width: 1,
               ),
             ),
@@ -192,7 +193,7 @@ class OrderCard extends StatelessWidget {
                 item.product.firstImageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  color: backgroundColor3.withOpacity(0.26),
+                  color: backgroundColor3.withValues(red: 66, green: 66, blue: 66, alpha: 66),
                   child: Icon(
                     Icons.image_not_supported_outlined,
                     color: secondaryTextColor,
@@ -235,9 +236,8 @@ class OrderCard extends StatelessWidget {
                             vertical: Dimenssions.height2,
                           ),
                           decoration: BoxDecoration(
-                            color: logoColorSecondary.withOpacity(0.26),
-                            borderRadius:
-                                BorderRadius.circular(Dimenssions.radius6),
+                            color: logoColorSecondary.withValues(red: 66, green: 66, blue: 66, alpha: 66),
+                            borderRadius: BorderRadius.circular(Dimenssions.radius6),
                           ),
                           child: Text(
                             '${item.quantity} item',
@@ -294,7 +294,7 @@ class OrderCard extends StatelessWidget {
           TextButton(
             onPressed: _showCancelDialog,
             style: TextButton.styleFrom(
-              backgroundColor: alertColor.withOpacity(0.26),
+              backgroundColor: alertColor.withValues(red: 66, green: 66, blue: 66, alpha: 66),
               padding: EdgeInsets.symmetric(
                 horizontal: Dimenssions.width8,
                 vertical: Dimenssions.height2,
@@ -340,7 +340,7 @@ class OrderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(Dimenssions.radius15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.13),
+              color: Colors.black.withValues(red: 33, green: 33, blue: 33, alpha: 33),
               spreadRadius: 1,
               blurRadius: 10,
               offset: const Offset(0, 2),

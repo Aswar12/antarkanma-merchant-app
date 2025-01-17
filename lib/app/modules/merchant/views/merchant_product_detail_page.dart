@@ -1,11 +1,11 @@
-import 'package:antarkanma/theme.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_product_controller.dart';
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:antarkanma/app/data/models/product_model.dart';
-import 'package:antarkanma/app/utils/image_viewer_page.dart';
-import 'package:antarkanma/app/modules/merchant/controllers/merchant_product_controller.dart';
+import 'package:antarkanma_merchant/app/data/models/product_model.dart';
+import 'package:antarkanma_merchant/app/utils/image_viewer_page.dart';
 import 'package:intl/intl.dart';
 import 'product_form_page.dart';
 
