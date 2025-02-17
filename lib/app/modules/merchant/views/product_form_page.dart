@@ -82,149 +82,156 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
             onPressed: () => Get.back(result: false),
           ),
         ),
-        body: GetBuilder<MerchantProductFormController>(
-          builder: (controller) {
-            if (controller.isLoading.value) {
-              return Center(child: CircularProgressIndicator());
-            }
+        body: Stack(
+          children: [
+            GetBuilder<MerchantProductFormController>(
+              builder: (controller) {
+                if (controller.isLoading.value) {
+                  return Center(child: CircularProgressIndicator());
+                }
 
-            return Form(
-              key: controller.formKey,
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildImageUploadSection(),
-                    if (controller.images.isEmpty &&
-                        controller.existingImages.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'Minimal 1 foto harus diupload',
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      ),
-                    SizedBox(height: 20),
-                    _buildTextField(
-                      'Nama Produk',
-                      'Masukkan nama produk',
-                      controller: controller.nameController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nama produk tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    _buildTextField(
-                      'Deskripsi',
-                      'Masukkan deskripsi produk',
-                      controller: controller.descriptionController,
-                      maxLines: 3,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Deskripsi produk tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    _buildCategoryDropdown(),
-                    SizedBox(height: 16),
-                    _buildTextField(
-                      'Harga',
-                      'Masukkan harga produk',
-                      controller: controller.priceController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        ThousandsSeparatorInputFormatter(),
-                      ],
-                      prefixText: 'Rp ',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Harga produk tidak boleh kosong';
-                        }
-                        String numericValue =
-                            value.replaceAll(RegExp(r'[^\d]'), '');
-                        if (double.tryParse(numericValue) == null) {
-                          return 'Harga harus berupa angka';
-                        }
-                        if (double.parse(numericValue) <= 0) {
-                          return 'Harga harus lebih dari 0';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    _buildVariantSection(),
-                    SizedBox(height: 16),
-                    _buildStatusSwitch(),
-                    SizedBox(height: 24),
-                    if (controller.errorMessage.value.isNotEmpty)
-                      Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.error_outline, color: Colors.red),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                controller.errorMessage.value,
-                                style: TextStyle(color: Colors.red),
-                              ),
+                return Form(
+                  key: controller.formKey,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildImageUploadSection(),
+                        if (controller.images.isEmpty &&
+                            controller.existingImages.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Minimal 1 foto harus diupload',
+                              style: TextStyle(color: Colors.red, fontSize: 12),
                             ),
+                          ),
+                        SizedBox(height: 20),
+                        _buildTextField(
+                          'Nama Produk',
+                          'Masukkan nama produk',
+                          controller: controller.nameController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Nama produk tidak boleh kosong';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        _buildTextField(
+                          'Deskripsi',
+                          'Masukkan deskripsi produk',
+                          controller: controller.descriptionController,
+                          maxLines: 3,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Deskripsi produk tidak boleh kosong';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        _buildCategoryDropdown(),
+                        SizedBox(height: 16),
+                        _buildTextField(
+                          'Harga',
+                          'Masukkan harga produk',
+                          controller: controller.priceController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            ThousandsSeparatorInputFormatter(),
                           ],
+                          prefixText: 'Rp ',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Harga produk tidak boleh kosong';
+                            }
+                            String numericValue =
+                                value.replaceAll(RegExp(r'[^\d]'), '');
+                            if (double.tryParse(numericValue) == null) {
+                              return 'Harga harus berupa angka';
+                            }
+                            if (double.parse(numericValue) <= 0) {
+                              return 'Harga harus lebih dari 0';
+                            }
+                            return null;
+                          },
                         ),
-                      ),
-                    SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: controller.canSave.value
-                            ? () async {
-                                if (controller.formKey.currentState
-                                        ?.validate() ??
-                                    false) {
-                                  await controller.saveProduct();
-                                }
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: controller.canSave.value
-                              ? logoColor
-                              : Colors.grey,
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        SizedBox(height: 16),
+                        _buildVariantSection(),
+                        SizedBox(height: 16),
+                        _buildStatusSwitch(),
+                        SizedBox(height: 24),
+                        if (controller.errorMessage.value.isNotEmpty)
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline, color: Colors.red),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    controller.errorMessage.value,
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          'Simpan Produk',
-                          style: primaryTextStyle.copyWith(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: semiBold,
-                          ),
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor1,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: Offset(0, -2),
               ),
-            );
-          },
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: () {
+              if (controller.formKey.currentState!.validate()) {
+                controller.saveProduct();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: logoColor,
+              padding: EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Simpan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
+  // Rest of the existing methods remain unchanged...
   Widget _buildTextField(
     String label,
     String hint, {
@@ -253,12 +260,23 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
           inputFormatters: inputFormatters,
           validator: validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
+          style: TextStyle(color: logoColor),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: secondaryTextStyle,
+            hintStyle: TextStyle(color: logoColor),
             prefixText: prefixText,
+            prefixStyle: TextStyle(color: logoColor),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: logoColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: logoColor),
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: logoColor),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 12,
@@ -380,7 +398,9 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                           },
                         )
                       : Image.file(
-                          File(controller.images[index - controller.existingImages.length].path),
+                          File(controller
+                              .images[index - controller.existingImages.length]
+                              .path),
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
@@ -398,7 +418,9 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                   child: GestureDetector(
                     onTap: () async {
                       await controller.removeImage(
-                        isExisting ? index : index - controller.existingImages.length,
+                        isExisting
+                            ? index
+                            : index - controller.existingImages.length,
                         isExisting: isExisting,
                       );
                     },
@@ -436,7 +458,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
           builder: (controller) {
             return DropdownButtonFormField<String>(
               value: controller.selectedCategoryName.value,
-              hint: Text('Pilih kategori'),
+              hint: Text('Pilih kategori', style: TextStyle(color: logoColor)),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Kategori harus dipilih';
@@ -446,7 +468,8 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
               items: controller.categories
                   .map((category) => DropdownMenuItem(
                         value: category.name,
-                        child: Text(category.name),
+                        child:
+                            Text(category.name, style: TextStyle(color: logoColor)),
                       ))
                   .toList(),
               onChanged: (value) {
@@ -456,15 +479,27 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                   controller.setCategory(selectedCategory);
                 }
               },
+              style: TextStyle(color: logoColor),
+              icon: Icon(Icons.arrow_drop_down, color: logoColor),
               decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
                 ),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 12,
                 ),
               ),
+              dropdownColor: backgroundColor1,
             );
           },
         ),
@@ -500,12 +535,16 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
         GetBuilder<MerchantProductFormController>(
           builder: (controller) {
             if (controller.variants.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+              return Container(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: logoColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
                   child: Text(
                     'Belum ada varian',
-                    style: secondaryTextStyle,
+                    style: TextStyle(color: logoColor),
                   ),
                 ),
               );
@@ -521,41 +560,76 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
 
             return Column(
               children: variantGroups.entries.map((entry) {
-                return Card(
+                return Container(
                   margin: EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entry.key,
-                          style: primaryTextStyle.copyWith(
-                            fontWeight: semiBold,
-                          ),
-                        ),
-                        Divider(),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: entry.value.map((variant) {
-                            return Chip(
-                              label: Text(
-                                '${variant.value} (+${NumberFormat.currency(
-                                  locale: 'id_ID',
-                                  symbol: 'Rp ',
-                                  decimalDigits: 0,
-                                ).format(variant.priceAdjustment)})',
-                                style: primaryTextStyle.copyWith(fontSize: 12),
+                  decoration: BoxDecoration(
+                    color: backgroundColor1,
+                    border: Border.all(color: logoColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.key,
+                              style: primaryTextStyle.copyWith(
+                                fontWeight: semiBold,
+                                color: logoColor,
                               ),
-                              deleteIcon: Icon(Icons.close, size: 16),
-                              onDeleted: () =>
-                                  controller.removeVariant(variant),
-                            );
-                          }).toList(),
+                            ),
+                            Divider(color: logoColor.withOpacity(0.2)),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: entry.value.map((variant) {
+                                return Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: backgroundColor1,
+                                    border: Border.all(color: logoColor),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${variant.value} (+${NumberFormat.currency(
+                                          locale: 'id_ID',
+                                          symbol: 'Rp ',
+                                          decimalDigits: 0,
+                                        ).format(variant.priceAdjustment)})',
+                                        style: TextStyle(
+                                          color: logoColor,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4),
+                                      GestureDetector(
+                                        onTap: () =>
+                                            controller.removeVariant(variant),
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 16,
+                                          color: logoColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               }).toList(),
@@ -602,39 +676,80 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
 
     Get.dialog(
       AlertDialog(
-        title: Text(
-          existingVariant == null ? 'Tambah Varian' : 'Edit Varian',
-          style: primaryTextStyle.copyWith(fontWeight: semiBold),
+        backgroundColor: backgroundColor1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: logoColor, width: 1),
+        ),
+        title: Column(
+          children: [
+            Text(
+              existingVariant == null ? 'Tambah Varian' : 'Edit Varian',
+              style: primaryTextStyle.copyWith(
+                fontWeight: semiBold,
+                color: logoColor,
+              ),
+            ),
+            SizedBox(height: 8),
+            Divider(color: logoColor.withOpacity(0.2)),
+          ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
+              style: TextStyle(color: logoColor),
               decoration: InputDecoration(
                 labelText: 'Nama Varian',
-                labelStyle: secondaryTextStyle,
+                labelStyle: TextStyle(color: logoColor),
                 hintText: 'Contoh: Ukuran, Warna',
+                hintStyle: TextStyle(color: logoColor.withOpacity(0.5)),
+                filled: true,
+                fillColor: backgroundColor1,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor, width: 2),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
                 ),
               ),
             ),
             SizedBox(height: 16),
             TextField(
               controller: valueController,
+              style: TextStyle(color: logoColor),
               decoration: InputDecoration(
                 labelText: 'Nilai Varian',
-                labelStyle: secondaryTextStyle,
+                labelStyle: TextStyle(color: logoColor),
                 hintText: 'Contoh: XL, Merah',
+                hintStyle: TextStyle(color: logoColor.withOpacity(0.5)),
+                filled: true,
+                fillColor: backgroundColor1,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor, width: 2),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
                 ),
               ),
             ),
             SizedBox(height: 16),
             TextField(
               controller: priceController,
+              style: TextStyle(color: logoColor),
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
@@ -642,12 +757,25 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
               ],
               decoration: InputDecoration(
                 labelText: 'Tambahan Harga',
-                labelStyle: secondaryTextStyle,
+                labelStyle: TextStyle(color: logoColor),
                 hintText: 'Masukkan tambahan harga',
+                hintStyle: TextStyle(color: logoColor.withOpacity(0.5)),
+                prefixText: 'Rp ',
+                prefixStyle: TextStyle(color: logoColor),
+                filled: true,
+                fillColor: backgroundColor1,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor, width: 2),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: logoColor),
                 ),
-                prefixText: 'Rp ',
               ),
             ),
           ],
@@ -655,44 +783,72 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey,
+            ),
             child: Text(
               'Batal',
               style: primaryTextStyle.copyWith(color: Colors.grey),
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              String numericValue =
-                  priceController.text.replaceAll(RegExp(r'[^\d]'), '');
-              final variant = VariantModel(
-                id: existingVariant?.id,
-                productId: existingVariant?.productId,
-                name: nameController.text,
-                value: valueController.text,
-                priceAdjustment: double.tryParse(numericValue) ?? 0,
-                status: existingVariant?.status ?? 'ACTIVE',
-              );
-
-              if (index != null) {
-                controller.updateVariant(index, variant);
-              } else {
-                controller.addVariant(variant);
-              }
-
-              Get.back();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: logoColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+          Container(
+            margin: EdgeInsets.only(left: 8),
+            decoration: BoxDecoration(
+              color: logoColor,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: logoColor.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            child: Text(
-              'Simpan',
-              style: primaryTextStyle.copyWith(color: Colors.white),
+            child: ElevatedButton(
+              onPressed: () {
+                String numericValue =
+                    priceController.text.replaceAll(RegExp(r'[^\d]'), '');
+                final variant = VariantModel(
+                  id: existingVariant?.id,
+                  productId: existingVariant?.productId,
+                  name: nameController.text,
+                  value: valueController.text,
+                  priceAdjustment: double.tryParse(numericValue) ?? 0,
+                  status: existingVariant?.status ?? 'ACTIVE',
+                );
+
+                if (index != null) {
+                  controller.updateVariant(index, variant);
+                } else {
+                  controller.addVariant(variant);
+                }
+
+                Get.back();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: logoColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                minimumSize: Size(120, 48),
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Simpan',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
           ),
         ],
+        actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }

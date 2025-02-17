@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 import 'package:get/get.dart';
 
@@ -32,7 +33,38 @@ class MerchantHomePage extends GetView<MerchantController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Shimmer(
+                  duration: Duration(seconds: 3),
+                  interval: Duration(seconds: 5),
+                  color: Colors.white,
+                  colorOpacity: 0.3,
+                  enabled: true,
+                  direction: ShimmerDirection.fromLTRB(),
+                  child: Container(
+                    width: 200,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.store,
+                        size: 40,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text('Loading merchant data, please wait...'),
+              ],
+            ),
+          );
         }
 
         if (controller.merchant.value == null) {
@@ -298,40 +330,36 @@ class MerchantHomePage extends GetView<MerchantController> {
   }
 
   Widget _buildQuickActionCard(String title, IconData icon) {
-    return SizedBox(
-      width: Dimenssions.boottomHeightBar, // Ganti dengan lebar yang diinginkan
-      height: Dimenssions.height80, // Ganti dengan tinggi yang diinginkan
-      child: Card(
-        elevation: 4,
-        color: backgroundColor1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Dimenssions.radius15),
-        ),
-        child: InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(Dimenssions.radius15),
-          child: Padding(
-            padding: EdgeInsets.all(Dimenssions.width8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: Dimenssions.iconSize24, color: logoColor),
-                SizedBox(height: Dimenssions.height8),
-                Flexible(
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: primaryTextStyle.copyWith(
-                      fontSize: Dimenssions.font12,
-                      color: logoColor,
-                    ),
+    return Card(
+      elevation: 4,
+      color: backgroundColor1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Dimenssions.radius15),
+      ),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(Dimenssions.radius15),
+        child: Padding(
+          padding: EdgeInsets.all(Dimenssions.width8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: Dimenssions.iconSize24, color: logoColor),
+              SizedBox(height: Dimenssions.height8),
+              Flexible(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: primaryTextStyle.copyWith(
+                    fontSize: Dimenssions.font12,
+                    color: logoColor,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

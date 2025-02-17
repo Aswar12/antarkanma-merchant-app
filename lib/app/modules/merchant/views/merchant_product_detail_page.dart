@@ -24,6 +24,13 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
   int currentImageIndex = 0;
   final MerchantProductController productController =
       Get.find<MerchantProductController>();
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
 
   void _handleDelete() async {
     final confirm = await Get.dialog<bool>(
@@ -31,13 +38,14 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
-            SizedBox(width: 12),
-            Expanded(child: Text('Konfirmasi Hapus')),
+            const Icon(Icons.warning_amber_rounded,
+                color: Colors.red, size: 28),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Konfirmasi Hapus')),
           ],
         ),
-        content: Text('Apakah Anda yakin ingin menghapus produk ini?'),
-        actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        content: const Text('Apakah Anda yakin ingin menghapus produk ini?'),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         actions: [
           Row(
             children: [
@@ -46,26 +54,26 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                   onPressed: () => Get.back(result: false),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[600],
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text('Batal'),
+                  child: const Text('Batal'),
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
                   onPressed: () => Get.back(result: true),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text('Hapus'),
+                  child: const Text('Hapus'),
                 ),
               ),
             ],
@@ -77,7 +85,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
     if (confirm == true && widget.product.id != null) {
       final result = await productController.deleteProduct(widget.product.id!);
       if (result['success']) {
-        Get.back();
+        Get.back(result: true);
         Get.snackbar(
           'Sukses',
           'Produk berhasil dihapus',
@@ -95,27 +103,42 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
     }
   }
 
+  void _handleImageTap(int index) {
+    Get.to(
+      () => ImageViewerPage(
+        imageUrls: widget.product.imageUrls.isEmpty
+            ? ['assets/image_shoes.png']
+            : widget.product.imageUrls,
+        initialIndex: index,
+        heroTagPrefix: 'product_${widget.product.id}',
+      ),
+      transition: Transition.fadeIn,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor1,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _buildSliverAppBar(),
-          SliverPadding(
-            padding: EdgeInsets.zero,
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildProductInfo(),
-                _buildVariantSection(),
-                _buildStatisticsSection(),
-                _buildReviewsSection(),
-                SizedBox(height: 100), // Extra padding for bottom buttons
-              ]),
+      body: SafeArea(
+        child: CustomScrollView(
+          controller: scrollController,
+          physics: const ClampingScrollPhysics(),
+          slivers: [
+            _buildSliverAppBar(),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  _buildProductInfo(),
+                  _buildVariantSection(),
+                  _buildStatisticsSection(),
+                  _buildReviewsSection(),
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
@@ -130,7 +153,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
       elevation: 0,
       leading: IconButton(
         icon: Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: backgroundColor1.withOpacity(0.9),
             shape: BoxShape.circle,
@@ -143,62 +166,31 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            CarouselSlider.builder(
-              itemCount: widget.product.imageUrls.isEmpty
-                  ? 1
-                  : widget.product.imageUrls.length,
+            CarouselSlider(
+              items: widget.product.imageUrls.isEmpty
+                  ? [
+                      _buildImageItem(
+                        'assets/image_shoes.png',
+                        isAsset: true,
+                        index: 0,
+                      ),
+                    ]
+                  : List.generate(
+                      widget.product.imageUrls.length,
+                      (index) => _buildImageItem(
+                        widget.product.imageUrls[index],
+                        index: index,
+                      ),
+                    ),
               options: CarouselOptions(
                 height: double.infinity,
                 viewportFraction: 1.0,
-                enlargeCenterPage: false,
+                enableInfiniteScroll: widget.product.imageUrls.length > 1,
                 autoPlay: widget.product.imageUrls.length > 1,
                 onPageChanged: (index, _) {
                   setState(() => currentImageIndex = index);
                 },
               ),
-              itemBuilder: (context, index, _) {
-                final imageUrl = widget.product.imageUrls.isEmpty
-                    ? 'assets/image_shoes.png'
-                    : widget.product.imageUrls[index];
-                return GestureDetector(
-                  onTap: () {
-                    Get.to(
-                      () => ImageViewerPage(
-                        imageUrls: widget.product.imageUrls.isEmpty
-                            ? ['assets/image_shoes.png']
-                            : widget.product.imageUrls,
-                        initialIndex: index,
-                        heroTagPrefix: 'product_${widget.product.id}',
-                      ),
-                    );
-                  },
-                  child: Hero(
-                    tag: 'product_${widget.product.id}_$index',
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                            color: logoColor,
-                          ),
-                        );
-                      },
-                      errorBuilder: (_, __, ___) => Image.asset(
-                        'assets/image_shoes.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
             if (widget.product.imageUrls.length > 1)
               Positioned(
@@ -227,7 +219,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                 height: 30,
                 decoration: BoxDecoration(
                   color: backgroundColor1,
-                  borderRadius: BorderRadius.vertical(
+                  borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),
                 ),
@@ -239,9 +231,43 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
     );
   }
 
+  Widget _buildImageItem(String imageUrl,
+      {bool isAsset = false, required int index}) {
+    return GestureDetector(
+      onTap: () => _handleImageTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: isAsset
+          ? Image.asset(
+              imageUrl,
+              fit: BoxFit.cover,
+            )
+          : Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Image.asset(
+                'assets/image_shoes.png',
+                fit: BoxFit.cover,
+              ),
+              loadingBuilder: (_, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: logoColor,
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  // Rest of the widget methods remain unchanged...
   Widget _buildProductInfo() {
     return Padding(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -260,9 +286,9 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                         fontWeight: semiBold,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 6,
                       ),
@@ -282,7 +308,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 6,
                 ),
@@ -302,7 +328,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             widget.product.formattedPrice,
             style: priceTextStyle.copyWith(
@@ -310,7 +336,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
               fontWeight: semiBold,
             ),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Text(
             'Deskripsi Produk',
             style: primaryTextStyle.copyWith(
@@ -318,7 +344,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
               fontWeight: semiBold,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             widget.product.description,
             style: secondaryTextStyle.copyWith(

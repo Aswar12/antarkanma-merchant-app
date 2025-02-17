@@ -8,6 +8,7 @@ class PaginatedResponse<T> {
   final int currentPage;
   final int lastPage;
   final int total;
+  final Map<String, dynamic>? pagination;
 
   PaginatedResponse({
     required this.data,
@@ -17,6 +18,7 @@ class PaginatedResponse<T> {
     this.currentPage = 1,
     this.lastPage = 1,
     this.total = 0,
+    this.pagination,
   });
 
   factory PaginatedResponse.fromJson(
@@ -43,6 +45,10 @@ class PaginatedResponse<T> {
           // Handle flat data structure
           debugPrint('Found flat data structure');
           dataList = rawData;
+          // Check if pagination info is in the parent object
+          if (json.containsKey('pagination')) {
+            paginationData = json['pagination'] as Map<String, dynamic>;
+          }
         }
       }
 
@@ -96,6 +102,7 @@ class PaginatedResponse<T> {
         currentPage: currentPage,
         lastPage: lastPage,
         total: total,
+        pagination: paginationData,
       );
     } catch (e, stackTrace) {
       debugPrint('Error parsing paginated response: $e');
@@ -117,6 +124,7 @@ class PaginatedResponse<T> {
       'current_page': currentPage,
       'last_page': lastPage,
       'total': total,
+      'pagination': pagination,
     };
   }
 

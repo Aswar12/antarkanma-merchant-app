@@ -1,12 +1,43 @@
 import 'package:get/get.dart';
+import 'package:dio/dio.dart' as dio;
 import '../data/providers/transaction_provider.dart';
 import '../data/models/transaction_model.dart';
-import '../data/models/order_item_model.dart';
+import '../data/enums/order_item_status.dart';
 import '../widgets/custom_snackbar.dart';
 import 'package:flutter/foundation.dart';
 
 class TransactionService extends GetxService {
   final TransactionProvider _transactionProvider = TransactionProvider();
+
+  void _handleError(dio.DioException error) {
+    String message;
+    switch (error.response?.statusCode) {
+      case 401:
+        message = 'Sesi anda telah berakhir. Silakan login kembali.';
+        break;
+      case 422:
+        message = error.response?.data?['meta']?['message'] ?? 'Validasi gagal';
+        break;
+      case 403:
+        message = 'Anda tidak memiliki akses ke halaman ini.';
+        break;
+      case 404:
+        message = 'Data tidak ditemukan.';
+        break;
+      case 500:
+        message = 'Terjadi kesalahan pada server. Silakan coba beberapa saat lagi.';
+        break;
+      default:
+        message = error.message ?? 'Terjadi kesalahan yang tidak diketahui';
+    }
+
+    CustomSnackbarX.showError(
+      title: 'Error',
+      message: message,
+      position: SnackPosition.BOTTOM,
+    );
+    throw Exception(message);
+  }
 
   Future<TransactionModel?> createTransaction(
       Map<String, dynamic> transactionData) async {
@@ -172,6 +203,7 @@ class TransactionService extends GetxService {
     int? page = 1,
     int? limit = 10,
     String? status,
+    String? merchantApproval,
   }) async {
     try {
       debugPrint('\n=== Getting Merchant Orders ===');
@@ -179,12 +211,14 @@ class TransactionService extends GetxService {
       debugPrint('Page: $page');
       debugPrint('Limit: $limit');
       debugPrint('Status Filter: $status');
+      debugPrint('Merchant Approval: $merchantApproval');
 
       final response = await _transactionProvider.getTransactionsByMerchant(
         merchantId,
         page: page ?? 1,
         limit: limit ?? 10,
         status: status,
+        merchantApproval: merchantApproval,
       );
 
       debugPrint('Response Status Code: ${response.statusCode}');
@@ -198,11 +232,13 @@ class TransactionService extends GetxService {
 
           // Handle status_counts as List or Map
           final defaultCounts = {
-            OrderItemStatus.pending: 0,
-            OrderItemStatus.processing: 0,
-            OrderItemStatus.readyForPickup: 0,
-            OrderItemStatus.completed: 0,
-            OrderItemStatus.canceled: 0,
+            OrderItemStatus.pending.value: 0,
+            OrderItemStatus.waitingApproval.value: 0,
+            OrderItemStatus.processing.value: 0,
+            OrderItemStatus.ready.value: 0,
+            OrderItemStatus.pickedUp.value: 0,
+            OrderItemStatus.completed.value: 0,
+            OrderItemStatus.canceled.value: 0,
           };
 
           Map<String, int> mergedStatusCounts =
@@ -318,55 +354,82 @@ class TransactionService extends GetxService {
         .toList();
   }
 
-  Future<bool> updateOrderStatus(
-    String merchantId,
-    String orderId, {
-    required String action,
-    String? notes,
-  }) async {
+  // New methods for merchant order flow
+  Future<bool> approveOrder(String orderId) async {
     try {
-      debugPrint('\n=== Updating Order Status ===');
-      debugPrint('Merchant ID: $merchantId');
+      debugPrint('\n=== TransactionService: Approving Order ===');
       debugPrint('Order ID: $orderId');
-      debugPrint('Action: $action');
-      if (notes != null) debugPrint('Notes: $notes');
 
-      final response = await _transactionProvider.updateOrderStatus(
-        orderId,
-        action,
-        notes: notes,
-      );
+      final response = await _transactionProvider.approveOrder(orderId);
 
       if (response.statusCode == 200 &&
           response.data['meta']?['status'] == 'success') {
-        debugPrint('Successfully updated order status');
-        CustomSnackbarX.showSuccess(
-          title: 'Success',
-          message: response.data['meta']?['message'] ??
-              'Status pesanan berhasil diperbarui',
-          position: SnackPosition.BOTTOM,
-        );
+        debugPrint('Successfully approved order');
         return true;
       }
 
-      debugPrint('Failed to update order status');
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Data: ${response.data}');
-
+      final message = response.data?['meta']?['message'] ?? 'Failed to approve order';
       CustomSnackbarX.showError(
         title: 'Error',
-        message: response.data['meta']?['message'] ??
-            'Gagal memperbarui status pesanan',
+        message: message,
         position: SnackPosition.BOTTOM,
       );
       return false;
     } catch (e) {
-      debugPrint('Error updating order status: $e');
+      debugPrint('Error approving order: $e');
+      return false;
+    }
+  }
+
+  Future<bool> rejectOrder(String orderId, {String? reason}) async {
+    try {
+      debugPrint('\n=== TransactionService: Rejecting Order ===');
+      debugPrint('Order ID: $orderId');
+      if (reason != null) debugPrint('Reason: $reason');
+
+      final response = await _transactionProvider.rejectOrder(orderId, reason: reason);
+
+      if (response.statusCode == 200 &&
+          response.data['meta']?['status'] == 'success') {
+        debugPrint('Successfully rejected order');
+        return true;
+      }
+
+      final message = response.data?['meta']?['message'] ?? 'Failed to reject order';
       CustomSnackbarX.showError(
         title: 'Error',
-        message: 'Gagal memperbarui status pesanan',
+        message: message,
         position: SnackPosition.BOTTOM,
       );
+      return false;
+    } catch (e) {
+      debugPrint('Error rejecting order: $e');
+      return false;
+    }
+  }
+
+  Future<bool> markOrderReady(String orderId) async {
+    try {
+      debugPrint('\n=== TransactionService: Marking Order as Ready ===');
+      debugPrint('Order ID: $orderId');
+
+      final response = await _transactionProvider.markOrderReady(orderId);
+
+      if (response.statusCode == 200 &&
+          response.data['meta']?['status'] == 'success') {
+        debugPrint('Successfully marked order as ready');
+        return true;
+      }
+
+      final message = response.data?['meta']?['message'] ?? 'Failed to mark order as ready';
+      CustomSnackbarX.showError(
+        title: 'Error',
+        message: message,
+        position: SnackPosition.BOTTOM,
+      );
+      return false;
+    } catch (e) {
+      debugPrint('Error marking order as ready: $e');
       return false;
     }
   }

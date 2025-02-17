@@ -135,8 +135,8 @@ class TransactionProvider {
         } else if (error.type == dio.DioExceptionType.receiveTimeout) {
           message = 'Server tidak merespons. Silakan coba lagi.';
         } else {
-          message = error.response?.data?['message'] ??
-              error.message ??
+          message = error.response?.data?['message'] ?? 
+              error.message ?? 
               'Terjadi kesalahan yang tidak diketahui';
         }
     }
@@ -293,12 +293,14 @@ class TransactionProvider {
     int page = 1,
     int limit = 10,
     String? status,
+    String? merchantApproval,
   }) async {
     try {
       final queryParams = {
         'page': page,
         'limit': limit,
         if (status != null) 'order_status': status,
+        if (merchantApproval != null) 'merchant_approval': merchantApproval,
       };
 
       debugPrint('\n=== Getting Merchant Orders ===');
@@ -337,7 +339,78 @@ class TransactionProvider {
     }
   }
 
-  Future<dio.Response> updateOrderStatus(String orderId, String action,
+  // New methods for merchant order flow
+  Future<dio.Response> approveOrder(String orderId) async {
+    try {
+      debugPrint('\n=== Approving Order ===');
+      debugPrint('Order ID: $orderId');
+
+      final response = await _dio.put('/merchants/orders/$orderId/approve');
+
+      if (response.statusCode != 200) {
+        _handleError(dio.DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: dio.DioExceptionType.badResponse,
+        ));
+      }
+
+      return response;
+    } on dio.DioException catch (e) {
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  Future<dio.Response> rejectOrder(String orderId, {String? reason}) async {
+    try {
+      debugPrint('\n=== Rejecting Order ===');
+      debugPrint('Order ID: $orderId');
+      if (reason != null) debugPrint('Reason: $reason');
+
+      final response = await _dio.put(
+        '/merchants/orders/$orderId/reject',
+        data: reason != null ? {'reason': reason} : null,
+      );
+
+      if (response.statusCode != 200) {
+        _handleError(dio.DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: dio.DioExceptionType.badResponse,
+        ));
+      }
+
+      return response;
+    } on dio.DioException catch (e) {
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  Future<dio.Response> markOrderReady(String orderId) async {
+    try {
+      debugPrint('\n=== Marking Order as Ready ===');
+      debugPrint('Order ID: $orderId');
+
+      final response = await _dio.put('/merchants/orders/$orderId/ready');
+
+      if (response.statusCode != 200) {
+        _handleError(dio.DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: dio.DioExceptionType.badResponse,
+        ));
+      }
+
+      return response;
+    } on dio.DioException catch (e) {
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  Future<bool> updateOrderStatus(String orderId, String action,
       {String? notes}) async {
     try {
       debugPrint('\n=== Updating Order Status ===');
@@ -354,7 +427,6 @@ class TransactionProvider {
       debugPrint('Status code: ${response.statusCode}');
       debugPrint('Response data: ${response.data}');
 
-      // Check for error status codes
       if (response.statusCode == 500) {
         _handleError(dio.DioException(
           requestOptions: response.requestOptions,
@@ -393,7 +465,7 @@ class TransactionProvider {
         );
       }
 
-      return response;
+      return response.statusCode == 200; // Return true if successful
     } on dio.DioException catch (e) {
       _handleError(e);
       rethrow;

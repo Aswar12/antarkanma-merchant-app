@@ -34,7 +34,6 @@ class _ImageViewerPageState extends State<ImageViewerPage>
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
 
-    // Setup animations
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -64,129 +63,131 @@ class _ImageViewerPageState extends State<ImageViewerPage>
     super.dispose();
   }
 
+  void _handleClose() {
+    _animationController.reverse().then((_) => Get.back());
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.5),
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () {
-            _animationController.reverse().then((_) => Get.back());
-          },
-        ),
-        title: AnimatedOpacity(
-          opacity: _currentIndex == widget.initialIndex ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 300),
-          child: Text(
-            'Image ${_currentIndex + 1}/${widget.imageUrls.length}',
-            style: const TextStyle(color: Colors.white),
+    return WillPopScope(
+      onWillPop: () async {
+        _handleClose();
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.black.withOpacity(0.5),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: _handleClose,
+          ),
+          title: AnimatedOpacity(
+            opacity: 1.0,
+            duration: const Duration(milliseconds: 300),
+            child: Text(
+              'Image ${_currentIndex + 1}/${widget.imageUrls.length}',
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share, color: Colors.white),
-            onPressed: () {
-              // Implement share functionality
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.download, color: Colors.white),
-            onPressed: () {
-              // Implement download functionality
-            },
-          ),
-        ],
+        body: Stack(
+          children: [
+            PhotoViewGallery.builder(
+              scrollPhysics: const ClampingScrollPhysics(),
+              builder: _buildItem,
+              itemCount: widget.imageUrls.length,
+              loadingBuilder: _buildLoading,
+              backgroundDecoration: const BoxDecoration(color: Colors.black),
+              pageController: _pageController,
+              onPageChanged: (index) => setState(() => _currentIndex = index),
+              scrollDirection: Axis.horizontal,
+              enableRotation: false,
+            ),
+            if (widget.imageUrls.length > 1) _buildPageIndicator(),
+          ],
+        ),
       ),
-      body: Stack(
-        children: [
-          // Main Photo Gallery
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: PhotoViewGallery.builder(
-                scrollPhysics: const BouncingScrollPhysics(),
-                builder: (BuildContext context, int index) {
-                  return PhotoViewGalleryPageOptions(
-                    imageProvider: widget.imageUrls[index].startsWith('assets/')
-                        ? AssetImage(widget.imageUrls[index]) as ImageProvider
-                        : NetworkImage(widget.imageUrls[index]),
-                    initialScale: PhotoViewComputedScale.contained,
-                    minScale: PhotoViewComputedScale.contained,
-                    maxScale: PhotoViewComputedScale.covered * 2,
-                    heroAttributes: PhotoViewHeroAttributes(
-                      tag:
-                          "product_image_${widget.heroTagPrefix}_$index", // Ubah ini
-                    ),
-                  );
-                },
-                itemCount: widget.imageUrls.length,
-                loadingBuilder: (context, event) => Center(
-                  child: SizedBox(
-                    width: 20.0,
-                    height: 20.0,
-                    child: CircularProgressIndicator(
-                      value: event == null
-                          ? 0
-                          : event.cumulativeBytesLoaded /
-                              event.expectedTotalBytes!,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                backgroundDecoration: const BoxDecoration(
-                  color: Colors.black,
-                ),
-                pageController: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-              ),
-            ),
-          ),
+    );
+  }
 
-          // Bottom Navigation
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
+  PhotoViewGalleryPageOptions _buildItem(BuildContext context, int index) {
+    final String imageUrl = widget.imageUrls[index];
+    return PhotoViewGalleryPageOptions(
+      imageProvider: imageUrl.startsWith('assets/')
+          ? AssetImage(imageUrl) as ImageProvider
+          : NetworkImage(imageUrl),
+      initialScale: PhotoViewComputedScale.contained,
+      minScale: PhotoViewComputedScale.contained,
+      maxScale: PhotoViewComputedScale.covered * 2,
+      errorBuilder: (_, __, ___) => Container(
+        color: Colors.grey[900],
+        child: const Center(
+          child: Icon(
+            Icons.error_outline,
+            color: Colors.white54,
+            size: 40,
+          ),
+        ),
+      ),
+      filterQuality: FilterQuality.high,
+    );
+  }
+
+  Widget _buildLoading(BuildContext context, ImageChunkEvent? event) {
+    return Center(
+      child: SizedBox(
+        width: 20.0,
+        height: 20.0,
+        child: CircularProgressIndicator(
+          value: event == null
+              ? 0
+              : event.expectedTotalBytes != null
+                  ? event.cumulativeBytesLoaded / event.expectedTotalBytes!
+                  : null,
+          color: Colors.white,
+          strokeWidth: 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPageIndicator() {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Colors.black.withOpacity(0.7),
+              Colors.transparent,
+            ],
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            widget.imageUrls.length,
+            (index) => Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.7),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  widget.imageUrls.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _currentIndex == index ? 12 : 8,
-                    height: _currentIndex == index ? 12 : 8,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _currentIndex == index
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.5),
-                    ),
-                  ),
-                ),
+                shape: BoxShape.circle,
+                color: _currentIndex == index
+                    ? Colors.white
+                    : Colors.white.withOpacity(0.5),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

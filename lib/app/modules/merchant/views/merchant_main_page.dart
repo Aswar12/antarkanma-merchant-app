@@ -1,4 +1,3 @@
-
 import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_home_page.dart';
@@ -58,19 +57,14 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
       );
     }
 
-    BottomNavigationBarItem createNavItem(
-        IconData icon, String label, int index) {
+    BottomNavigationBarItem createNavItem(IconData icon, String label, int index) {
       return BottomNavigationBarItem(
         icon: Container(
           margin: EdgeInsets.only(top: Dimenssions.height5),
-          child: GetX<MerchantController>(
-            builder: (_) => Icon(
-              icon,
-              size: Dimenssions.height22,
-              color: controller.currentIndex.value == index
-                  ? logoColor
-                  : Colors.grey,
-            ),
+          child: Icon(
+            icon,
+            size: Dimenssions.height22,
+            color: controller.currentIndex.value == index ? logoColor : Colors.grey,
           ),
         ),
         label: label,
@@ -78,75 +72,73 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
     }
 
     Widget customBottomNav() {
-      return GetX<MerchantController>(
-        builder: (_) => Container(
-          decoration: BoxDecoration(
-            color: backgroundColor1,
-            boxShadow: controller.currentIndex.value == 1
-                ? []
-                : [
-                    BoxShadow(
-                      color: backgroundColor6.withOpacity(0.15),
-                      offset: const Offset(0, -1),
-                      blurRadius: 10,
-                      spreadRadius: 0,
-                    ),
-                    BoxShadow(
-                      color: backgroundColor6.withOpacity(0.3),
-                      offset: const Offset(0, -0.5),
-                      blurRadius: 4,
-                      spreadRadius: 0,
-                    ),
-                  ],
-          ),
-          child: ClipRRect(
-            child: BottomNavigationBar(
-              selectedItemColor: logoColor,
-              unselectedItemColor: Colors.grey,
-              currentIndex: controller.currentIndex.value,
-              onTap: (index) => controller.changePage(index),
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: backgroundColor1,
-              elevation: 0,
-              items: [
-                createNavItem(Icons.home, 'Home', 0),
-                createNavItem(Icons.list, 'Orders', 1),
-                createNavItem(Icons.inventory, 'Products', 2),
-                createNavItem(Icons.person, 'Profile', 3),
-              ],
-            ),
+      return Container(
+        decoration: BoxDecoration(
+          color: backgroundColor1,
+          boxShadow: controller.currentIndex.value == 1
+              ? []
+              : [
+                  BoxShadow(
+                    color: backgroundColor6.withOpacity(0.15),
+                    offset: const Offset(0, -1),
+                    blurRadius: 10,
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: backgroundColor6.withOpacity(0.3),
+                    offset: const Offset(0, -0.5),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                  ),
+                ],
+        ),
+        child: ClipRRect(
+          child: BottomNavigationBar(
+            selectedItemColor: logoColor,
+            unselectedItemColor: Colors.grey,
+            currentIndex: controller.currentIndex.value,
+            onTap: (index) => controller.changePage(index),
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: backgroundColor1,
+            elevation: 0,
+            items: [
+              createNavItem(Icons.home, 'Home', 0),
+              createNavItem(Icons.list, 'Orders', 1),
+              createNavItem(Icons.inventory, 'Products', 2),
+              createNavItem(Icons.person, 'Profile', 3),
+            ],
           ),
         ),
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        if (controller.currentIndex.value != 0) {
+    return GetX<MerchantController>(
+      builder: (controller) => PopScope(
+        canPop: controller.currentIndex.value == 0,
+        onPopInvoked: (didPop) async {
+          if (didPop) return;
           controller.changePage(0);
-          return false;
-        }
-        return true;
-      },
-      child: Obx(() => Scaffold(
-        backgroundColor: Colors.white,
-        bottomNavigationBar: controller.merchant.value != null ? customBottomNav() : null,
-        body: controller.isLoading.value
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: logoColor),
-                    SizedBox(height: 16),
-                    Text(
-                      'Memuat data...',
-                      style: primaryTextStyle.copyWith(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              )
-            : body(),
-      )),
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          bottomNavigationBar: controller.merchant.value != null ? customBottomNav() : null,
+          body: controller.isLoading.value
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: logoColor),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Memuat data...',
+                        style: primaryTextStyle.copyWith(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : body(),
+        ),
+      ),
     );
   }
 }

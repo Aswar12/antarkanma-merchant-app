@@ -4,7 +4,7 @@ import 'package:antarkanma_merchant/app/services/auth_service.dart';
 import 'package:antarkanma_merchant/app/services/storage_service.dart';
 import 'package:antarkanma_merchant/app/services/merchant_service.dart';
 import 'package:antarkanma_merchant/app/services/transaction_service.dart';
-import 'package:antarkanma_merchant/app/data/models/order_item_model.dart';
+import 'package:antarkanma_merchant/app/data/enums/order_item_status.dart';
 import 'package:flutter/foundation.dart';
 
 class MerchantOrderController extends GetxController {
@@ -12,15 +12,6 @@ class MerchantOrderController extends GetxController {
   final StorageService _storageService;
   final MerchantService _merchantService;
   late final TransactionService _transactionService;
-
-  // Define valid order statuses
-  static const List<String> validOrderStatuses = [
-    OrderItemStatus.pending,
-    OrderItemStatus.processing,
-    OrderItemStatus.readyForPickup,
-    OrderItemStatus.completed,
-    OrderItemStatus.canceled
-  ];
 
   MerchantOrderController({
     required AuthService authService,
@@ -45,34 +36,39 @@ class MerchantOrderController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool hasMore = true.obs;
   final RxString errorMessage = ''.obs;
-  final RxString currentFilter = 'all'.obs;
+  final RxString currentFilter = OrderItemStatus.waitingApproval.value.obs; // Default to WAITING_APPROVAL
   final RxInt currentPage = 1.obs;
   final RxDouble totalAmount = 0.0.obs;
 
   // Order statistics
   final RxMap<String, int> orderStats = <String, int>{
-    OrderItemStatus.pending: 0,
-    OrderItemStatus.processing: 0,
-    OrderItemStatus.readyForPickup: 0,
-    OrderItemStatus.completed: 0,
-    OrderItemStatus.canceled: 0,
+    OrderItemStatus.waitingApproval.value: 0, // Orders requiring merchant approval
+    OrderItemStatus.processing.value: 0,      // Orders being prepared
+    OrderItemStatus.ready.value: 0,           // Orders ready for pickup
+    OrderItemStatus.pickedUp.value: 0,        // Orders picked up by courier
+    OrderItemStatus.completed.value: 0,       // Delivered orders
+    OrderItemStatus.canceled.value: 0,        // Rejected/canceled orders
   }.obs;
 
   // Computed list of filtered orders
   List<TransactionModel> get filteredOrders {
+    debugPrint('\n=== Filtering Orders ===');
+    debugPrint('Current Filter: ${currentFilter.value}');
+    
     var filteredList = currentFilter.value == 'all'
         ? List<TransactionModel>.from(orders)
         : orders.where((order) => 
             (order.order?.orderStatus ?? order.status).toUpperCase() == currentFilter.value.toUpperCase()
           ).toList();
     
-    // Sort by ID in ascending order
+    // Sort by ID in ascending order (newest first)
     filteredList.sort((a, b) {
       int aId = int.tryParse(a.id.toString()) ?? 0;
       int bId = int.tryParse(b.id.toString()) ?? 0;
-      return aId.compareTo(bId);
+      return bId.compareTo(aId); // Reverse order for newest first
     });
     
+    debugPrint('Filtered Orders Count: ${filteredList.length}');
     return filteredList;
   }
 
@@ -127,11 +123,17 @@ class MerchantOrderController extends GetxController {
           final newOrders =
               data.map((json) => TransactionModel.fromJson(json)).toList();
 
+          // Filter out PENDING orders (not yet approved by courier)
+          final filteredOrders = newOrders.where((order) {
+            final status = (order.order?.orderStatus ?? order.status).toUpperCase();
+            return status != OrderItemStatus.pending.value;
+          }).toList();
+
           if (currentPage.value == 1) {
             orders.clear();
           }
 
-          orders.addAll(newOrders);
+          orders.addAll(filteredOrders);
 
           // Update pagination info
           final pagination = transactionsData['pagination'];
@@ -196,8 +198,14 @@ class MerchantOrderController extends GetxController {
 
   bool canProcessOrder(String status) {
     final upperStatus = status.toUpperCase();
-    return upperStatus == OrderItemStatus.pending || 
-           upperStatus == OrderItemStatus.processing;
+    // Only allow processing of orders in WAITING_APPROVAL status
+    return upperStatus == OrderItemStatus.waitingApproval.value;
+  }
+
+  bool canMarkAsReady(String status) {
+    final upperStatus = status.toUpperCase();
+    // Only allow marking as ready for orders in PROCESSING status
+    return upperStatus == OrderItemStatus.processing.value;
   }
 
   Future<void> markAsReadyForPickup(String orderId) async {
@@ -205,21 +213,12 @@ class MerchantOrderController extends GetxController {
       debugPrint('\n=== Marking Order as Ready for Pickup ===');
       debugPrint('Order ID: $orderId');
 
-      final mId = await getMerchantId();
-      if (mId == null) {
-        throw Exception('Merchant ID not found');
-      }
-
-      final success = await _transactionService.updateOrderStatus(
-        mId,
-        orderId,
-        action: 'readyForPickup',
-      );
+      final success = await _transactionService.markOrderReady(orderId);
 
       if (success) {
         Get.snackbar(
           'Success',
-          'Order marked as ready for pickup',
+          'Order marked as ready for pickup. Courier will be notified.',
           snackPosition: SnackPosition.BOTTOM,
         );
 
@@ -230,7 +229,7 @@ class MerchantOrderController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error marking order as ready for pickup: $e');
-      Get.snackbar('Error', e.toString());
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
     }
   }
 
@@ -239,21 +238,12 @@ class MerchantOrderController extends GetxController {
       debugPrint('\n=== Processing Order ===');
       debugPrint('Order ID: $orderId');
 
-      final mId = await getMerchantId();
-      if (mId == null) {
-        throw Exception('Merchant ID not found');
-      }
-
-      final success = await _transactionService.updateOrderStatus(
-        mId,
-        orderId,
-        action: 'process',
-      );
+      final success = await _transactionService.approveOrder(orderId);
 
       if (success) {
         Get.snackbar(
           'Success',
-          'Order successfully processed',
+          'Order approved. Please prepare the order.',
           snackPosition: SnackPosition.BOTTOM,
         );
 
@@ -264,7 +254,7 @@ class MerchantOrderController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error processing order: $e');
-      Get.snackbar('Error', e.toString());
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
     }
   }
 
@@ -274,17 +264,7 @@ class MerchantOrderController extends GetxController {
       debugPrint('Order ID: $orderId');
       debugPrint('Reason: $reason');
 
-      final mId = await getMerchantId();
-      if (mId == null) {
-        throw Exception('Merchant ID not found');
-      }
-
-      final success = await _transactionService.updateOrderStatus(
-        mId,
-        orderId,
-        action: 'cancel',
-        notes: reason,
-      );
+      final success = await _transactionService.rejectOrder(orderId, reason: reason);
 
       if (success) {
         Get.snackbar(
@@ -300,7 +280,7 @@ class MerchantOrderController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error rejecting order: $e');
-      Get.snackbar('Error', e.toString());
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
     }
   }
 }

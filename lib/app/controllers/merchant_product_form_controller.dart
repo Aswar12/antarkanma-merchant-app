@@ -8,7 +8,6 @@ import 'package:antarkanma_merchant/app/services/merchant_service.dart';
 import 'package:antarkanma_merchant/app/services/category_service.dart';
 import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
-
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_main_page.dart';
 import 'package:antarkanma_merchant/app/utils/thousand_separator_formatter.dart';
 
@@ -44,9 +43,9 @@ class MerchantProductFormController extends GetxController {
   }
 
   void _updateCanSave() {
-    canSave.value = nameController.text.isNotEmpty && 
-                    priceController.text.isNotEmpty && 
-                    (images.isNotEmpty || existingImages.isNotEmpty);
+    canSave.value = nameController.text.isNotEmpty &&
+        priceController.text.isNotEmpty &&
+        (images.isNotEmpty || existingImages.isNotEmpty);
     update();
   }
 
@@ -78,13 +77,13 @@ class MerchantProductFormController extends GetxController {
       currentProductId = product['id'];
       nameController.text = product['name'] ?? '';
       descriptionController.text = product['description'] ?? '';
-      
-      // Format the price with thousand separator
+
       if (product['price'] != null) {
-        double price = (product['price'] is int) 
-            ? product['price'].toDouble() 
+        double price = (product['price'] is int)
+            ? product['price'].toDouble()
             : product['price'];
-        priceController.text = NumberFormat.decimalPattern('id_ID').format(price);
+        priceController.text =
+            NumberFormat.decimalPattern('id_ID').format(price);
       }
 
       if (product['category'] != null) {
@@ -94,17 +93,21 @@ class MerchantProductFormController extends GetxController {
 
       if (product['variants'] != null) {
         variants.assignAll(
-          (product['variants'] as List).map((v) => VariantModel.fromJson(v)).toList(),
+          (product['variants'] as List)
+              .map((v) => VariantModel.fromJson(v))
+              .toList(),
         );
       }
 
       if (product['gallery'] != null) {
         final gallery = product['gallery'] as List;
         existingImages.assignAll(
-          gallery.map((img) => {
-            'id': img['id'],
-            'url': img['url'],
-          }).toList(),
+          gallery
+              .map((img) => {
+                    'id': img['id'],
+                    'url': img['url'],
+                  })
+              .toList(),
         );
       } else if (product['imageUrls'] != null) {
         final urls = List<String>.from(product['imageUrls']);
@@ -150,7 +153,8 @@ class MerchantProductFormController extends GetxController {
             );
             if (result['success']) {
               existingImages.removeAt(index);
-              CustomSnackbarX.showSuccess(message: 'Image deleted successfully');
+              CustomSnackbarX.showSuccess(
+                  message: 'Image deleted successfully');
             } else {
               CustomSnackbarX.showError(message: result['message']);
               return;
@@ -182,7 +186,8 @@ class MerchantProductFormController extends GetxController {
       );
 
       if (result['success']) {
-        final index = existingImages.indexWhere((img) => img['id'] == galleryId);
+        final index =
+            existingImages.indexWhere((img) => img['id'] == galleryId);
         if (index != -1 && result['data'] != null) {
           existingImages[index] = {
             'id': galleryId,
@@ -219,26 +224,19 @@ class MerchantProductFormController extends GetxController {
   }
 
   Future<void> _navigateToProductPage() async {
-    try {
+    // Schedule the state updates for the next frame
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final merchantController = Get.find<MerchantController>();
-      merchantController.isLoading.value = false;
       merchantController.currentIndex.value = 2;
-
+      
       await Get.offAll(
         () => const MerchantMainPage(),
         transition: Transition.noTransition,
-        duration: const Duration(milliseconds: 0),
       );
 
-      await merchantController.fetchMerchantData();
-    } catch (e) {
-      print('Navigation error: $e');
-      final merchantController = Get.find<MerchantController>();
-      merchantController.isLoading.value = false;
-      merchantController.currentIndex.value = 2;
-      Get.offAll(() => const MerchantMainPage());
-      await merchantController.fetchMerchantData();
-    }
+      // Fetch data after navigation is complete
+      await merchantController.fetchMerchantData(forceRefresh: true);
+    });
   }
 
   Future<bool> saveProduct() async {
@@ -257,10 +255,10 @@ class MerchantProductFormController extends GetxController {
     try {
       isLoading.value = true;
       update();
-      
-      // Get actual numeric value from the formatted price
-      double price = ThousandsSeparatorInputFormatter.getNumericValue(priceController.text);
-      
+
+      double price = ThousandsSeparatorInputFormatter.getNumericValue(
+          priceController.text);
+
       final productData = {
         'name': nameController.text,
         'description': descriptionController.text,
@@ -272,12 +270,12 @@ class MerchantProductFormController extends GetxController {
 
       bool result;
       if (isEditing.value && currentProductId != null) {
-        // Update existing product
         productData['id'] = currentProductId;
-        productData['existing_images'] = existingImages.map((img) => img['url']).toList();
-        result = await merchantService.updateProduct(currentProductId!, productData, images);
+        productData['existing_images'] =
+            existingImages.map((img) => img['url']).toList();
+        result = await merchantService.updateProduct(
+            currentProductId!, productData, images);
       } else {
-        // Create new product
         result = await merchantService.createProduct(productData, images);
       }
 
@@ -286,18 +284,18 @@ class MerchantProductFormController extends GetxController {
 
       if (result) {
         CustomSnackbarX.showSuccess(
-          title: 'Sukses',
-          message: isEditing.value ? 'Produk berhasil diperbarui' : 'Produk berhasil ditambahkan'
-        );
-        await Future.delayed(const Duration(seconds: 1));
+            title: 'Sukses',
+            message: isEditing.value
+                ? 'Produk berhasil diperbarui'
+                : 'Produk berhasil ditambahkan');
+        
+        // Navigate after showing success message
         await _navigateToProductPage();
         return true;
       } else {
         errorMessage.value = 'Gagal menyimpan produk';
         CustomSnackbarX.showError(
-          title: 'Error',
-          message: 'Gagal menyimpan produk'
-        );
+            title: 'Error', message: 'Gagal menyimpan produk');
         return false;
       }
     } catch (e) {
@@ -305,9 +303,7 @@ class MerchantProductFormController extends GetxController {
       update();
       errorMessage.value = 'Gagal menyimpan produk: $e';
       CustomSnackbarX.showError(
-        title: 'Error',
-        message: 'Gagal menyimpan produk: $e'
-      );
+          title: 'Error', message: 'Gagal menyimpan produk: $e');
       return false;
     }
   }

@@ -21,6 +21,120 @@ class AuthService extends GetxService {
     super.onInit();
   }
 
+  Future<bool> login(
+    String identifier,
+    String password, {
+    bool rememberMe = false,
+    bool isAutoLogin = false,
+  }) async {
+    try {
+      if (!isAutoLogin) {
+        final validationError = Validators.validateIdentifier(identifier);
+        if (validationError != null) {
+          showCustomSnackbar(
+              title: 'Error', message: validationError, isError: true);
+          return false;
+        }
+      }
+
+      print('Attempting login with identifier: $identifier'); // Debug log
+      final response = await _authProvider.login(identifier, password);
+      print('Login response status: ${response.statusCode}'); // Debug log
+      print('Login response data: ${response.data}'); // Debug log
+
+      if (response.statusCode != 200) {
+        if (!isAutoLogin) {
+          final errorMessage = response.data['message'] ??
+              response.data['meta']?['message'] ??
+              'Terjadi kesalahan saat login';
+          showCustomSnackbar(
+              title: 'Login Gagal', message: errorMessage, isError: true);
+        }
+        return false;
+      }
+
+      final userData = response.data['data']?['user'];
+      if (userData == null) {
+        print('User data is null in response'); // Debug log
+        if (!isAutoLogin) {
+          showCustomSnackbar(
+              title: 'Login Gagal',
+              message: 'Data pengguna tidak ditemukan',
+              isError: true);
+        }
+        return false;
+      }
+
+      print('User role from response: ${userData['role']}'); // Debug log
+
+      // Case-insensitive role check
+      final userRole = userData['roles']?.toString().toUpperCase();
+      if (userRole == null) {
+        print('Role is null'); // Debug log
+        if (!isAutoLogin) {
+          showCustomSnackbar(
+              title: 'Login Gagal',
+              message: 'Role pengguna tidak valid',
+              isError: true);
+        }
+        return false;
+      }
+
+      if (userRole != 'MERCHANT') {
+        print('Invalid role: $userRole'); // Debug log
+        if (!isAutoLogin) {
+          showCustomSnackbar(
+              title: 'Login Gagal',
+              message:
+                  'Akun ini bukan akun merchant. Silakan gunakan akun merchant untuk login.',
+              isError: true);
+        }
+        return false;
+      }
+
+      final token = response.data['data']?['access_token'];
+      if (token == null) {
+        print('Token is null'); // Debug log
+        if (!isAutoLogin) {
+          showCustomSnackbar(
+              title: 'Error', message: 'Token tidak ditemukan', isError: true);
+        }
+        return false;
+      }
+
+      await _storageService.saveToken(token);
+      await _storageService.saveUser(userData);
+
+      if (rememberMe) {
+        await _storageService.saveRememberMe(true);
+        await _storageService.saveCredentials(identifier, password);
+      } else {
+        await _storageService.clearCredentials();
+      }
+
+      currentUser.value = UserModel.fromJson(userData);
+      isLoggedIn.value = true;
+
+      await _handleFCMToken(register: true);
+
+      if (!isAutoLogin) {
+        Get.offAllNamed(Routes.merchantMainPage);
+        showCustomSnackbar(title: 'Sukses', message: 'Login berhasil');
+      }
+      return true;
+    } catch (e) {
+      print('Login error: $e'); // Debug log
+      if (!isAutoLogin) {
+        showCustomSnackbar(
+            title: 'Error',
+            message: 'Gagal login: ${e.toString()}',
+            isError: true);
+      }
+      return false;
+    }
+  }
+
+  // Rest of the existing methods...
   Future<void> _handleFCMToken({bool register = true}) async {
     try {
       final fcmTokenService = Get.find<FCMTokenService>();
@@ -65,87 +179,6 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<bool> login(
-    String identifier,
-    String password, {
-    bool rememberMe = false,
-    bool isAutoLogin = false,
-  }) async {
-    try {
-      if (!isAutoLogin) {
-        final validationError = Validators.validateIdentifier(identifier);
-        if (validationError != null) {
-          showCustomSnackbar(
-              title: 'Error', message: validationError, isError: true);
-          return false;
-        }
-      }
-
-      final response = await _authProvider.login(identifier, password);
-      if (response.statusCode != 200) {
-        if (!isAutoLogin) {
-          showCustomSnackbar(
-              title: 'Login Gagal',
-              message: response.data['meta']['message'] ?? 'Terjadi kesalahan',
-              isError: true);
-        }
-        return false;
-      }
-
-      final userData = response.data['data']['user'];
-      
-      // Check if user is a merchant
-      if (userData['role'] != 'MERCHANT') {
-        if (!isAutoLogin) {
-          showCustomSnackbar(
-              title: 'Login Gagal',
-              message: 'Akun ini bukan akun merchant',
-              isError: true);
-        }
-        return false;
-      }
-
-      final token = response.data['data']['access_token'];
-
-      if (token != null) {
-        await _storageService.saveToken(token);
-        await _storageService.saveUser(userData);
-
-        if (rememberMe) {
-          await _storageService.saveRememberMe(true);
-          await _storageService.saveCredentials(identifier, password);
-        } else {
-          await _storageService.clearCredentials();
-        }
-
-        currentUser.value = UserModel.fromJson(userData);
-        isLoggedIn.value = true;
-
-        await _handleFCMToken(register: true);
-
-        if (!isAutoLogin) {
-          Get.offAllNamed(Routes.merchantMainPage);
-          showCustomSnackbar(title: 'Sukses', message: 'Login berhasil');
-        }
-        return true;
-      }
-
-      if (!isAutoLogin) {
-        showCustomSnackbar(
-            title: 'Error', message: 'Token tidak valid.', isError: true);
-      }
-      return false;
-    } catch (e) {
-      if (!isAutoLogin) {
-        showCustomSnackbar(
-            title: 'Error',
-            message: 'Gagal login: ${e.toString()}',
-            isError: true);
-      }
-      return false;
-    }
-  }
-
   Future<bool> register(String name, String email, String phoneNumber,
       String password, String confirmPassword) async {
     try {
@@ -167,7 +200,7 @@ class AuthService extends GetxService {
       final response = await _authProvider.register(userData);
       if (response.statusCode == 200) {
         final userData = response.data['data']['user'];
-        
+
         // Verify the registered user is a merchant
         if (userData['role'] != 'MERCHANT') {
           showCustomSnackbar(
@@ -262,8 +295,7 @@ class AuthService extends GetxService {
           response.data['message'] ?? 'Gagal memperbarui foto profil';
       print('Upload failed: $errorMessage');
       print('Response data: ${response.data}');
-      showCustomSnackbar(
-          title: 'Error', message: errorMessage, isError: true);
+      showCustomSnackbar(title: 'Error', message: errorMessage, isError: true);
       return false;
     } catch (e) {
       print('Error in updateProfilePhoto: $e');

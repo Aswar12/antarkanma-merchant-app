@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:antarkanma_merchant/app/data/models/product_model.dart';
@@ -5,7 +6,7 @@ import 'package:antarkanma_merchant/app/services/merchant_service.dart';
 
 class MerchantProductController extends GetxController {
   final MerchantService merchantService;
-  
+
   var isLoading = false.obs;
   var errorMessage = ''.obs;
   var products = <ProductModel>[].obs;
@@ -22,6 +23,7 @@ class MerchantProductController extends GetxController {
   var isLoadingMore = false.obs;
   var totalItems = 0;
   var lastPage = 1;
+  Timer? _debounceTimer;
 
   final searchController = TextEditingController();
 
@@ -30,51 +32,72 @@ class MerchantProductController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchProducts();
+    _initializeProducts();
   }
 
   @override
   void onClose() {
+    _debounceTimer?.cancel();
     searchController.dispose();
     super.onClose();
   }
 
+  Future<void> _initializeProducts() async {
+    try {
+      isLoading(true);
+      await fetchProducts();
+    } finally {
+      isLoading(false);
+    }
+  }
+
   Future<void> fetchProducts() async {
+    if (isLoadingMore.value) return;
+
     try {
       if (currentPage == 1) {
         isLoading(true);
+        errorMessage('');
       }
-      errorMessage('');
-      
+
       final response = await merchantService.getMerchantProducts(
         page: currentPage,
         pageSize: 10,
+        query: searchQuery.value,
+        category: selectedCategory.value == 'Semua' ? null : selectedCategory.value,
       );
-      
+
       if (currentPage == 1) {
         products.clear();
       }
-      
+
       products.addAll(response.data);
       hasMoreData.value = response.hasMore;
       lastPage = response.lastPage;
       totalItems = response.total;
+
+      // Extract and sort categories
+      _updateCategories();
       
-      // Extract unique categories
-      final uniqueCategories = products
-          .where((p) => p.category != null)
-          .map((p) => p.category!.name)
-          .toSet()
-          .toList();
-      categories.assignAll(['Semua', ...uniqueCategories]);
-      
+      // Apply filters without fetching again
       _applyFilters();
     } catch (e) {
       errorMessage('Gagal memuat produk: $e');
+      hasMoreData.value = false;
     } finally {
       isLoading(false);
       isLoadingMore(false);
     }
+  }
+
+  void _updateCategories() {
+    final uniqueCategories = products
+        .where((p) => p.category != null)
+        .map((p) => p.category!.name)
+        .toSet()
+        .toList()
+      ..sort();
+    categories.assignAll(uniqueCategories);
   }
 
   Future<void> loadMoreProducts() async {
@@ -86,46 +109,28 @@ class MerchantProductController extends GetxController {
       isLoadingMore(true);
       currentPage++;
       await fetchProducts();
-    } finally {
-      isLoadingMore(false);
-    }
-  }
-
-  Future<Map<String, dynamic>> deleteProduct(int productId) async {
-    try {
-      isLoading(true);
-      final result = await merchantService.deleteProduct(productId);
-      if (result['success']) {
-        // Remove the product from the lists
-        products.removeWhere((product) => product.id == productId);
-        filteredProducts.removeWhere((product) => product.id == productId);
-      }
-      return result;
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Error deleting product: $e'
-      };
-    } finally {
-      isLoading(false);
+      currentPage--;
+      errorMessage('Gagal memuat lebih banyak produk: $e');
     }
   }
 
   void searchProducts(String query) {
-    searchQuery.value = query;
-    currentPage = 1;
-    hasMoreData.value = true;
-    fetchProducts();
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      searchQuery.value = query;
+      _resetAndRefetch();
+    });
   }
 
   void filterByCategory(String category) {
+    if (selectedCategory.value == category) return;
     selectedCategory.value = category;
-    currentPage = 1;
-    hasMoreData.value = true;
-    fetchProducts();
+    _resetAndRefetch();
   }
 
   void sortProducts(String sortType) {
+    if (sortBy.value == sortType) return;
     sortBy.value = sortType;
     _applyFilters();
   }
@@ -135,20 +140,33 @@ class MerchantProductController extends GetxController {
     _applyFilters();
   }
 
+  void _resetAndRefetch() {
+    currentPage = 1;
+    hasMoreData.value = true;
+    fetchProducts();
+  }
+
+  Future<Map<String, dynamic>> deleteProduct(int productId) async {
+    try {
+      final result = await merchantService.deleteProduct(productId);
+      if (result['success']) {
+        products.removeWhere((product) => product.id == productId);
+        filteredProducts.removeWhere((product) => product.id == productId);
+        _updateCategories();
+      }
+      return result;
+    } catch (e) {
+      return {'success': false, 'message': 'Error deleting product: $e'};
+    }
+  }
+
   void _applyFilters() {
+    if (products.isEmpty) {
+      filteredProducts.clear();
+      return;
+    }
+
     var filtered = List<ProductModel>.from(products);
-
-    // Apply search filter
-    if (searchQuery.value.isNotEmpty) {
-      filtered = filtered.where((product) =>
-          product.name.toLowerCase().contains(searchQuery.value.toLowerCase())).toList();
-    }
-
-    // Apply category filter
-    if (selectedCategory.value != 'Semua') {
-      filtered = filtered.where((product) =>
-          product.category?.name == selectedCategory.value).toList();
-    }
 
     // Apply active filter
     if (showActiveOnly.value) {
@@ -171,11 +189,16 @@ class MerchantProductController extends GetxController {
         break;
       case 'Baru':
       default:
-        filtered.sort((a, b) => 
-          (b.createdAt ?? DateTime.now()).compareTo(a.createdAt ?? DateTime.now()));
+        filtered.sort((a, b) => (b.createdAt ?? DateTime.now())
+            .compareTo(a.createdAt ?? DateTime.now()));
         break;
     }
 
+    // Update filtered products in a single batch
     filteredProducts.assignAll(filtered);
+  }
+
+  void refreshProducts() {
+    _resetAndRefetch();
   }
 }
