@@ -1,286 +1,208 @@
 import 'package:get/get.dart';
-import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
-import 'package:antarkanma_merchant/app/services/auth_service.dart';
-import 'package:antarkanma_merchant/app/services/storage_service.dart';
-import 'package:antarkanma_merchant/app/services/merchant_service.dart';
-import 'package:antarkanma_merchant/app/services/transaction_service.dart';
-import 'package:antarkanma_merchant/app/data/enums/order_item_status.dart';
-import 'package:flutter/foundation.dart';
+import '../services/transaction_service.dart';
+import '../services/storage_service.dart';
+import '../data/models/transaction_model.dart';
+import '../controllers/base_order_controller.dart';
+import '../widgets/custom_snackbar.dart';
 
-class MerchantOrderController extends GetxController {
-  final AuthService _authService;
+class MerchantOrderController extends BaseOrderController {
+  final TransactionService _transactionService;
   final StorageService _storageService;
-  final MerchantService _merchantService;
-  late final TransactionService _transactionService;
+  final RxBool isLoading = false.obs;
+  final RxBool isRefreshing = false.obs;
+  final RxString currentStatus = 'ALL'.obs;
+  final RxString errorMessage = ''.obs;
+  final RxList<TransactionModel> orders = <TransactionModel>[].obs;
+  final RxMap<String, int> stats = <String, int>{}.obs;
+  final RxBool hasMore = false.obs;
+  final RxList<TransactionModel> filteredOrders = <TransactionModel>[].obs;
 
   MerchantOrderController({
-    required AuthService authService,
-    required MerchantService merchantService,
-    required StorageService storageService,
-  })  : _authService = authService,
-        _merchantService = merchantService,
-        _storageService = storageService {
-    try {
-      _transactionService = Get.find<TransactionService>();
-      debugPrint('\n=== MerchantOrderController Debug ===');
-      debugPrint(
-          'TransactionService found with instance ID: ${_transactionService.hashCode}');
-    } catch (e) {
-      debugPrint('Failed to find TransactionService, creating new instance');
-      _transactionService = Get.put(TransactionService());
-    }
-  }
-
-  // Observable variables
-  final RxList<TransactionModel> orders = <TransactionModel>[].obs;
-  final RxBool isLoading = false.obs;
-  final RxBool hasMore = true.obs;
-  final RxString errorMessage = ''.obs;
-  final RxString currentFilter = OrderItemStatus.waitingApproval.value.obs; // Default to WAITING_APPROVAL
-  final RxInt currentPage = 1.obs;
-  final RxDouble totalAmount = 0.0.obs;
-
-  // Order statistics
-  final RxMap<String, int> orderStats = <String, int>{
-    OrderItemStatus.waitingApproval.value: 0, // Orders requiring merchant approval
-    OrderItemStatus.processing.value: 0,      // Orders being prepared
-    OrderItemStatus.ready.value: 0,           // Orders ready for pickup
-    OrderItemStatus.pickedUp.value: 0,        // Orders picked up by courier
-    OrderItemStatus.completed.value: 0,       // Delivered orders
-    OrderItemStatus.canceled.value: 0,        // Rejected/canceled orders
-  }.obs;
-
-  // Computed list of filtered orders
-  List<TransactionModel> get filteredOrders {
-    debugPrint('\n=== Filtering Orders ===');
-    debugPrint('Current Filter: ${currentFilter.value}');
-    
-    var filteredList = currentFilter.value == 'all'
-        ? List<TransactionModel>.from(orders)
-        : orders.where((order) => 
-            (order.order?.orderStatus ?? order.status).toUpperCase() == currentFilter.value.toUpperCase()
-          ).toList();
-    
-    // Sort by ID in ascending order (newest first)
-    filteredList.sort((a, b) {
-      int aId = int.tryParse(a.id.toString()) ?? 0;
-      int bId = int.tryParse(b.id.toString()) ?? 0;
-      return bId.compareTo(aId); // Reverse order for newest first
-    });
-    
-    debugPrint('Filtered Orders Count: ${filteredList.length}');
-    return filteredList;
-  }
+    TransactionService? transactionService,
+    StorageService? storageService,
+  })  : _transactionService = transactionService ?? Get.find<TransactionService>(),
+        _storageService = storageService ?? StorageService.instance;
 
   @override
   void onInit() {
     super.onInit();
-    fetchOrders();
+    checkPendingNotification();
+    loadOrders();
   }
 
-  Future<String?> getMerchantId() async {
+  void checkPendingNotification() async {
     try {
-      final merchant = await _merchantService.getMerchant();
-      if (merchant == null || merchant.id == null) {
-        throw Exception('Merchant not found');
+      final pendingNotification = _storageService.getMap('pending_notification');
+      if (pendingNotification != null) {
+        final type = pendingNotification['type'];
+        final status = pendingNotification['status'];
+        final orderId = pendingNotification['order_id'];
+        
+        if (type == 'transaction_approved' && 
+            status == 'WAITING_APPROVAL' && 
+            orderId != null) {
+          // Clear the pending notification
+          _storageService.remove('pending_notification');
+          
+          // Check if auto-approve is enabled
+          if (_transactionService.getAutoApprove()) {
+            // Auto approve the order
+            await approveTransaction(orderId);
+          } else {
+            // Set status filter to WAITING_APPROVAL and refresh orders
+            filterOrders('WAITING_APPROVAL');
+          }
+        }
       }
-      return merchant.id.toString();
     } catch (e) {
-      debugPrint('Error getting merchant ID: $e');
-      return null;
+      // Replace print with logging
+      print('Error checking pending notification: $e');
+      errorMessage.value = 'Error checking notifications';
     }
   }
 
-  Future<void> fetchOrders() async {
+  Future<void> loadOrders() async {
     if (isLoading.value) return;
-
+    
+    isLoading.value = true;
+    errorMessage.value = '';
     try {
-      isLoading.value = true;
-      errorMessage('');      
-      final mId = await getMerchantId();
-      if (mId == null) {
-        throw Exception('Merchant ID not found');
-      }
-
-      debugPrint('\n=== Fetching Merchant Orders ===');
-      debugPrint('Merchant ID: $mId');
-      debugPrint('Current Filter: ${currentFilter.value}');
-      debugPrint('Current Page: ${currentPage.value}');
-
-      final response = await _transactionService.getTransactionsByMerchant(
-        mId,
-        page: currentPage.value,
-        limit: 10,
-        status: currentFilter.value == 'all' ? null : currentFilter.value,
+      final result = await _transactionService.getOrders(
+        orderIds: [], // Add the required orderIds parameter here
+        page: 1,
+        status: currentStatus.value == 'ALL' ? null : currentStatus.value,
       );
-
-      if (response != null) {
-        final transactionsData = response['transactions'];
-        if (transactionsData != null) {
-          final List<dynamic> data = transactionsData['data'] ?? [];
-          debugPrint('Received ${data.length} orders');
-
-          final newOrders =
-              data.map((json) => TransactionModel.fromJson(json)).toList();
-
-          // Filter out PENDING orders (not yet approved by courier)
-          final filteredOrders = newOrders.where((order) {
-            final status = (order.order?.orderStatus ?? order.status).toUpperCase();
-            return status != OrderItemStatus.pending.value;
-          }).toList();
-
-          if (currentPage.value == 1) {
-            orders.clear();
-          }
-
-          orders.addAll(filteredOrders);
-
-          // Update pagination info
-          final pagination = transactionsData['pagination'];
-          hasMore.value = pagination != null &&
-              pagination['current_page'] < pagination['last_page'];
-
-          // Update order statistics from response
-          final Map<String, int>? statusCounts =
-              response['status_counts'] as Map<String, int>?;
-          if (statusCounts != null) {
-            debugPrint('\n=== Updating Order Stats ===');
-            orderStats.value =
-                Map<String, int>.from(orderStats); // Create a new map
-            statusCounts.forEach((key, value) {
-              if (orderStats.containsKey(key)) {
-                orderStats[key] = value;
-                debugPrint('$key: $value');
-              }
-            });
-          }
-
-          // Update total amount
-          final statistics = response['statistics'];
-          if (statistics != null && statistics['total_revenue'] != null) {
-            totalAmount.value = (statistics['total_revenue'] as num).toDouble();
-          }
-
-          debugPrint('Orders updated successfully');
-        }
-      } else {
-        throw Exception('Failed to fetch orders');
-      }
+      
+      orders.value = result.orders;
+      stats.value = result.stats;
+      hasMore.value = result.hasMore;
+      _updateFilteredOrders();
     } catch (e) {
-      debugPrint('Error fetching orders: $e');
-      errorMessage.value = e.toString();
+      // Replace print with logging
+      print('Error loading orders: $e');
+      errorMessage.value = 'Failed to load orders';
     } finally {
       isLoading.value = false;
     }
   }
 
-  void filterOrders(String status) {
-    debugPrint('\n=== Filtering Orders ===');
-    debugPrint('Filter Status: $status');
-    currentFilter.value = status;
-    debugPrint('Filtered Orders Count: ${filteredOrders.length}');
-  }
-
   Future<void> refreshOrders() async {
-    debugPrint('\n=== Refreshing Orders ===');
-    currentPage.value = 1;
-    hasMore.value = true;
-    await fetchOrders();
-  }
-
-  Future<void> loadMore() async {
-    if (!hasMore.value || isLoading.value) return;
-    debugPrint('\n=== Loading More Orders ===');
-    debugPrint('Current Page: ${currentPage.value}');
-    currentPage.value++;
-    await fetchOrders();
-  }
-
-  bool canProcessOrder(String status) {
-    final upperStatus = status.toUpperCase();
-    // Only allow processing of orders in WAITING_APPROVAL status
-    return upperStatus == OrderItemStatus.waitingApproval.value;
-  }
-
-  bool canMarkAsReady(String status) {
-    final upperStatus = status.toUpperCase();
-    // Only allow marking as ready for orders in PROCESSING status
-    return upperStatus == OrderItemStatus.processing.value;
-  }
-
-  Future<void> markAsReadyForPickup(String orderId) async {
+    if (isRefreshing.value) return;
+    
+    isRefreshing.value = true;
+    errorMessage.value = '';
     try {
-      debugPrint('\n=== Marking Order as Ready for Pickup ===');
-      debugPrint('Order ID: $orderId');
-
-      final success = await _transactionService.markOrderReady(orderId);
-
-      if (success) {
-        Get.snackbar(
-          'Success',
-          'Order marked as ready for pickup. Courier will be notified.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-
-        await Future.delayed(const Duration(milliseconds: 500));
-        await refreshOrders();
-      } else {
-        throw Exception('Failed to mark order as ready for pickup');
-      }
+      final result = await _transactionService.getOrders(
+        orderIds: [], // Add the required orderIds parameter here
+        page: 1,
+        status: currentStatus.value == 'ALL' ? null : currentStatus.value,
+      );
+      
+      orders.value = result.orders;
+      stats.value = result.stats;
+      hasMore.value = result.hasMore;
+      _updateFilteredOrders();
     } catch (e) {
-      debugPrint('Error marking order as ready for pickup: $e');
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      // Replace print with logging
+      print('Error refreshing orders: $e');
+      errorMessage.value = 'Failed to refresh orders';
+    } finally {
+      isRefreshing.value = false;
     }
   }
 
-  Future<void> processOrder(String orderId) async {
-    try {
-      debugPrint('\n=== Processing Order ===');
-      debugPrint('Order ID: $orderId');
-
-      final success = await _transactionService.approveOrder(orderId);
-
-      if (success) {
-        Get.snackbar(
-          'Success',
-          'Order approved. Please prepare the order.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-
-        await Future.delayed(const Duration(milliseconds: 500));
-        await refreshOrders();
-      } else {
-        throw Exception('Failed to process order');
-      }
-    } catch (e) {
-      debugPrint('Error processing order: $e');
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+  void _updateFilteredOrders() {
+    if (currentStatus.value.toUpperCase() == 'ALL') {
+      filteredOrders.value = orders;
+    } else {
+      filteredOrders.value = orders.where((order) => 
+        order.status.toUpperCase() == currentStatus.value.toUpperCase()
+      ).toList();
     }
   }
 
-  Future<void> rejectOrder(String orderId, String? reason) async {
+  void filterOrders(String status) {
+    if (currentStatus.value.toUpperCase() != status.toUpperCase()) {
+      currentStatus.value = status.toUpperCase();
+      loadOrders();
+    }
+  }
+
+  @override
+  Future<void> approveTransaction(dynamic transactionId) async {
     try {
-      debugPrint('\n=== Rejecting Order ===');
-      debugPrint('Order ID: $orderId');
-      debugPrint('Reason: $reason');
-
-      final success = await _transactionService.rejectOrder(orderId, reason: reason);
-
-      if (success) {
-        Get.snackbar(
-          'Success',
-          'Order rejected successfully',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-
-        await Future.delayed(const Duration(milliseconds: 500));
-        await refreshOrders();
-      } else {
-        throw Exception('Failed to reject order');
-      }
+      await _transactionService.approveOrder(transactionId);
+      showCustomSnackbar(
+        title: 'Success',
+        message: 'Order approved successfully',
+      );
+      await refreshOrders();
     } catch (e) {
-      debugPrint('Error rejecting order: $e');
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      // Replace print with logging
+      print('Error approving transaction: $e');
+      showCustomSnackbar(
+        title: 'Error',
+        message: 'Failed to approve order',
+        isError: true,
+      );
+    }
+  }
+
+  @override
+  Future<void> rejectTransaction(dynamic transactionId, {String? reason}) async {
+    try {
+      await _transactionService.rejectOrder(transactionId, reason: reason);
+      showCustomSnackbar(
+        title: 'Success',
+        message: 'Order rejected successfully',
+      );
+      await refreshOrders();
+    } catch (e) {
+      // Replace print with logging
+      print('Error rejecting transaction: $e');
+      showCustomSnackbar(
+        title: 'Error',
+        message: 'Failed to reject order',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> markAsReadyForPickup(dynamic orderId) async {
+    try {
+      await _transactionService.markOrderReady(orderId);
+      showCustomSnackbar(
+        title: 'Success',
+        message: 'Order marked as ready for pickup',
+      );
+      await refreshOrders();
+    } catch (e) {
+      // Replace print with logging
+      print('Error marking order as ready: $e');
+      showCustomSnackbar(
+        title: 'Error',
+        message: 'Failed to mark order as ready',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> completeOrder(dynamic orderId) async {
+    try {
+      await _transactionService.markOrderReady(orderId);
+      showCustomSnackbar(
+        title: 'Success',
+        message: 'Order completed successfully',
+      );
+      await refreshOrders();
+    } catch (e) {
+      // Replace print with logging
+      print('Error completing order: $e');
+      showCustomSnackbar(
+        title: 'Error',
+        message: 'Failed to complete order',
+        isError: true,
+      );
     }
   }
 }

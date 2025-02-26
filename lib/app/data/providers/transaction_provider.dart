@@ -1,16 +1,9 @@
-import 'package:dio/dio.dart' as dio;
-import 'package:get/get.dart';
+import 'package:dio/dio.dart';
 import 'package:antarkanma_merchant/config.dart';
-import 'package:antarkanma_merchant/app/services/storage_service.dart';
-import 'package:antarkanma_merchant/app/services/auth_service.dart';
-import 'package:antarkanma_merchant/app/routes/app_pages.dart';
-import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
-import 'package:flutter/foundation.dart';
 
 class TransactionProvider {
-  final dio.Dio _dio = dio.Dio();
+  final Dio _dio = Dio();
   final String baseUrl = Config.baseUrl;
-  final StorageService _storageService = StorageService.instance;
 
   TransactionProvider() {
     _setupBaseOptions();
@@ -18,457 +11,207 @@ class TransactionProvider {
   }
 
   void _setupBaseOptions() {
-    _dio.options = dio.BaseOptions(
+    _dio.options = BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
-      validateStatus: (status) => true,
+      validateStatus: (status) => status! < 500,
     );
   }
 
   void _setupInterceptors() {
     _dio.interceptors.add(
-      dio.InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = _storageService.getToken();
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          print('Making request to: ${options.path}');
+          print('Request data: ${options.data}');
 
-          if (token != null) {
-            options.headers.addAll({
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            });
-          }
-
-          debugPrint('\n=== API Request ===');
-          debugPrint('URL: ${options.baseUrl}${options.path}');
-          debugPrint('Method: ${options.method}');
-          debugPrint('Headers: ${options.headers}');
-          debugPrint('Data: ${options.data}');
+          options.headers.addAll({
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          });
 
           return handler.next(options);
         },
-        onResponse: (response, handler) async {
-          debugPrint('\n=== API Response ===');
-          debugPrint('Status code: ${response.statusCode}');
-          debugPrint('Data: ${response.data}');
-
+        onResponse: (response, handler) {
+          print('Response received: ${response.data}');
           return handler.next(response);
         },
-        onError: (dio.DioException error, handler) async {
-          debugPrint('\n=== API Error Interceptor ===');
-          debugPrint('Status code: ${error.response?.statusCode}');
-          debugPrint('Error data: ${error.response?.data}');
-          debugPrint('Error message: ${error.message}');
-          debugPrint('Error type: ${error.type}');
-          debugPrint('Error stacktrace: ${error.stackTrace}');
-
-          if (error.response?.statusCode == 401) {
-            try {
-              final authService = Get.find<AuthService>();
-              authService.handleAuthError(error);
-            } catch (e) {
-              debugPrint('Failed to handle auth error in interceptor: $e');
-            }
-          }
-
+        onError: (DioException error, handler) {
+          print('Error occurred: ${error.message}');
+          print('Error response: ${error.response?.data}');
+          _handleError(error);
           return handler.next(error);
         },
       ),
     );
   }
 
-  void _handleError(dio.DioException error) {
-    String message;
-    switch (error.response?.statusCode) {
-      case 401:
-        message = 'Sesi anda telah berakhir. Silakan login kembali.';
-        try {
-          final authService = Get.find<AuthService>();
-          authService.handleAuthError(error);
-        } catch (e) {
-          debugPrint('Failed to handle auth error: $e');
-        }
-        break;
-      case 422:
-        final data = error.response?.data;
-        if (data != null &&
-            data['meta'] != null &&
-            data['meta']['message'] != null) {
-          message = data['meta']['message'];
-        } else if (data != null && data['data'] != null) {
-          final errors = data['data'] as Map<String, dynamic>;
-          final errorMessages = <String>[];
-          errors.forEach((key, value) {
-            if (value is List) {
-              errorMessages.addAll(value.map((e) => e.toString()));
-            } else {
-              errorMessages.add(value.toString());
-            }
-          });
-          message = errorMessages.join('\n');
-        } else {
-          message = 'Validasi gagal';
-        }
-        break;
-      case 403:
-        message = 'Anda tidak memiliki akses ke halaman ini.';
-        break;
-      case 404:
-        message = 'Data tidak ditemukan.';
-        break;
-      case 405:
-        message = error.response?.data?['message'] ?? 'Method not allowed';
-        break;
-      case 500:
-        final data = error.response?.data;
-        if (data != null && data['message'] != null) {
-          message = data['message'];
-        } else {
-          message =
-              'Terjadi kesalahan pada server. Silakan coba beberapa saat lagi.';
-        }
-        break;
-      default:
-        if (error.type == dio.DioExceptionType.connectionTimeout) {
-          message = 'Koneksi timeout. Silakan periksa koneksi internet Anda.';
-        } else if (error.type == dio.DioExceptionType.receiveTimeout) {
-          message = 'Server tidak merespons. Silakan coba lagi.';
-        } else {
-          message = error.response?.data?['message'] ?? 
-              error.message ?? 
-              'Terjadi kesalahan yang tidak diketahui';
-        }
-    }
-
-    CustomSnackbarX.showError(
-      title: 'Error',
-      message: message,
-      position: SnackPosition.BOTTOM,
-    );
-    throw Exception(message);
-  }
-
-  Future<dio.Response> createTransaction(
-      Map<String, dynamic> transactionData) async {
-    try {
-      debugPrint('\n=== Creating Transaction ===');
-      debugPrint('Transaction Data: $transactionData');
-
-      final response = await _dio.post(
-        '/transactions',
-        data: transactionData,
-      );
-
-      debugPrint('\n=== Transaction Response ===');
-      debugPrint('Status code: ${response.statusCode}');
-      debugPrint('Response data: ${response.data}');
-
-      if (response.statusCode == 500) {
-        _handleError(dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-        ));
-      }
-
-      if (response.statusCode == 422) {
-        _handleError(dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-        ));
-      }
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        _handleError(dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-        ));
-      }
-
-      return response;
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  Future<dio.Response> getTransactions({
+  Future<Response> getOrders(
+    String token, {
+    int? merchantId,
     String? status,
-    int page = 1,
-    int pageSize = 10,
-  }) async {
-    try {
-      final queryParameters = <String, dynamic>{
-        'page': page,
-        'page_size': pageSize,
-        'include': 'items.product,items.merchant,user_location',
-      };
-
-      if (status != null && status.isNotEmpty) {
-        final statuses = status.split(',');
-        if (statuses.length > 1) {
-          queryParameters['status[]'] = statuses;
-        } else {
-          queryParameters['status'] = status;
-        }
-      }
-
-      debugPrint('\n=== Transaction Provider Debug ===');
-      debugPrint('Making GET request to: ${baseUrl}/transactions');
-      debugPrint('Query parameters: $queryParameters');
-      debugPrint('Headers: ${_dio.options.headers}');
-
-      final response = await _dio.get(
-        '/transactions',
-        queryParameters: queryParameters,
-      );
-
-      debugPrint('Response status code: ${response.statusCode}');
-      debugPrint('Response data: ${response.data}');
-
-      return response;
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  Future<dio.Response> getTransactionById(String transactionId) async {
-    try {
-      return await _dio.get(
-        '/transactions/$transactionId',
-        queryParameters: {
-          'include': 'items.product,items.merchant,user_location',
-        },
-      );
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  Future<dio.Response> cancelTransaction(String transactionId) async {
-    try {
-      debugPrint('\n=== Canceling Transaction ===');
-      debugPrint('Transaction ID: $transactionId');
-
-      final response = await _dio.put(
-        '/transactions/$transactionId/cancel',
-        data: {'reason': 'Dibatalkan oleh pengguna'},
-      );
-
-      if (response.statusCode == 200) {
-        debugPrint('Successfully canceled transaction');
-        return response;
-      }
-
-      if (response.statusCode == 422) {
-        final message = response.data?['meta']?['message'] ??
-            'Transaksi tidak dapat dibatalkan';
-        throw dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-          error: message,
-        );
-      }
-
-      throw dio.DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        type: dio.DioExceptionType.badResponse,
-        error: 'Failed to cancel transaction',
-      );
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  Future<dio.Response> getTransactionsByMerchant(
-    String merchantId, {
     int page = 1,
     int limit = 10,
-    String? status,
-    String? merchantApproval,
+    required List<int> orderIds, // Add the required orderIds parameter here
   }) async {
     try {
-      final queryParams = {
+      final Map<String, dynamic> queryParams = {
         'page': page,
         'limit': limit,
-        if (status != null) 'order_status': status,
-        if (merchantApproval != null) 'merchant_approval': merchantApproval,
       };
 
-      debugPrint('\n=== Getting Merchant Orders ===');
-      debugPrint('Query parameters: $queryParams');
+      if (status != null) queryParams['status'] = status;
+      if (orderIds.isNotEmpty) queryParams['orderIds'] = orderIds.join(','); // Join order IDs for the API call
 
       final response = await _dio.get(
-        '/merchants/$merchantId/orders',
+        'https://dev.antarkanmaa.my.id/api/merchant/$merchantId/orders',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
         queryParameters: queryParams,
       );
-
       return response;
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
+    } catch (e) {
+      print('Error fetching orders: $e');
+      throw Exception('Failed to load orders: $e');
     }
   }
 
-  Future<dio.Response> getTransactionSummaryByMerchant(
-      String merchantId) async {
+  Future<Response> getPendingOrders(String token, int merchantId) async {
     try {
-      final response = await _dio.get('/merchants/$merchantId/orders/summary');
-
-      // Add READYTOPICKUP to statistics if not present
-      if (response.statusCode == 200 && response.data['data'] != null) {
-        final data = response.data['data'];
-        if (data['statistics'] != null) {
-          data['statistics']['readytopickup_orders'] =
-              data['statistics']['readytopickup_orders'] ?? 0;
-        }
-      }
-
-      return response;
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  // New methods for merchant order flow
-  Future<dio.Response> approveOrder(String orderId) async {
-    try {
-      debugPrint('\n=== Approving Order ===');
-      debugPrint('Order ID: $orderId');
-
-      final response = await _dio.put('/merchants/orders/$orderId/approve');
-
-      if (response.statusCode != 200) {
-        _handleError(dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-        ));
-      }
-
-      return response;
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  Future<dio.Response> rejectOrder(String orderId, {String? reason}) async {
-    try {
-      debugPrint('\n=== Rejecting Order ===');
-      debugPrint('Order ID: $orderId');
-      if (reason != null) debugPrint('Reason: $reason');
-
-      final response = await _dio.put(
-        '/merchants/orders/$orderId/reject',
-        data: reason != null ? {'reason': reason} : null,
+      final response = await _dio.get(
+        '/merchants/$merchantId/orders',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        queryParameters: {
+          'status': 'WAITING_APPROVAL',
+        },
       );
-
-      if (response.statusCode != 200) {
-        _handleError(dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-        ));
-      }
-
       return response;
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
+    } catch (e) {
+      print('Error fetching pending orders: $e');
+      throw Exception('Failed to load pending orders: $e');
     }
   }
 
-  Future<dio.Response> markOrderReady(String orderId) async {
+  Future<Response> approveOrder(
+      String token, int orderId, int merchantId) async {
     try {
-      debugPrint('\n=== Marking Order as Ready ===');
-      debugPrint('Order ID: $orderId');
-
-      final response = await _dio.put('/merchants/orders/$orderId/ready');
-
-      if (response.statusCode != 200) {
-        _handleError(dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-        ));
-      }
-
+      final response = await _dio.post(
+        '/orders/$orderId/merchant-approval',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        data: {
+          'merchant_id': merchantId,
+          'is_approved': true,
+        },
+      );
       return response;
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
+    } catch (e) {
+      print('Error approving order: $e');
+      throw Exception('Failed to approve order: $e');
     }
   }
 
-  Future<bool> updateOrderStatus(String orderId, String action,
-      {String? notes}) async {
+  Future<Response> rejectOrder(
+    String token,
+    int orderId,
+    int merchantId, {
+    String? reason,
+  }) async {
     try {
-      debugPrint('\n=== Updating Order Status ===');
-      debugPrint('Order ID: $orderId');
-      debugPrint('Action: $action');
-      if (notes != null) debugPrint('Notes: $notes');
+      final Map<String, dynamic> data = {
+        'merchant_id': merchantId,
+        'is_approved': false,
+      };
+      if (reason != null) {
+        data['reason'] = reason;
+      }
 
       final response = await _dio.post(
-        '/orders/$orderId/$action',
-        data: notes != null ? {'notes': notes} : null,
+        '/orders/$orderId/merchant-approval',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        data: data,
       );
-
-      debugPrint('\n=== Update Order Status Response ===');
-      debugPrint('Status code: ${response.statusCode}');
-      debugPrint('Response data: ${response.data}');
-
-      if (response.statusCode == 500) {
-        _handleError(dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-        ));
-      }
-
-      if (response.statusCode == 422) {
-        final message = response.data?['meta']?['message'] ?? 'Validasi gagal';
-        throw dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-          error: message,
-        );
-      }
-
-      if (response.statusCode != 200) {
-        throw dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-          error: 'Failed to update order status',
-        );
-      }
-
-      // Verify response data structure
-      if (response.data == null ||
-          response.data['meta']?['status'] != 'success') {
-        throw dio.DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: dio.DioExceptionType.badResponse,
-          error: 'Invalid response format',
-        );
-      }
-
-      return response.statusCode == 200; // Return true if successful
-    } on dio.DioException catch (e) {
-      _handleError(e);
-      rethrow;
+      return response;
+    } catch (e) {
+      print('Error rejecting order: $e');
+      throw Exception('Failed to reject order: $e');
     }
+  }
+
+  Future<Response> markOrderReady(
+      String token, int orderId, int merchantId) async {
+    try {
+      final response = await _dio.post(
+        '/orders/$orderId/ready',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        data: {
+          'merchant_id': merchantId,
+        },
+      );
+      return response;
+    } catch (e) {
+      print('Error marking order as ready: $e');
+      throw Exception('Failed to mark order as ready: $e');
+    }
+  }
+
+  void _handleError(DioException error) {
+    String message;
+    print('Error status code: ${error.response?.statusCode}');
+    print('Error response data: ${error.response?.data}');
+
+    if (error.response?.data != null && error.response?.data['meta'] != null) {
+      message = error.response?.data['meta']['message'] ?? 'An error occurred';
+    } else {
+      switch (error.response?.statusCode) {
+        case 401:
+          message = 'Unauthorized access. Please log in again.';
+          break;
+        case 403:
+          message = 'You don\'t have permission to perform this action.';
+          break;
+        case 404:
+          message = 'Resource not found.';
+          break;
+        case 422:
+          if (error.response?.data != null &&
+              error.response?.data['data'] != null) {
+            final errors = error.response?.data['data'];
+            if (errors is Map) {
+              message = errors.values.first.first.toString();
+            } else {
+              message = 'Validation error occurred';
+            }
+          } else {
+            message = 'Validation error occurred';
+          }
+          break;
+        case 500:
+          message = 'Failed to process request';
+          break;
+        default:
+          message = error.response?.data?['message'] ?? 'An error occurred';
+      }
+    }
+    throw Exception(message);
   }
 }

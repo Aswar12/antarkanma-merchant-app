@@ -1,5 +1,7 @@
 import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_home_controller.dart';
+import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_home_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_order_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/product_management_page.dart';
@@ -17,23 +19,54 @@ class MerchantMainPage extends StatefulWidget {
 }
 
 class _MerchantMainPageState extends State<MerchantMainPage> {
-  final MerchantController controller = Get.find();
-  final MerchantProfileController profileController = Get.find();
+  late final MerchantController controller;
+  late final MerchantProfileController profileController;
+  late final MerchantHomeController homeController;
+  late final MerchantOrderController orderController;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    if (!_isInitialized) {
+      _initializeControllers();
+      _isInitialized = true;
+    }
+  }
+
+  void _initializeControllers() {
+    // Get controllers from GetX
+    controller = Get.find<MerchantController>();
+    profileController = Get.find<MerchantProfileController>();
+    homeController = Get.find<MerchantHomeController>();
+    orderController = Get.find<MerchantOrderController>();
+
     // Load data in merchant controller
     controller.fetchMerchantData();
     profileController.fetchMerchantData();
+
+    // Check for pending notifications
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pendingNotification = Get.arguments?['pending_notification'];
+      if (pendingNotification != null) {
+        final type = pendingNotification['type'];
+        final status = pendingNotification['status'];
+        
+        if (type == 'transaction_approved' && status == 'WAITING_APPROVAL') {
+          // Navigate to orders page and set filter
+          homeController.changePage(1); // Orders tab
+          orderController.filterOrders('WAITING_APPROVAL');
+        }
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      MerchantHomePage(),
+      const MerchantHomePage(),
       const MerchantOrderPage(),
-      ProductManagementPage(),
+      const ProductManagementPage(),
       MerchantProfilePage(),
     ];
 
@@ -50,7 +83,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
           }
 
           return IndexedStack(
-            index: controller.currentIndex.value,
+            index: homeController.currentPage.value,
             children: pages,
           );
         },
@@ -64,7 +97,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
           child: Icon(
             icon,
             size: Dimenssions.height22,
-            color: controller.currentIndex.value == index ? logoColor : Colors.grey,
+            color: homeController.currentPage.value == index ? logoColor : Colors.grey,
           ),
         ),
         label: label,
@@ -75,7 +108,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
       return Container(
         decoration: BoxDecoration(
           color: backgroundColor1,
-          boxShadow: controller.currentIndex.value == 1
+          boxShadow: homeController.currentPage.value == 1
               ? []
               : [
                   BoxShadow(
@@ -93,11 +126,11 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
                 ],
         ),
         child: ClipRRect(
-          child: BottomNavigationBar(
+          child: Obx(() => BottomNavigationBar(
             selectedItemColor: logoColor,
             unselectedItemColor: Colors.grey,
-            currentIndex: controller.currentIndex.value,
-            onTap: (index) => controller.changePage(index),
+            currentIndex: homeController.currentPage.value,
+            onTap: (index) => homeController.changePage(index),
             type: BottomNavigationBarType.fixed,
             backgroundColor: backgroundColor1,
             elevation: 0,
@@ -107,17 +140,17 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
               createNavItem(Icons.inventory, 'Products', 2),
               createNavItem(Icons.person, 'Profile', 3),
             ],
-          ),
+          )),
         ),
       );
     }
 
     return GetX<MerchantController>(
       builder: (controller) => PopScope(
-        canPop: controller.currentIndex.value == 0,
+        canPop: homeController.currentPage.value == 0,
         onPopInvoked: (didPop) async {
           if (didPop) return;
-          controller.changePage(0);
+          homeController.changePage(0);
         },
         child: Scaffold(
           backgroundColor: Colors.white,

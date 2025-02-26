@@ -1,7 +1,8 @@
-import 'package:antarkanma_merchant/app/data/models/merchant_model.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma_merchant/app/services/merchant_service.dart';
-import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import '../data/models/merchant_model.dart';
+import '../services/merchant_service.dart';
+import '../services/auth_service.dart';
+import '../routes/app_pages.dart';
 
 class MerchantController extends GetxController {
   final MerchantService _merchantService;
@@ -14,6 +15,8 @@ class MerchantController extends GetxController {
   var errorMessage = ''.obs;
   var lastFetchTime = DateTime.now().obs;
   final cacheValidityDuration = const Duration(minutes: 5);
+  bool _isInitialized = false;
+  bool _isPageChangeInProgress = false;
 
   MerchantController({
     required MerchantService merchantService,
@@ -24,8 +27,11 @@ class MerchantController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print("MerchantController onInit called");
-    _initializeData();
+    if (!_isInitialized) {
+      print("MerchantController onInit called");
+      _initializeData();
+      _isInitialized = true;
+    }
   }
 
   void _initializeData() {
@@ -81,10 +87,16 @@ class MerchantController extends GetxController {
   }
 
   void changePage(int index) {
-    currentIndex.value = index;
-    // Only fetch data when switching to products tab and data needs refresh
-    if (index == 2 && _shouldRefreshData()) {
-      fetchMerchantData();
+    if (!_isPageChangeInProgress && currentIndex.value != index) {
+      print("MerchantController changing page to: $index");
+      _isPageChangeInProgress = true;
+      currentIndex.value = index;
+      _isPageChangeInProgress = false;
+      
+      // Refresh data when switching to products tab
+      if (index == 2 && _shouldRefreshData()) {
+        fetchMerchantData();
+      }
     }
   }
 
@@ -94,5 +106,12 @@ class MerchantController extends GetxController {
   // Method to refresh data after updates
   Future<void> refreshData() async {
     await fetchMerchantData(forceRefresh: true);
+  }
+
+  @override
+  void onClose() {
+    _isInitialized = false;
+    _isPageChangeInProgress = false;
+    super.onClose();
   }
 }

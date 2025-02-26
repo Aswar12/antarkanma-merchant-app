@@ -1,22 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:antarkanma_merchant/app/services/auth_service.dart';
-import 'package:antarkanma_merchant/app/routes/app_pages.dart';
 import 'package:get/get.dart';
+import '../services/auth_service.dart';
+import '../services/storage_service.dart';
+import '../routes/app_pages.dart';
 
 class AuthMiddleware extends GetMiddleware {
   @override
-  int? get priority => 1;
-
-  @override
   RouteSettings? redirect(String? route) {
-    final authService = Get.find<AuthService>();
-
-    if (authService.currentUser.value == null) {
-      // User not logged in, redirect to login
-      return RouteSettings(name: Routes.login);
+    final storageService = StorageService.instance;
+    
+    // Check if we have a valid token
+    final token = storageService.getToken();
+    if (token == null) {
+      return const RouteSettings(name: Routes.login);
     }
 
-    // User logged in, allow access
+    // Check if we have valid user data
+    final userData = storageService.getUser();
+    if (userData == null) {
+      return const RouteSettings(name: Routes.login);
+    }
+
+    // Check if user is a merchant
+    final userRole = userData['roles']?.toString().toUpperCase();
+    if (userRole != 'MERCHANT') {
+      return const RouteSettings(name: Routes.login);
+    }
+
+    // If all checks pass, allow access
     return null;
+  }
+
+  @override
+  GetPage? onPageCalled(GetPage? page) {
+    return page;
   }
 }

@@ -1,14 +1,13 @@
-import 'package:antarkanma_merchant/app/modules/auth/auth_binding.dart';
 import 'package:antarkanma_merchant/app/modules/auth/views/sign_in_page.dart';
 import 'package:antarkanma_merchant/app/modules/auth/views/sign_up_page.dart';
-
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_main_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_order_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_profile_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/product_management_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/product_form_page.dart';
-import 'package:antarkanma_merchant/app/modules/merchant/merchant_binding.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_home_page.dart';
 import 'package:antarkanma_merchant/app/modules/splash/views/splash_page.dart';
+import 'package:antarkanma_merchant/app/bindings/app_binding.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/app/middleware/auth_middleware.dart';
 
@@ -36,50 +35,64 @@ class AppPages {
     GetPage(
       name: Routes.splash,
       page: () => const SplashPage(),
+      binding: AppBinding(),
+      preventDuplicates: true,
     ),
     GetPage(
       name: Routes.login,
       page: () => SignInPage(),
-      binding: AuthBinding(),
+      binding: AppBinding(),
+      preventDuplicates: true,
     ),
     GetPage(
       name: Routes.register,
       page: () => SignUpPage(),
-      binding: AuthBinding(),
+      binding: AppBinding(),
+      preventDuplicates: true,
     ),
     GetPage(
       name: Routes.merchantMainPage,
       page: () => const MerchantMainPage(),
-      binding: MerchantBinding(),
+      binding: AppBinding(),
+      preventDuplicates: true,
       middlewares: [
         AuthMiddleware(),
       ],
       children: [
         GetPage(
+          name: '/home',
+          page: () => const MerchantHomePage(),
+          preventDuplicates: true,
+        ),
+        GetPage(
           name: '/profile',
           page: () => MerchantProfilePage(),
-          binding: MerchantBinding(),
+          preventDuplicates: true,
         ),
         GetPage(
           name: '/orders',
           page: () => const MerchantOrderPage(),
-          binding: MerchantBinding(),
+          preventDuplicates: true,
         ),
         GetPage(
           name: '/products',
           page: () => const ProductManagementPage(),
+          preventDuplicates: true,
         ),
         GetPage(
           name: '/add-product',
           page: () => const ProductFormPage(),
+          preventDuplicates: true,
         ),
         GetPage(
           name: '/edit-product/:id',
           page: () => const ProductFormPage(),
+          preventDuplicates: true,
         ),
         GetPage(
           name: '/edit-store-info',
           page: () => MerchantProfilePage(),
+          preventDuplicates: true,
         ),
       ],
     ),

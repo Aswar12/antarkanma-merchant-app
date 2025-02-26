@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/app/data/models/transaction_model.dart';
-import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
+import 'package:antarkanma_merchant/app/controllers/base_order_controller.dart';
 import 'package:antarkanma_merchant/theme.dart';
 
 class OrderDetailsBottomSheet extends StatelessWidget {
   final TransactionModel transaction;
-  final MerchantOrderController controller;
+  final BaseOrderController controller;
 
   const OrderDetailsBottomSheet({
     Key? key,
@@ -44,6 +44,30 @@ class OrderDetailsBottomSheet extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildProductImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Container(
+        width: Dimenssions.width60,
+        height: Dimenssions.width60,
+        color: backgroundColor3,
+        child: Icon(Icons.image_not_supported, color: subtitleColor),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      width: Dimenssions.width60,
+      height: Dimenssions.width60,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        width: Dimenssions.width60,
+        height: Dimenssions.width60,
+        color: backgroundColor3,
+        child: Icon(Icons.image_not_supported, color: subtitleColor),
+      ),
     );
   }
 
@@ -87,7 +111,7 @@ class OrderDetailsBottomSheet extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Get.back();
-              controller.processOrder(transaction.id.toString());
+              controller.approveTransaction(transaction.id);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: logoColorSecondary,
@@ -171,9 +195,11 @@ class OrderDetailsBottomSheet extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Get.back();
-              controller.rejectOrder(
-                transaction.id.toString(),
-                reasonController.text.isEmpty ? null : reasonController.text,
+              controller.rejectTransaction(
+                transaction.id,
+                reason: reasonController.text.trim().isNotEmpty 
+                  ? reasonController.text.trim() 
+                  : null,
               );
             },
             style: ElevatedButton.styleFrom(
@@ -359,29 +385,13 @@ class OrderDetailsBottomSheet extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        if (item.product.galleries.isNotEmpty)
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(
-                                                    Dimenssions.radius8),
-                                            child: Image.network(
-                                              item.product.firstImageUrl,
-                                              width: Dimenssions.width60,
-                                              height: Dimenssions.width60,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error,
-                                                      stackTrace) =>
-                                                  Container(
-                                                width: Dimenssions.width60,
-                                                height: Dimenssions.width60,
-                                                color: backgroundColor3,
-                                                child: Icon(
-                                                    Icons
-                                                        .image_not_supported,
-                                                    color: subtitleColor),
-                                              ),
-                                            ),
-                                          ),
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                                  Dimenssions.radius8),
+                                          child: _buildProductImage(
+                                              item.product.firstImageUrl),
+                                        ),
                                         SizedBox(width: Dimenssions.width12),
                                         Expanded(
                                           child: Column(

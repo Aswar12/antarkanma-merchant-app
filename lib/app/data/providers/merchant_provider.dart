@@ -150,6 +150,63 @@ class MerchantProvider {
     }
   }
 
+  Future<Response> getPendingTransactions(String token, int merchantId) async {
+    try {
+      print('Fetching pending transactions for merchant ID: $merchantId');
+      final response = await _dio.get(
+        '/merchants/$merchantId/transactions/pending',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      print('Pending transactions API Response: ${response.data}');
+      return response;
+    } catch (e) {
+      print('Error fetching pending transactions: $e');
+      throw Exception('Failed to load pending transactions: $e');
+    }
+  }
+
+  Future<Response> approveTransaction(String token, int merchantId, dynamic transactionId) async {
+    try {
+      print('Approving transaction $transactionId for merchant ID: $merchantId');
+      final response = await _dio.put(
+        '/merchants/$merchantId/transactions/$transactionId/approve',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      print('Approve transaction response: ${response.data}');
+      return response;
+    } catch (e) {
+      print('Error approving transaction: $e');
+      throw Exception('Failed to approve transaction: $e');
+    }
+  }
+
+  Future<Response> rejectTransaction(String token, int merchantId, dynamic transactionId) async {
+    try {
+      print('Rejecting transaction $transactionId for merchant ID: $merchantId');
+      final response = await _dio.put(
+        '/merchants/$merchantId/transactions/$transactionId/reject',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      print('Reject transaction response: ${response.data}');
+      return response;
+    } catch (e) {
+      print('Error rejecting transaction: $e');
+      throw Exception('Failed to reject transaction: $e');
+    }
+  }
+
   Future<Response> updateOrderStatus(
     String token,
     int merchantId,

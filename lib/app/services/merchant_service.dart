@@ -11,11 +11,11 @@ import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 class MerchantService {
-  final MerchantProvider _merchantProvider = MerchantProvider();
-  final AuthService _authService = AuthService();
-  final StorageService _storageService = StorageService.instance;
-  final ProductService _productService = Get.find<ProductService>();
-  final _storage = GetStorage();
+  final MerchantProvider _merchantProvider;
+  final AuthService _authService;
+  final StorageService _storageService;
+  final ProductService _productService;
+  final GetStorage _storage;
 
   // Storage keys
   static const String _merchantProductsKey = 'merchant_products_by_page';
@@ -31,6 +31,19 @@ class MerchantService {
   Map<int, DateTime> _pageLastAccess = {};
   bool _prefetchInProgress = false;
 
+  MerchantService({
+    MerchantProvider? merchantProvider,
+    AuthService? authService,
+    StorageService? storageService,
+    ProductService? productService,
+    GetStorage? storage,
+  }) : 
+    _merchantProvider = merchantProvider ?? MerchantProvider(),
+    _authService = authService ?? Get.find<AuthService>(),
+    _storageService = storageService ?? StorageService.instance,
+    _productService = productService ?? Get.find<ProductService>(),
+    _storage = storage ?? GetStorage();
+
   get token => _authService.getToken();
   Map<String, dynamic>? get user => _storageService.getUser();
   int? get ownerId => user != null ? int.tryParse(user!['id'].toString()) : null;
@@ -40,10 +53,12 @@ class MerchantService {
   Future<MerchantModel?> getMerchant() async {
     try {
       if (ownerId == null) {
-        throw Exception("Owner ID is null. User must be logged in to fetch merchant.");
+        throw Exception(
+            "Owner ID is null. User must be logged in to fetch merchant.");
       }
 
-      final response = await _merchantProvider.getMerchantsByOwnerId(token, ownerId!);
+      final response =
+          await _merchantProvider.getMerchantsByOwnerId(token, ownerId!);
 
       if (response.data != null) {
         // Handle both array and single object responses
@@ -89,7 +104,8 @@ class MerchantService {
       }
 
       if (_lastRequestTime != null) {
-        final timeSinceLastRequest = DateTime.now().difference(_lastRequestTime!);
+        final timeSinceLastRequest =
+            DateTime.now().difference(_lastRequestTime!);
         if (timeSinceLastRequest < requestThrottle) {
           await Future.delayed(requestThrottle - timeSinceLastRequest);
         }
@@ -148,7 +164,8 @@ class MerchantService {
     }
   }
 
-  Future<bool> createProduct(Map<String, dynamic> productData, List<XFile> images) async {
+  Future<bool> createProduct(
+      Map<String, dynamic> productData, List<XFile> images) async {
     try {
       if (_currentMerchant?.id == null) {
         final merchant = await getMerchant();
@@ -166,7 +183,8 @@ class MerchantService {
       if (productResponse.data == null ||
           productResponse.data['meta'] == null ||
           productResponse.data['meta']['status'] != 'success') {
-        throw Exception(productResponse.data?['meta']?['message'] ?? 'Failed to create product');
+        throw Exception(productResponse.data?['meta']?['message'] ??
+            'Failed to create product');
       }
 
       final createdProductData = productResponse.data['data'];
@@ -183,7 +201,8 @@ class MerchantService {
         if (galleryResponse.data == null ||
             galleryResponse.data['meta'] == null ||
             galleryResponse.data['meta']['status'] != 'success') {
-          throw Exception(galleryResponse.data?['meta']?['message'] ?? 'Failed to upload gallery');
+          throw Exception(galleryResponse.data?['meta']?['message'] ??
+              'Failed to upload gallery');
         }
 
         if (galleryResponse.data['data'] != null) {
@@ -440,7 +459,8 @@ class MerchantService {
 
   List<ProductModel>? _getPageFromStorage(int page) {
     try {
-      final Map<String, dynamic>? allPages = _storage.read(_merchantProductsKey);
+      final Map<String, dynamic>? allPages =
+          _storage.read(_merchantProductsKey);
       if (allPages != null && allPages.containsKey(page.toString())) {
         final String compressedData = allPages[page.toString()];
         final List<dynamic> pageProducts = jsonDecode(compressedData);
@@ -459,9 +479,11 @@ class MerchantService {
 
   Future<void> _savePageToStorage(int page, List<ProductModel> products) async {
     try {
-      final Map<String, dynamic> allPages = _storage.read(_merchantProductsKey) ?? {};
+      final Map<String, dynamic> allPages =
+          _storage.read(_merchantProductsKey) ?? {};
 
-      final String compressedData = jsonEncode(products.map((p) => p.toJson()).toList());
+      final String compressedData =
+          jsonEncode(products.map((p) => p.toJson()).toList());
       allPages[page.toString()] = compressedData;
 
       if (allPages.length > maxStoredPages) {
@@ -477,7 +499,8 @@ class MerchantService {
 
   Future<void> _updatePageMetadata(int page) async {
     try {
-      final Map<String, dynamic> metadata = _storage.read(_merchantProductsMetadataKey) ?? {};
+      final Map<String, dynamic> metadata =
+          _storage.read(_merchantProductsMetadataKey) ?? {};
       metadata[page.toString()] = {
         'lastAccess': DateTime.now().toIso8601String(),
         'accessCount': (metadata[page.toString()]?['accessCount'] ?? 0) + 1,

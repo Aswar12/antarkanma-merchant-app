@@ -11,14 +11,25 @@ import 'package:antarkanma_merchant/app/services/fcm_token_service.dart';
 
 class AuthService extends GetxService {
   final StorageService _storageService = StorageService.instance;
-  final AuthProvider _authProvider = AuthProvider();
+  final AuthProvider _authProvider;
 
   final RxBool isLoggedIn = false.obs;
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
+  bool _isLoginInProgress = false;
+
+  AuthService({AuthProvider? authProvider})
+      : _authProvider = authProvider ?? AuthProvider();
 
   @override
   void onInit() {
     super.onInit();
+    // Check if user is already logged in
+    final token = _storageService.getToken();
+    final userData = _storageService.getUser();
+    if (token != null && userData != null) {
+      currentUser.value = UserModel.fromJson(userData);
+      isLoggedIn.value = true;
+    }
   }
 
   Future<bool> login(
@@ -27,6 +38,12 @@ class AuthService extends GetxService {
     bool rememberMe = false,
     bool isAutoLogin = false,
   }) async {
+    if (_isLoginInProgress) {
+      print('Login already in progress, skipping');
+      return false;
+    }
+    _isLoginInProgress = true;
+
     try {
       if (!isAutoLogin) {
         final validationError = Validators.validateIdentifier(identifier);
@@ -37,10 +54,10 @@ class AuthService extends GetxService {
         }
       }
 
-      print('Attempting login with identifier: $identifier'); // Debug log
+      print('Attempting login with identifier: $identifier');
       final response = await _authProvider.login(identifier, password);
-      print('Login response status: ${response.statusCode}'); // Debug log
-      print('Login response data: ${response.data}'); // Debug log
+      print('Login response status: ${response.statusCode}');
+      print('Login response data: ${response.data}');
 
       if (response.statusCode != 200) {
         if (!isAutoLogin) {
@@ -55,7 +72,7 @@ class AuthService extends GetxService {
 
       final userData = response.data['data']?['user'];
       if (userData == null) {
-        print('User data is null in response'); // Debug log
+        print('User data is null in response');
         if (!isAutoLogin) {
           showCustomSnackbar(
               title: 'Login Gagal',
@@ -65,12 +82,9 @@ class AuthService extends GetxService {
         return false;
       }
 
-      print('User role from response: ${userData['role']}'); // Debug log
-
-      // Case-insensitive role check
       final userRole = userData['roles']?.toString().toUpperCase();
       if (userRole == null) {
-        print('Role is null'); // Debug log
+        print('Role is null');
         if (!isAutoLogin) {
           showCustomSnackbar(
               title: 'Login Gagal',
@@ -81,7 +95,7 @@ class AuthService extends GetxService {
       }
 
       if (userRole != 'MERCHANT') {
-        print('Invalid role: $userRole'); // Debug log
+        print('Invalid role: $userRole');
         if (!isAutoLogin) {
           showCustomSnackbar(
               title: 'Login Gagal',
@@ -94,7 +108,7 @@ class AuthService extends GetxService {
 
       final token = response.data['data']?['access_token'];
       if (token == null) {
-        print('Token is null'); // Debug log
+        print('Token is null');
         if (!isAutoLogin) {
           showCustomSnackbar(
               title: 'Error', message: 'Token tidak ditemukan', isError: true);
@@ -102,8 +116,11 @@ class AuthService extends GetxService {
         return false;
       }
 
+      // Save token and user data
       await _storageService.saveToken(token);
       await _storageService.saveUser(userData);
+      currentUser.value = UserModel.fromJson(userData);
+      isLoggedIn.value = true;
 
       if (rememberMe) {
         await _storageService.saveRememberMe(true);
@@ -112,18 +129,17 @@ class AuthService extends GetxService {
         await _storageService.clearCredentials();
       }
 
-      currentUser.value = UserModel.fromJson(userData);
-      isLoggedIn.value = true;
-
-      await _handleFCMToken(register: true);
-
-      if (!isAutoLogin) {
-        Get.offAllNamed(Routes.merchantMainPage);
-        showCustomSnackbar(title: 'Sukses', message: 'Login berhasil');
+      // Handle FCM token registration after successful login
+      try {
+        final fcmService = Get.find<FCMTokenService>();
+        await fcmService.handleLogin();
+      } catch (e) {
+        print('Error handling FCM token during login: $e');
       }
+
       return true;
     } catch (e) {
-      print('Login error: $e'); // Debug log
+      print('Login error: $e');
       if (!isAutoLogin) {
         showCustomSnackbar(
             title: 'Error',
@@ -131,23 +147,8 @@ class AuthService extends GetxService {
             isError: true);
       }
       return false;
-    }
-  }
-
-  // Rest of the existing methods...
-  Future<void> _handleFCMToken({bool register = true}) async {
-    try {
-      final fcmTokenService = Get.find<FCMTokenService>();
-      if (register) {
-        final fcmToken = fcmTokenService.currentToken;
-        if (fcmToken != null && currentUser.value?.id != null) {
-          await fcmTokenService.registerFCMToken(fcmToken);
-        }
-      } else {
-        await fcmTokenService.unregisterToken();
-      }
-    } catch (e) {
-      print('Error handling FCM token: $e');
+    } finally {
+      _isLoginInProgress = false;
     }
   }
 
@@ -216,6 +217,15 @@ class AuthService extends GetxService {
           await _storageService.saveUser(userData);
           currentUser.value = UserModel.fromJson(userData);
           isLoggedIn.value = true;
+
+          // Handle FCM token registration after successful registration
+          try {
+            final fcmService = Get.find<FCMTokenService>();
+            await fcmService.handleLogin();
+          } catch (e) {
+            print('Error handling FCM token during registration: $e');
+          }
+
           Get.offAllNamed(Routes.merchantMainPage);
           return true;
         }
@@ -512,8 +522,15 @@ class AuthService extends GetxService {
     try {
       final token = _storageService.getToken();
       if (token != null) {
+        // Handle FCM token unregistration before logout
+        try {
+          final fcmService = Get.find<FCMTokenService>();
+          await fcmService.handleLogout();
+        } catch (e) {
+          print('Error handling FCM token during logout: $e');
+        }
+
         await _authProvider.logout(token);
-        await _handleFCMToken(register: false);
       }
     } catch (e) {
       print('Error during logout: $e');

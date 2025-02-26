@@ -12,6 +12,7 @@ import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_main_pag
 import 'package:antarkanma_merchant/app/utils/thousand_separator_formatter.dart';
 
 class MerchantProductFormController extends GetxController {
+  // Previous code remains the same...
   final MerchantService merchantService;
   final CategoryService _categoryService = Get.find<CategoryService>();
   final formKey = GlobalKey<FormState>();
@@ -224,19 +225,24 @@ class MerchantProductFormController extends GetxController {
   }
 
   Future<void> _navigateToProductPage() async {
-    // Schedule the state updates for the next frame
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final merchantController = Get.find<MerchantController>();
-      merchantController.currentIndex.value = 2;
-      
+    try {
+      // First navigate to the main page
       await Get.offAll(
         () => const MerchantMainPage(),
         transition: Transition.noTransition,
       );
 
-      // Fetch data after navigation is complete
-      await merchantController.fetchMerchantData(forceRefresh: true);
-    });
+      // After navigation is complete, update the merchant controller
+      await Future.delayed(const Duration(milliseconds: 100), () {
+        if (Get.isRegistered<MerchantController>()) {
+          final merchantController = Get.find<MerchantController>();
+          merchantController.currentIndex.value = 2;
+          merchantController.fetchMerchantData(forceRefresh: true);
+        }
+      });
+    } catch (e) {
+      print('Navigation error: $e');
+    }
   }
 
   Future<bool> saveProduct() async {
@@ -289,7 +295,8 @@ class MerchantProductFormController extends GetxController {
                 ? 'Produk berhasil diperbarui'
                 : 'Produk berhasil ditambahkan');
         
-        // Navigate after showing success message
+        // Add a small delay before navigation to ensure the success message is shown
+        await Future.delayed(const Duration(milliseconds: 500));
         await _navigateToProductPage();
         return true;
       } else {

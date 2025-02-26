@@ -1,122 +1,180 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:antarkanma_merchant/config.dart';
 import 'package:get/get.dart';
-import 'package:antarkanma_merchant/app/data/providers/notification_provider.dart';
-import 'package:antarkanma_merchant/app/services/auth_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import '../data/providers/auth_provider.dart';
+import '../services/storage_service.dart';
 
 class FCMTokenService extends GetxService {
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final NotificationProvider _notificationProvider = NotificationProvider();
-  final AuthService _authService = Get.find<AuthService>();
+  final AuthProvider _authProvider;
+  final StorageService _storageService;
+  String? _fcmToken;
+  String? _deviceId;
+  bool _isRegistering = false;
+  final RxBool isTokenRegistered = false.obs;
 
-  final _currentToken = RxnString();
-  final _isTokenRegistered = RxBool(false);
-
-  String? get currentToken => _currentToken.value;
-  bool get isTokenRegistered => _isTokenRegistered.value;
-
-  Future<FCMTokenService> init() async {
-    // Request permission for iOS
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    // Get initial FCM token
-    await _initializeFCMToken();
-
-    // Listen to token refresh
-    _messaging.onTokenRefresh.listen(_handleTokenRefresh);
-
-    // Listen to auth changes to handle token registration
-    ever(_authService.currentUser, (user) {
-      if (user != null && 
-          _currentToken.value != null && 
-          !_isTokenRegistered.value) {
-        registerFCMToken(_currentToken.value!);
-      }
-    });
-
-    return this;
+  FCMTokenService({
+    AuthProvider? authProvider,
+    StorageService? storageService,
+  })  : _authProvider = authProvider ?? AuthProvider(),
+        _storageService = storageService ?? StorageService.instance {
+    _deviceId = _getDeviceId();
   }
 
-  Future<void> _initializeFCMToken() async {
+  String? get currentToken => _fcmToken;
+
+  String _getDeviceId() {
+    // Get stored device ID or generate a new one
+    final savedDeviceId = _storageService.getString('device_id');
+    if (savedDeviceId != null) {
+      return savedDeviceId;
+    }
+    final newDeviceId = '${DateTime.now().millisecondsSinceEpoch}';
+    _storageService.saveString('device_id', newDeviceId);
+    return newDeviceId;
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initializeFCM();
+  }
+
+  Future<void> _initializeFCM() async {
     try {
-      String? token = await _messaging.getToken();
-      print('Initializing FCM token: $token');
-
-      if (token != null) {
-        _currentToken.value = token;
-
-        // Only register if user is already logged in
-        final user = _authService.currentUser.value;
-        if (user != null) {
-          await registerFCMToken(token);
+      // Check for saved FCM token first
+      _fcmToken = _storageService.getString('fcm_token');
+      
+      // Only get new token if we don't have one saved
+      if (_fcmToken == null) {
+        _fcmToken = await FirebaseMessaging.instance.getToken();
+        if (_fcmToken != null) {
+          await _storageService.saveString('fcm_token', _fcmToken!);
         }
       }
+      
+      Get.log('FCM Token: $_fcmToken');
+
+      // Don't listen for token refresh to keep token stable
     } catch (e) {
-      print('Error initializing FCM token: $e');
+      Get.log('Error initializing FCM: $e', isError: true);
     }
   }
 
-  Future<void> _handleTokenRefresh(String newToken) async {
+  Future<bool> registerFCMToken(String fcmToken) async {
+    if (_isRegistering) {
+      Get.log('FCM token registration already in progress, skipping');
+      return false;
+    }
+
+    _isRegistering = true;
     try {
-      print('Handling token refresh. Old: ${_currentToken.value}, New: $newToken');
-
-      final oldToken = _currentToken.value;
-      _currentToken.value = newToken;
-
-      final user = _authService.currentUser.value;
-      if (user != null) {
-        // If we had an old token, unregister it first
-        if (oldToken != null) {
-          await _notificationProvider.unregisterFCMToken(oldToken);
-        }
-        // Register the new token
-        await registerFCMToken(newToken);
+      final authToken = _storageService.getToken();
+      if (authToken == null) {
+        Get.log('No auth token found for FCM registration');
+        _isRegistering = false;
+        return false;
       }
+
+      if (kDebugMode) {
+        Get.log('Registering FCM token with data:', isError: false);
+        Get.log('Auth Token: $authToken', isError: false);
+        Get.log('FCM Token: $fcmToken', isError: false);
+        Get.log('Device ID: $_deviceId', isError: false);
+      }
+
+      final data = {
+        'token': fcmToken,
+        'device_type': 'android',
+        'device_id': _deviceId
+      };
+
+      final response = await _authProvider.registerFCMToken(authToken, data);
+
+      if (response.statusCode == 200) {
+        Get.log('FCM token registered successfully');
+        _isRegistering = false;
+        isTokenRegistered.value = true;
+        return true;
+      }
+
+      Get.log('Failed to register FCM token: ${response.data}');
+      _isRegistering = false;
+      isTokenRegistered.value = false;
+      return false;
     } catch (e) {
-      print('Error handling token refresh: $e');
+      Get.log('Error registering FCM token: $e', isError: true);
+      _isRegistering = false;
+      isTokenRegistered.value = false;
+      return false;
     }
   }
 
-  Future<void> registerFCMToken(String fcmtoken) async {
+  Future<bool> unregisterToken([String? specificToken]) async {
     try {
-      final user = _authService.currentUser.value;
-      if (user != null) {
-        print('Registering FCM token for user ${user.id} with role ${user.role}');
+      final authToken = _storageService.getToken();
+      final tokenToUnregister = specificToken ?? _fcmToken;
+      
+      if (authToken == null || tokenToUnregister == null) {
+        Get.log('No auth token or FCM token found for unregistration');
+        return false;
+      }
 
-        await _notificationProvider.registerFCMToken(
-          fcmtoken,
-          user.id.toString(),
-          role: user.role,
-        );
+      if (kDebugMode) {
+        Get.log('Unregistering FCM token:', isError: false);
+        Get.log('Auth Token: $authToken', isError: false);
+        Get.log('FCM Token: $tokenToUnregister', isError: false);
+      }
 
-        _isTokenRegistered.value = true;
-        print('FCM token registered successfully');
+      final data = {'token': tokenToUnregister};
+      final response = await _authProvider.unregisterFCMToken(authToken, data);
+
+      if (response.statusCode == 200) {
+        Get.log('FCM token unregistered successfully');
+        if (specificToken == null) {
+          isTokenRegistered.value = false;
+        }
+        return true;
+      }
+
+      Get.log('Failed to unregister FCM token: ${response.data}');
+      return false;
+    } catch (e) {
+      Get.log('Error unregistering FCM token: $e', isError: true);
+      return false;
+    }
+  }
+
+  Future<void> handleLogin() async {
+    try {
+      // Use existing token if available
+      if (_fcmToken == null) {
+        _fcmToken = await FirebaseMessaging.instance.getToken();
+        if (_fcmToken != null) {
+          await _storageService.saveString('fcm_token', _fcmToken!);
+        }
+      }
+
+      if (_fcmToken != null) {
+        // Register the token
+        await registerFCMToken(_fcmToken!);
       } else {
-        print('Cannot register FCM token: No user logged in');
+        Get.log('No FCM token available for registration');
       }
     } catch (e) {
-      _isTokenRegistered.value = false;
-      print('Error registering token with backend: $e');
+      Get.log('Error handling login FCM token: $e', isError: true);
     }
   }
 
-  Future<void> unregisterToken() async {
+  Future<void> handleLogout() async {
     try {
-      final token = _currentToken.value;
-      if (token != null) {
-        print('Unregistering FCM token: $token');
-
-        await _notificationProvider.unregisterFCMToken(token);
-        _currentToken.value = null;
-        _isTokenRegistered.value = false;
-
-        print('FCM token unregistered successfully');
+      // Only unregister the token, don't clear it
+      if (_fcmToken != null) {
+        await unregisterToken(_fcmToken);
       }
+      isTokenRegistered.value = false;
     } catch (e) {
-      print('Error unregistering token: $e');
+      Get.log('Error handling logout FCM token: $e', isError: true);
     }
   }
 }

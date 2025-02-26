@@ -5,6 +5,9 @@ class AuthProvider {
   final Dio _dio = Dio();
   final String baseUrl = Config.baseUrl;
 
+  // Expose dio instance through a getter
+  Dio get dio => _dio;
+
   AuthProvider() {
     _setupBaseOptions();
     _setupInterceptors();
@@ -193,6 +196,34 @@ class AuthProvider {
     }
   }
 
+  /// Register FCM Token
+  Future<Response> registerFCMToken(
+      String token, Map<String, dynamic> data) async {
+    try {
+      return await _dio.post(
+        Config.fcmToken,
+        options: _getAuthOptions(token),
+        data: data,
+      );
+    } catch (e) {
+      throw Exception('Failed to register FCM token: $e');
+    }
+  }
+
+  /// Unregister FCM Token
+  Future<Response> unregisterFCMToken(
+      String token, Map<String, dynamic> data) async {
+    try {
+      return await _dio.delete(
+        Config.fcmToken,
+        options: _getAuthOptions(token),
+        data: data,
+      );
+    } catch (e) {
+      throw Exception('Failed to unregister FCM token: $e');
+    }
+  }
+
   void _handleError(DioException error) {
     String message;
     switch (error.response?.statusCode) {
@@ -214,6 +245,7 @@ class AuthProvider {
     return Options(
       headers: {
         'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
       },
     );
   }

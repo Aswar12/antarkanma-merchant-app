@@ -1,46 +1,33 @@
 import 'package:antarkanma_merchant/app/data/models/order_item_model.dart';
 import 'package:antarkanma_merchant/app/data/models/user_location_model.dart';
 import 'package:antarkanma_merchant/app/data/models/user_model.dart';
+import 'package:antarkanma_merchant/app/data/models/item_model.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 
 class OrderModel {
   final dynamic id;
   final String orderStatus;
   final double totalAmount;
-  final DateTime? createdAt;
   final List<OrderItemModel> orderItems;
 
   OrderModel({
     this.id,
     required this.orderStatus,
     required this.totalAmount,
-    this.createdAt,
     required this.orderItems,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    List<OrderItemModel> orderItems = [];
-    if (json['order_items'] != null) {
-      orderItems = (json['order_items'] as List)
-          .map((item) => OrderItemModel.fromJson(item))
-          .toList();
-    }
-
-    // Handle total_amount that could be string or number
-    double amount = 0.0;
-    if (json['total_amount'] != null) {
-      if (json['total_amount'] is num) {
-        amount = (json['total_amount'] as num).toDouble();
-      } else if (json['total_amount'] is String) {
-        amount = double.tryParse(json['total_amount']) ?? 0.0;
-      }
-    }
-
     return OrderModel(
       id: json['id'],
-      orderStatus: json['order_status']?.toString() ?? 'PENDING',
-      totalAmount: amount,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
-      orderItems: orderItems,
+      orderStatus: json['order_status'] ?? 'PENDING',
+      totalAmount: double.tryParse(json['total_amount']?.toString() ?? '0') ?? 0.0,
+      orderItems: (json['order_items'] as List?)
+              ?.map((item) => OrderItemModel.fromJson(item))
+              .toList() ??
+          [],
     );
   }
 
@@ -49,7 +36,6 @@ class OrderModel {
       'id': id,
       'order_status': orderStatus,
       'total_amount': totalAmount,
-      'created_at': createdAt?.toIso8601String(),
       'order_items': orderItems.map((item) => item.toJson()).toList(),
     };
   }
@@ -57,231 +43,212 @@ class OrderModel {
 
 class TransactionModel {
   final dynamic id;
-  final dynamic orderId;
-  final int userId;
-  final int userLocationId;
-  final double totalPrice;
-  final double shippingPrice;
-  final String paymentMethod;
-  final String status;
-  final String paymentStatus;
+  final dynamic transactionId;
+  final double totalAmount;
+  final String orderStatus;
+  final String merchantApproval;
   final DateTime? createdAt;
-  final String? note;
-  final List<OrderItemModel> items;
-  final UserLocationModel? userLocation;
-  final OrderModel? order;
+  final List<OrderItemModel> orderItems;
+  final Map<String, dynamic>? transaction;
+  final List<ItemModel> items;
+  final Map<String, dynamic>? customer;
+  final Map<String, dynamic>? courier;
+  final double total;
+  final double shippingPrice;
   final UserModel? user;
+  final String status;
+  final OrderModel? order;
 
   TransactionModel({
     this.id,
-    this.orderId,
-    required this.userId,
-    required this.userLocationId,
-    required this.totalPrice,
-    required this.shippingPrice,
-    required this.paymentMethod,
-    required this.status,
-    required this.paymentStatus,
+    this.transactionId,
+    required this.totalAmount,
+    required this.orderStatus,
+    required this.merchantApproval,
     this.createdAt,
-    this.note,
+    required this.orderItems,
+    this.transaction,
     required this.items,
-    this.userLocation,
-    this.order,
+    this.customer,
+    this.courier,
+    required this.total,
+    this.shippingPrice = 0.0,
     this.user,
+    this.status = 'PENDING',
+    this.order,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
-    try {
-      // Handle both old and new JSON structures
-      final transactionData = json['data'] != null ? json['data'] : json;
-      
-      // Parse order items
-      List<OrderItemModel> orderItems = [];
-      if (transactionData['order'] != null && transactionData['order']['order_items'] != null) {
-        orderItems = (transactionData['order']['order_items'] as List)
-            .map((item) => OrderItemModel.fromJson(item))
-            .toList();
-      } else if (transactionData['items'] != null) {
-        orderItems = _parseItems(transactionData['items']);
-      }
-
-      // Parse user location
-      UserLocationModel? userLocation;
-      if (transactionData['user_location'] != null) {
-        userLocation = UserLocationModel.fromJson(transactionData['user_location']);
-      }
-
-      // Parse order with new structure
-      OrderModel? order;
-      if (transactionData['order'] != null) {
-        order = OrderModel.fromJson(transactionData['order']);
-      }
-
-      // Parse user
-      UserModel? user;
-      if (transactionData['user'] != null) {
-        user = UserModel.fromJson(transactionData['user']);
-      }
-
-      // Parse prices that could be string or number
-      double totalPrice = 0.0;
-      if (transactionData['total_price'] != null || transactionData['total_amount'] != null) {
-        var priceValue = transactionData['total_price'] ?? transactionData['total_amount'];
-        if (priceValue is num) {
-          totalPrice = priceValue.toDouble();
-        } else if (priceValue is String) {
-          totalPrice = double.tryParse(priceValue) ?? 0.0;
-        }
-      }
-
-      double shippingPrice = 0.0;
-      if (transactionData['shipping_price'] != null) {
-        var shipValue = transactionData['shipping_price'];
-        if (shipValue is num) {
-          shippingPrice = shipValue.toDouble();
-        } else if (shipValue is String) {
-          shippingPrice = double.tryParse(shipValue) ?? 0.0;
-        }
-      }
-
-      return TransactionModel(
-        id: transactionData['id'],
-        orderId: transactionData['order_id'],
-        userId: _parseId(transactionData['user_id']) ?? 0,
-        userLocationId: _parseId(transactionData['user_location_id']) ?? 0,
-        totalPrice: totalPrice,
-        shippingPrice: shippingPrice,
-        paymentMethod: transactionData['payment_method']?.toString() ?? 'MANUAL',
-        status: transactionData['status']?.toString() ?? order?.orderStatus ?? 'PENDING',
-        paymentStatus: transactionData['payment_status']?.toString() ?? 'PENDING',
-        createdAt: transactionData['created_at'] != null
-            ? DateTime.tryParse(transactionData['created_at'].toString())
-            : null,
-        note: transactionData['note']?.toString(),
-        items: orderItems,
-        userLocation: userLocation,
-        order: order,
-        user: user,
-      );
-    } catch (e, stackTrace) {
-      print('Error parsing TransactionModel: $e');
-      print('Stack trace: $stackTrace');
-      print('JSON data: $json');
-      rethrow;
-    }
-  }
-
-  static int? _parseId(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value);
-    return null;
-  }
-
-  static List<OrderItemModel> _parseItems(dynamic items) {
-    if (items == null) return [];
-    if (items is! List) return [];
-
-    return items.map((item) {
-      try {
-        return OrderItemModel.fromJson(item);
-      } catch (e) {
-        print('Error parsing order item: $e');
-        print('Item data: $item');
-        rethrow;
-      }
-    }).toList();
+    return TransactionModel(
+      id: json['id'],
+      transactionId: json['transaction_id'],
+      totalAmount: double.tryParse(json['total_amount'].toString()) ?? 0.0,
+      orderStatus: json['order_status'] ?? 'PENDING',
+      merchantApproval: json['merchant_approval'] ?? 'PENDING',
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      orderItems: (json['order_items'] as List?)
+              ?.map((item) => OrderItemModel.fromJson(item))
+              .toList() ??
+          [],
+      transaction: json['transaction'] as Map<String, dynamic>?,
+      items: (json['items'] as List?)
+              ?.map((item) => ItemModel.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      customer: json['customer'] as Map<String, dynamic>?,
+      courier: json['courier'] as Map<String, dynamic>?,
+      total: double.tryParse(json['total'].toString()) ?? 0.0,
+      shippingPrice: double.tryParse(json['shipping_price']?.toString() ?? '0') ?? 0.0,
+      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
+      status: json['status'] ?? 'PENDING',
+      order: json['order'] != null ? OrderModel.fromJson(json['order']) : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'order_id': orderId,
-      'user_id': userId,
-      'user_location_id': userLocationId,
-      'total_amount': totalPrice,
-      'shipping_price': shippingPrice,
-      'payment_method': paymentMethod,
-      'status': status,
-      'payment_status': paymentStatus,
+      'transaction_id': transactionId,
+      'total_amount': totalAmount,
+      'order_status': orderStatus,
+      'merchant_approval': merchantApproval,
       'created_at': createdAt?.toIso8601String(),
-      'note': note,
+      'order_items': orderItems.map((item) => item.toJson()).toList(),
+      'transaction': transaction,
       'items': items.map((item) => item.toJson()).toList(),
-      'user_location': userLocation?.toJson(),
-      'order': order?.toJson(),
+      'customer': customer,
+      'courier': courier,
+      'total': total,
+      'shipping_price': shippingPrice,
       'user': user?.toJson(),
+      'status': status,
+      'order': order?.toJson(),
     };
   }
 
   // Getters for formatted values
-  double get subtotal => totalPrice;
-  String get formattedSubtotal => 'Rp ${subtotal.toStringAsFixed(0)}';
-  double get shippingCost => shippingPrice;
-  String get formattedShippingCost => 'Rp ${shippingCost.toStringAsFixed(0)}';
-  double get grandTotal => totalPrice + shippingPrice;
-  String get formattedGrandTotal => 'Rp ${grandTotal.toStringAsFixed(0)}';
-  String get formattedTotalPrice => 'Rp ${totalPrice.toStringAsFixed(0)}';
-  String get formattedShippingPrice => 'Rp ${shippingPrice.toStringAsFixed(0)}';
-  String get formattedDate => createdAt?.toString() ?? '-';
+  String get formattedTotalAmount {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(totalAmount);
+  }
+
+  String get formattedTotalPrice => formattedTotalAmount;
+
+  String get formattedShippingPrice {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(shippingPrice);
+  }
+
+  double get grandTotal => totalAmount + shippingPrice;
+
+  String get formattedGrandTotal {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(grandTotal);
+  }
+
+  // Order-related getters
+  dynamic get orderId => id;
 
   String get statusDisplay {
-    switch (status.toUpperCase()) {
+    switch (orderStatus.toUpperCase()) {
+      case 'WAITING_APPROVAL':
+        return 'Menunggu Persetujuan';
       case 'PENDING':
         return 'Menunggu Konfirmasi';
-      case 'ACCEPTED':
-        return 'Diterima';
-      case 'REJECTED':
-        return 'Ditolak';
       case 'PROCESSING':
         return 'Sedang Diproses';
-      case 'READYTOPICKUP':
-        return 'Siap Antar';
-      case 'SHIPPED':
+      case 'READY':
+        return 'Siap Diambil';
+      case 'PICKED_UP':
         return 'Dalam Pengiriman';
-      case 'DELIVERED':
-        return 'Terkirim';
       case 'COMPLETED':
         return 'Selesai';
       case 'CANCELED':
         return 'Dibatalkan';
       default:
-        return status;
+        return orderStatus;
     }
   }
 
+  Color getStatusColor() {
+    switch (orderStatus.toUpperCase()) {
+      case 'WAITING_APPROVAL':
+        return Colors.orange;
+      case 'PENDING':
+        return Colors.blue;
+      case 'PROCESSING':
+        return Colors.green;
+      case 'READY':
+        return Colors.teal;
+      case 'PICKED_UP':
+        return Colors.indigo;
+      case 'COMPLETED':
+        return Colors.green;
+      case 'CANCELED':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  bool get canBeApproved {
+    return orderStatus.toUpperCase() == 'WAITING_APPROVAL' &&
+        merchantApproval.toUpperCase() == 'PENDING';
+  }
+
+  bool get canBeRejected {
+    return orderStatus.toUpperCase() == 'WAITING_APPROVAL' &&
+        merchantApproval.toUpperCase() == 'PENDING';
+  }
+
+  // Customer-related getters
+  String get customerName => customer?['name'] ?? user?.name ?? 'Customer';
+  String get customerPhone => customer?['phone'] ?? user?.phoneNumber ?? '-';
+
   TransactionModel copyWith({
     dynamic id,
-    dynamic orderId,
-    int? userId,
-    int? userLocationId,
-    double? totalPrice,
-    double? shippingPrice,
-    String? paymentMethod,
-    String? status,
-    String? paymentStatus,
+    dynamic transactionId,
+    double? totalAmount,
+    String? orderStatus,
+    String? merchantApproval,
     DateTime? createdAt,
-    String? note,
-    List<OrderItemModel>? items,
-    UserLocationModel? userLocation,
-    OrderModel? order,
+    List<OrderItemModel>? orderItems,
+    Map<String, dynamic>? transaction,
+    List<ItemModel>? items,
+    Map<String, dynamic>? customer,
+    Map<String, dynamic>? courier,
+    double? total,
+    double? shippingPrice,
     UserModel? user,
+    String? status,
+    OrderModel? order,
   }) {
     return TransactionModel(
       id: id ?? this.id,
-      orderId: orderId ?? this.orderId,
-      userId: userId ?? this.userId,
-      userLocationId: userLocationId ?? this.userLocationId,
-      totalPrice: totalPrice ?? this.totalPrice,
-      shippingPrice: shippingPrice ?? this.shippingPrice,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      status: status ?? this.status,
-      paymentStatus: paymentStatus ?? this.paymentStatus,
+      transactionId: transactionId ?? this.transactionId,
+      totalAmount: totalAmount ?? this.totalAmount,
+      orderStatus: orderStatus ?? this.orderStatus,
+      merchantApproval: merchantApproval ?? this.merchantApproval,
       createdAt: createdAt ?? this.createdAt,
-      note: note ?? this.note,
+      orderItems: orderItems ?? this.orderItems,
+      transaction: transaction ?? this.transaction,
       items: items ?? this.items,
-      userLocation: userLocation ?? this.userLocation,
-      order: order ?? this.order,
+      customer: customer ?? this.customer,
+      courier: courier ?? this.courier,
+      total: total ?? this.total,
+      shippingPrice: shippingPrice ?? this.shippingPrice,
       user: user ?? this.user,
+      status: status ?? this.status,
+      order: order ?? this.order,
     );
   }
 }

@@ -3,17 +3,21 @@ import '../../../services/auth_service.dart';
 import '../../../services/transaction_service.dart';
 import '../../../services/merchant_service.dart';
 import '../../../services/storage_service.dart';
+import '../../../services/fcm_token_service.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/models/user_model.dart';
+import '../../../controllers/auth_controller.dart';
 
 class SplashController extends GetxController {
-  final AuthService _authService = Get.find<AuthService>();
-  final TransactionService _transactionService = Get.find<TransactionService>();
-  final MerchantService _merchantService = Get.find<MerchantService>();
-  final StorageService _storageService = StorageService.instance;
+  late final AuthService _authService;
+  late final TransactionService _transactionService;
+  late final MerchantService _merchantService;
+  late final FCMTokenService _fcmTokenService;
+  late final StorageService _storageService;
   
   final RxBool _isLoading = true.obs;
   final RxString _loadingText = 'Mempersiapkan aplikasi...'.obs;
+  bool _isInitializing = false;
 
   bool get isLoading => _isLoading.value;
   String get loadingText => _loadingText.value;
@@ -25,40 +29,21 @@ class SplashController extends GetxController {
   }
 
   Future<void> _initializeApp() async {
-    try {
-      await Future.delayed(const Duration(seconds: 1));
+    if (_isInitializing) return;
+    _isInitializing = true;
 
+    try {
+      // Initialize services
+      _storageService = StorageService.instance;
+      _authService = Get.find<AuthService>();
+      _transactionService = Get.find<TransactionService>();
+      _merchantService = Get.find<MerchantService>();
+      _fcmTokenService = Get.find<FCMTokenService>();
+
+      await Future.delayed(const Duration(seconds: 1));
       _loadingText.value = 'Memeriksa status login...';
       
-      // First check if remember me is enabled
-      if (_storageService.getRememberMe()) {
-        final credentials = _storageService.getSavedCredentials();
-        if (credentials != null) {
-          _loadingText.value = 'Melakukan auto login...';
-          final success = await _authService.login(
-            credentials['identifier']!,
-            credentials['password']!,
-            rememberMe: true,
-            isAutoLogin: true,
-          );
-          
-          if (success) {
-            print('Auto-login successful');
-            if (_authService.currentUser.value?.role != 'MERCHANT') {
-              _storageService.clearAll();
-              Get.offAllNamed(Routes.login);
-              return;
-            }
-            await _loadMerchantData();
-            _isLoading.value = false;
-            await Future.delayed(const Duration(seconds: 1));
-            Get.offAllNamed(Routes.merchantMainPage);
-            return;
-          }
-        }
-      }
-
-      // If auto-login failed or not enabled, check for valid token
+      // Check for valid token first
       final token = _storageService.getToken();
       final userData = _storageService.getUser();
       
@@ -74,11 +59,85 @@ class SplashController extends GetxController {
             return;
           }
           _authService.isLoggedIn.value = true;
+          
+          // Register FCM token after successful token verification
+          _loadingText.value = 'Mempersiapkan notifikasi...';
+          final fcmToken = _fcmTokenService.currentToken;
+          if (fcmToken != null) {
+            await _fcmTokenService.registerFCMToken(fcmToken);
+          }
+          
           await _loadMerchantData();
           _isLoading.value = false;
           await Future.delayed(const Duration(seconds: 1));
-          Get.offAllNamed(Routes.merchantMainPage);
+
+          // Check for pending notifications before navigation
+          final pendingNotification = _storageService.getMap('pending_notification');
+          if (pendingNotification != null) {
+            Get.offAllNamed(
+              Routes.merchantMainPage,
+              arguments: {'pending_notification': pendingNotification},
+            );
+            await _storageService.remove('pending_notification');
+          } else {
+            Get.offAllNamed(Routes.merchantMainPage);
+          }
           return;
+        } else {
+          // If token is invalid, clear auth data but keep remember me settings
+          if (_storageService.getRememberMe()) {
+            final credentials = _storageService.getSavedCredentials();
+            await _storageService.clearAuth();
+            if (credentials != null) {
+              await _storageService.saveRememberMe(true);
+              await _storageService.saveCredentials(
+                credentials['identifier']!,
+                credentials['password']!,
+              );
+            }
+          } else {
+            await _storageService.clearAll();
+          }
+        }
+      }
+
+      // If no valid token, check for auto-login
+      if (_storageService.canAutoLogin()) {
+        final credentials = _storageService.getSavedCredentials();
+        if (credentials != null) {
+          _loadingText.value = 'Melakukan auto login...';
+          
+          // Get AuthController only when needed for auto-login
+          final authController = Get.find<AuthController>();
+          authController.identifierController.text = credentials['identifier']!;
+          authController.passwordController.text = credentials['password']!;
+          final loginSuccess = await authController.login(isAutoLogin: true);
+          
+          if (loginSuccess) {
+            // Register FCM token after successful auto-login
+            _loadingText.value = 'Mempersiapkan notifikasi...';
+            final fcmToken = _fcmTokenService.currentToken;
+            if (fcmToken != null) {
+              await _fcmTokenService.registerFCMToken(fcmToken);
+            }
+            
+            await _loadMerchantData();
+            _isLoading.value = false;
+            await Future.delayed(const Duration(seconds: 1));
+
+            // Check for pending notifications before navigation
+            final pendingNotification = _storageService.getMap('pending_notification');
+            if (pendingNotification != null) {
+              Get.offAllNamed(
+                Routes.merchantMainPage,
+                arguments: {'pending_notification': pendingNotification},
+              );
+              await _storageService.remove('pending_notification');
+            } else {
+              Get.offAllNamed(Routes.merchantMainPage);
+            }
+            return;
+          }
         }
       }
 
@@ -91,6 +150,7 @@ class SplashController extends GetxController {
       Get.offAllNamed(Routes.login);
     } finally {
       _isLoading.value = false;
+      _isInitializing = false;
     }
   }
 
@@ -99,7 +159,10 @@ class SplashController extends GetxController {
     await Future.wait([
       _merchantService.getMerchant(),
       _merchantService.getMerchantProducts(),
-      _transactionService.getTransactions(),
+      _transactionService.getOrders(
+        orderIds: [], // Add the required orderIds parameter here
+        page: 1,
+      ),
     ]);
   }
 }

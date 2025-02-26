@@ -9,7 +9,8 @@ import '../services/auth_service.dart';
 import 'package:antarkanma_merchant/app/utils/validators.dart';
 
 class AuthController extends GetxController {
-  final AuthService _authService = Get.find<AuthService>();
+  final AuthService _authService;
+  final StorageService _storageService;
 
   var isConfirmPasswordHidden = true.obs;
   final formKey = GlobalKey<FormState>();
@@ -22,7 +23,15 @@ class AuthController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isPasswordHidden = true.obs;
   final rememberMe = false.obs;
-  final StorageService _storageService = StorageService.instance;
+  bool _isAutoLoginInProgress = false;
+  bool _isLoginInProgress = false;
+
+  AuthController({
+    AuthService? authService,
+    StorageService? storageService,
+  }) : 
+    _authService = authService ?? Get.find<AuthService>(),
+    _storageService = storageService ?? StorageService.instance;
 
   @override
   void onInit() {
@@ -42,9 +51,17 @@ class AuthController extends GetxController {
     _storageService.saveRememberMe(rememberMe.value);
   }
 
-  Future<void> login() async {
-    if (isLoading.value) return;
+  Future<bool> login({bool isAutoLogin = false}) async {
+    if (_isLoginInProgress || _isAutoLoginInProgress) return false;
+    
+    if (isAutoLogin) {
+      _isAutoLoginInProgress = true;
+    } else {
+      _isLoginInProgress = true;
+    }
+    
     isLoading.value = true;
+
     try {
       final success = await _authService.login(
         identifierController.text,
@@ -53,31 +70,64 @@ class AuthController extends GetxController {
       );
 
       if (!success) {
-        showCustomSnackbar(
-          title: 'Login Gagal',
-          message: 'Periksa kembali email/nomor telepon dan password Anda.',
-          isError: true,
-        );
-      } else {
-        String role = _authService.currentUser.value?.role ?? '';
-        if (role != 'MERCHANT') {
+        if (!isAutoLogin) {
           showCustomSnackbar(
             title: 'Login Gagal',
-            message: 'Akun ini bukan akun merchant.',
+            message: 'Periksa kembali email/nomor telepon dan password Anda.',
             isError: true,
           );
-          await _authService.logout();
-          Get.offAllNamed(Routes.login);
-          return;
         }
+        return false;
+      }
+
+      String role = _authService.currentUser.value?.role ?? '';
+      if (role != 'MERCHANT') {
+        showCustomSnackbar(
+          title: 'Login Gagal',
+          message: 'Akun ini bukan akun merchant.',
+          isError: true,
+        );
+        await _authService.logout();
+        Get.offAllNamed(Routes.login);
+        return false;
+      }
+
+      // Save credentials if remember me is enabled
+      if (rememberMe.value) {
+        await _storageService.setupAutoLogin(
+          identifier: identifierController.text,
+          password: passwordController.text,
+          rememberMe: true,
+        );
+      } else {
+        await _storageService.clearAutoLogin();
+      }
+
+      if (!isAutoLogin) {
         Get.offAllNamed(Routes.merchantMainPage);
         showCustomSnackbar(
           title: 'Login Berhasil',
           message: 'Selamat datang kembali!',
         );
       }
+      return true;
+    } catch (e) {
+      print('Login error: $e');
+      if (!isAutoLogin) {
+        showCustomSnackbar(
+          title: 'Error',
+          message: 'Gagal login: ${e.toString()}',
+          isError: true,
+        );
+      }
+      return false;
     } finally {
       isLoading.value = false;
+      if (isAutoLogin) {
+        _isAutoLoginInProgress = false;
+      } else {
+        _isLoginInProgress = false;
+      }
     }
   }
 
