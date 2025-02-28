@@ -1,231 +1,106 @@
-import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../data/models/transaction_model.dart';
+import '../data/models/order_summary_model.dart';
 import '../services/transaction_service.dart';
-import 'base_order_controller.dart';
-import 'merchant_order_controller.dart';
-import 'merchant_controller.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../routes/app_pages.dart';
 
-class MerchantHomeController extends BaseOrderController {
-  final TransactionService _transactionService;
-  final GetStorage _storage = GetStorage();
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = Get.find<FlutterLocalNotificationsPlugin>();
-  late final MerchantController _merchantController;
-  
-  final isLoading = true.obs;
-  final autoApprove = false.obs;
-  final newTransactions = <TransactionModel>[].obs;
-  final currentPage = 0.obs;
-  bool _isPageChangeInProgress = false;
-  
-  // New properties for error handling
-  final hasError = false.obs;
-  final errorMessage = ''.obs;
+class MerchantHomeController extends GetxController {
+  final TransactionService transactionService;
 
   MerchantHomeController({
-    required TransactionService transactionService,
-  }) : _transactionService = transactionService {
-    _merchantController = Get.find<MerchantController>();
-  }
+    required this.transactionService,
+  });
+
+  final orderSummary = Rxn<OrderSummaryModel>();
+  final isLoading = false.obs;
+  final hasError = false.obs;
+  final errorMessage = ''.obs;
+  final isOpen = true.obs; // For merchant open/close status
+  final todayRevenue = 0.0.obs;
+  final todayCompletedOrders = 0.obs;
+  final todayAverageOrder = 0.0.obs;
+  final currentPage = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    // Initialize auto-approve state from storage
-    autoApprove.value = _transactionService.getAutoApprove();
-    loadData();
-    _checkPendingNotifications();
+    fetchData();
+    setupFCMListeners();
   }
 
-  Future<void> _checkPendingNotifications() async {
-    final pendingNotification = _storage.read('pending_notification');
-    if (pendingNotification != null) {
-      if (pendingNotification['type'] == 'transaction_approved' && 
-          pendingNotification['status'] == 'WAITING_APPROVAL') {
-        // Navigate to orders page and set filter
-        changePage(1); // Orders tab
-        try {
-          final orderController = Get.find<MerchantOrderController>();
-          orderController.filterOrders('WAITING_APPROVAL');
-        } catch (e) {
-          print('Error setting order filter: $e');
-        }
-    
-    // Call loadData to refresh the displayed orders
-    await loadData();
+  void setupFCMListeners() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      // Handle specific notification types
+      switch (message.data['type']) {
+        case 'transaction_approved':
+        case 'transaction_rejected':
+        case 'new_order':
+          refreshData(); // Reload the page data
+          break;
       }
-      // Clear the pending notification
-      await _storage.remove('pending_notification');
-    }
+    });
   }
 
-  Future<void> loadData() async {
+  Future<void> fetchData() async {
     try {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
+
+      // Get all orders for today to calculate metrics
+      final result = await transactionService.getOrders(
+        status: 'COMPLETED',
+        startDate: DateTime.now().toIso8601String().split('T')[0],
+        endDate: DateTime.now().toIso8601String().split('T')[0],
+      );
+
+      orderSummary.value = result.summary;
       
-      final transactions = await _transactionService.getPendingTransactions();
-      
-      // Sort transactions by creation date (newest first)
-      transactions.sort((a, b) => 
-        (b.createdAt ?? DateTime.now())
-            .compareTo(a.createdAt ?? DateTime.now()));
-      
-      newTransactions.value = transactions;
+      // Calculate today's metrics from completed orders
+      todayCompletedOrders.value = result.orders.length;
+      todayRevenue.value = result.orders.fold(0.0, (sum, order) => 
+        sum + double.parse(order.totalAmount));
+      todayAverageOrder.value = result.orders.isEmpty ? 0.0 : 
+        todayRevenue.value / todayCompletedOrders.value;
+
     } catch (e) {
-      print('Error loading transactions: $e');
       hasError.value = true;
-      errorMessage.value = 'Failed to load transactions';
+      errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> refreshData() async {
-    return loadData();
+    try {
+      await fetchData();
+    } catch (e) {
+      print('Error refreshing data: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal memperbarui data: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
-  void toggleAutoApprove() {
-    autoApprove.value = !autoApprove.value;
-    _transactionService.saveAutoApprove(autoApprove.value);
-    
-    // Notify MerchantOrderController about auto-approve change
-    try {
-      final orderController = Get.find<MerchantOrderController>();
-      // If there's a pending notification, handle it according to new auto-approve setting
-      final pendingNotification = _storage.read('pending_notification');
-      if (pendingNotification != null && 
-          pendingNotification['type'] == 'transaction_approved' && 
-          pendingNotification['status'] == 'WAITING_APPROVAL' &&
-          pendingNotification['order_id'] != null) {
-        if (autoApprove.value) {
-          // Auto approve the pending order
-          orderController.approveTransaction(pendingNotification['order_id']);
-          _storage.remove('pending_notification');
-        } else {
-          // Show pending orders
-          orderController.filterOrders('WAITING_APPROVAL');
-        }
-      }
-    } catch (e) {
-      print('Error syncing auto-approve state: $e');
-    }
+  void toggleMerchantStatus() {
+    isOpen.value = !isOpen.value;
+    Get.snackbar(
+      'Status Toko',
+      isOpen.value ? 'Toko sekarang buka' : 'Toko sekarang tutup',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: isOpen.value ? Colors.green : Colors.orange,
+      colorText: Colors.white,
+    );
   }
 
   void changePage(int index) {
-    if (!_isPageChangeInProgress && currentPage.value != index) {
-      print("MerchantHomeController changing page to: $index");
-      _isPageChangeInProgress = true;
-      currentPage.value = index;
-      _merchantController.changePage(index);
-      _isPageChangeInProgress = false;
-
-      if (index == 1) { // Orders tab
-        try {
-          final orderController = Get.find<MerchantOrderController>();
-          orderController.loadOrders();
-        } catch (e) {
-          print('Error refreshing orders on tab change: $e');
-        }
-      }
-    }
-  }
-
-  @override
-  Future<void> approveTransaction(dynamic transactionId) async {
-    try {
-      isLoading.value = true;
-      await _transactionService.approveOrder(transactionId);
-      await loadData(); // Refresh the list
-      Get.snackbar(
-        'Sukses',
-        'Pesanan #$transactionId telah disetujui',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } catch (e) {
-      print('Error approving transaction: $e');
-      Get.snackbar(
-        'Error',
-        'Gagal menyetujui pesanan #$transactionId',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  @override
-  Future<void> rejectTransaction(dynamic transactionId, {String? reason}) async {
-    try {
-      isLoading.value = true;
-      await _transactionService.rejectOrder(transactionId, reason: reason);
-      await loadData(); // Refresh the list
-      Get.snackbar(
-        'Sukses',
-        'Pesanan #$transactionId telah ditolak',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } catch (e) {
-      print('Error rejecting transaction: $e');
-      Get.snackbar(
-        'Error',
-        'Gagal menolak pesanan #$transactionId',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> markOrderReady(dynamic orderId) async {
-    try {
-      isLoading.value = true;
-      await _transactionService.markOrderReady(orderId);
-      await loadData(); // Refresh the list
-      Get.snackbar(
-        'Sukses',
-        'Pesanan #$orderId siap untuk diambil',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } catch (e) {
-      print('Error marking order as ready: $e');
-      Get.snackbar(
-        'Error',
-        'Gagal menandai pesanan #$orderId siap diambil',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  @override
-  void onClose() {
-    _isPageChangeInProgress = false;
-    super.onClose();
+    currentPage.value = index;
   }
 }

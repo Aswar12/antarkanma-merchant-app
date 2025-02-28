@@ -1,39 +1,54 @@
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
-import '../data/models/transaction_model.dart';
 import '../data/providers/transaction_provider.dart';
+import '../data/models/transaction_model.dart' as transaction;
+import '../data/models/order_model.dart';
+import '../data/models/order_summary_model.dart';
+import '../data/models/paginated_order_response.dart';
+import 'package:dio/dio.dart';
 
-class OrderResult {
-  final List<TransactionModel> orders;
-  final Map<String, int> stats;
-  final bool hasMore;
-
-  OrderResult({
-    required this.orders,
-    required this.stats,
-    required this.hasMore,
-  });
-}
-
-class TransactionService extends GetxService {
+class TransactionService {
   final TransactionProvider _transactionProvider;
   final GetStorage _storage;
+  static const String _autoApproveKey = 'auto_approve_enabled';
 
   TransactionService({
-    required TransactionProvider transactionProvider,
-    required GetStorage storage,
-  })  : _transactionProvider = transactionProvider,
-        _storage = storage;
+    TransactionProvider? transactionProvider,
+    GetStorage? storage,
+  })  : _transactionProvider = transactionProvider ?? TransactionProvider(),
+        _storage = storage ?? GetStorage();
 
-  String get _token => _storage.read('token') ?? '';
-  int get _merchantId => _storage.read('merchant_id') ?? 0;
-
-  Future<List<TransactionModel>> getPendingTransactions() async {
+  Future<Response> getMerchantOrders({
+    required int page,
+    String? status,
+    String? startDate,
+    String? endDate,
+    String? search,
+    String? sortBy = 'created_at',
+    String? sortOrder = 'desc',
+  }) async {
     try {
-      final response = await _transactionProvider.getPendingOrders(_token, _merchantId);
+      return await _transactionProvider.getMerchantOrders(
+        page: page,
+        status: status,
+        startDate: startDate,
+        endDate: endDate,
+        search: search,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      );
+    } catch (e) {
+      print('Error getting merchant orders: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<transaction.TransactionModel>> getPendingTransactions() async {
+    try {
+      final response = await _transactionProvider.getPendingTransactions();
       if (response.data != null && response.data['data'] != null) {
         return (response.data['data'] as List)
-            .map((json) => TransactionModel.fromJson(json))
+            .map((json) => transaction.TransactionModel.fromJson(json))
             .toList();
       }
       return [];
@@ -43,55 +58,90 @@ class TransactionService extends GetxService {
     }
   }
 
-  Future<OrderResult> getOrders({
-    required List<int> orderIds,
-    required int page,
+  Future<PaginatedOrderResponse> getOrders({
+    List<int>? orderIds,
+    int page = 1,
     String? status,
+    String? startDate,
+    String? endDate,
+    String? search,
+    String? sortBy = 'created_at',
+    String? sortOrder = 'desc',
   }) async {
     try {
-      final response = await _transactionProvider.getOrders(
-        _token,
-        merchantId: _merchantId,
-        orderIds: orderIds, // Pass the orderIds parameter correctly
+      final response = await getMerchantOrders(
         page: page,
         status: status,
+        startDate: startDate,
+        endDate: endDate,
+        search: search,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
       );
 
-      print('API Response: ${response.data}'); // Debugging line
+      print('Response status code: ${response.statusCode}');
+      print('Response headers: ${response.headers}');
+      print('Response data type: ${response.data.runtimeType}');
+      print('Response data: ${response.data}');
 
-      if (response.data != null) {
-        final orders = (response.data['data'] as List? ?? [])
-            .map((json) => TransactionModel.fromJson(json))
-            .toList();
-
-        final stats = Map<String, int>.from(response.data['stats'] ?? {});
-        final hasMore = response.data['has_more'] ?? false;
-
-        return OrderResult(
-          orders: orders,
-          stats: stats,
-          hasMore: hasMore,
-        );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load orders: ${response.statusCode}');
       }
 
-      return OrderResult(
-        orders: [],
-        stats: {},
-        hasMore: false,
+      if (response.data == null) {
+        throw Exception('Response data is null');
+      }
+
+      if (response.data is! Map) {
+        throw Exception('Invalid response format: expected Map, got ${response.data.runtimeType}');
+      }
+
+      final responseData = response.data as Map<String, dynamic>;
+      if (!responseData.containsKey('data')) {
+        throw Exception('Response missing data field');
+      }
+
+      final data = responseData['data'] as Map<String, dynamic>;
+      final ordersData = data['orders'] as Map<String, dynamic>;
+      final List<OrderModel> ordersList = [];
+
+      if (ordersData['data'] != null) {
+        final List<dynamic> ordersJsonList = ordersData['data'] as List;
+        ordersList.addAll(ordersJsonList
+            .map((orderJson) => OrderModel.fromJson(orderJson as Map<String, dynamic>))
+            .toList());
+      }
+
+      return PaginatedOrderResponse(
+        orders: ordersList,
+        stats: OrderStatsModel(statusCounts: Map<String, int>.from(data['status_counts'] ?? {})),
+        summary: OrderSummaryModel(
+          statusCounts: Map<String, int>.from(data['status_counts'] ?? {}),
+          summary: OrderTotalSummaryModel(
+            totalOrders: int.tryParse(data['summary']?['total_orders']?.toString() ?? '0') ?? 0,
+            totalCompleted: int.tryParse(data['summary']?['total_completed']?.toString() ?? '0') ?? 0,
+            totalProcessing: int.tryParse(data['summary']?['total_processing']?.toString() ?? '0') ?? 0,
+            totalPending: int.tryParse(data['summary']?['total_pending']?.toString() ?? '0') ?? 0,
+            totalCanceled: int.tryParse(data['summary']?['total_canceled']?.toString() ?? '0') ?? 0,
+          ),
+        ),
+        hasMore: ordersData['current_page'] != null && 
+                 ordersData['last_page'] != null &&
+                 int.parse(ordersData['current_page'].toString()) < int.parse(ordersData['last_page'].toString()),
+        currentPage: int.tryParse(ordersData['current_page']?.toString() ?? '1') ?? 1,
+        lastPage: int.tryParse(ordersData['last_page']?.toString() ?? '1') ?? 1,
+        total: int.tryParse(ordersData['total']?.toString() ?? '0') ?? 0,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error getting orders: $e');
-      return OrderResult(
-        orders: [],
-        stats: {},
-        hasMore: false,
-      );
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 
   Future<void> approveOrder(dynamic orderId) async {
     try {
-      await _transactionProvider.approveOrder(_token, orderId as int, _merchantId);
+      await _transactionProvider.approveOrder(orderId);
     } catch (e) {
       print('Error approving order: $e');
       rethrow;
@@ -100,7 +150,7 @@ class TransactionService extends GetxService {
 
   Future<void> rejectOrder(dynamic orderId, {String? reason}) async {
     try {
-      await _transactionProvider.rejectOrder(_token, orderId as int, _merchantId, reason: reason);
+      await _transactionProvider.rejectOrder(orderId, reason: reason);
     } catch (e) {
       print('Error rejecting order: $e');
       rethrow;
@@ -109,18 +159,18 @@ class TransactionService extends GetxService {
 
   Future<void> markOrderReady(dynamic orderId) async {
     try {
-      await _transactionProvider.markOrderReady(_token, orderId as int, _merchantId);
+      await _transactionProvider.markOrderReady(orderId);
     } catch (e) {
       print('Error marking order as ready: $e');
       rethrow;
     }
   }
 
-  Future<void> saveAutoApprove(bool value) async {
-    await _storage.write('auto_approve', value);
+  bool getAutoApprove() {
+    return _storage.read(_autoApproveKey) ?? false;
   }
 
-  bool getAutoApprove() {
-    return _storage.read('auto_approve') ?? false;
+  Future<void> saveAutoApprove(bool value) async {
+    await _storage.write(_autoApproveKey, value);
   }
 }

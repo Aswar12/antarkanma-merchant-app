@@ -1,3 +1,5 @@
+import 'merchant_model.dart';
+
 class UserModel {
   final int id;
   final String name;
@@ -6,7 +8,8 @@ class UserModel {
   final String role; // 'USER', 'MERCHANT', 'COURIER'
   final String? username;
   final String? profilePhotoUrl;
-  final String? profilePhotoPath; // Tambahkan properti baru
+  final String? profilePhotoPath;
+  final MerchantModel? merchant; // Add merchant property
 
   UserModel({
     required this.id,
@@ -16,7 +19,8 @@ class UserModel {
     required this.role,
     this.username,
     this.profilePhotoUrl,
-    this.profilePhotoPath, // Tambahkan parameter baru
+    this.profilePhotoPath,
+    this.merchant, // Add to constructor
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +34,12 @@ class UserModel {
       }
     }
 
+    // Parse merchant data if available
+    MerchantModel? merchantData;
+    if (json['merchant'] != null) {
+      merchantData = MerchantModel.fromJson(json['merchant']);
+    }
+
     return UserModel(
       id: json['id'] as int,
       name: json['name'] as String,
@@ -41,6 +51,7 @@ class UserModel {
       username: json['username'] as String?,
       profilePhotoUrl: photoUrl,
       profilePhotoPath: json['profile_photo_path'] as String?,
+      merchant: merchantData, // Include merchant data
     );
   }
 
@@ -50,10 +61,11 @@ class UserModel {
       'name': name,
       'email': email,
       'phone_number': phoneNumber,
-      'roles': role, // Pastikan ini sesuai dengan format yang diharapkan
+      'roles': role,
       'username': username,
       'profile_photo_url': profilePhotoUrl,
-      'profile_photo_path': profilePhotoPath, // Sertakan dalam JSON
+      'profile_photo_path': profilePhotoPath,
+      'merchant': merchant?.toJson(), // Include merchant in JSON
     };
   }
 
@@ -69,7 +81,8 @@ class UserModel {
         other.role == role &&
         other.username == username &&
         other.profilePhotoUrl == profilePhotoUrl &&
-        other.profilePhotoPath == profilePhotoPath; // Tambahkan perbandingan
+        other.profilePhotoPath == profilePhotoPath &&
+        other.merchant == merchant;
   }
 
   @override
@@ -81,7 +94,8 @@ class UserModel {
         role.hashCode ^
         username.hashCode ^
         profilePhotoUrl.hashCode ^
-        profilePhotoPath.hashCode; // Tambahkan hashCode
+        profilePhotoPath.hashCode ^
+        merchant.hashCode;
   }
 
   UserModel copyWith({
@@ -92,7 +106,8 @@ class UserModel {
     String? role,
     String? username,
     String? profilePhotoUrl,
-    String? profilePhotoPath, // Tambahkan parameter baru
+    String? profilePhotoPath,
+    MerchantModel? merchant,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -102,8 +117,8 @@ class UserModel {
       role: role ?? this.role,
       username: username ?? this.username,
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
-      profilePhotoPath:
-          profilePhotoPath ?? this.profilePhotoPath, // Tambahkan parameter baru
+      profilePhotoPath: profilePhotoPath ?? this.profilePhotoPath,
+      merchant: merchant ?? this.merchant,
     );
   }
 }

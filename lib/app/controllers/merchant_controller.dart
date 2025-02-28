@@ -37,24 +37,46 @@ class MerchantController extends GetxController {
   void _initializeData() {
     // Listen to auth changes
     ever(_authService.currentUser, (user) {
-      if (user != null && merchant.value == null) {
-        fetchMerchantData();
+      if (user != null) {
+        // Use merchant data from user model if available
+        if (user.merchant != null) {
+          merchant.value = user.merchant;
+          lastFetchTime.value = DateTime.now();
+          print("Merchant data loaded from user model: ${user.merchant?.name}");
+        } else if (merchant.value == null) {
+          // Only fetch if we don't have merchant data
+          fetchMerchantData();
+        }
       }
     });
 
-    // Initial fetch if user is already logged in
-    if (_authService.currentUser.value != null) {
-      fetchMerchantData();
+    // Initial load if user is already logged in
+    final currentUser = _authService.currentUser.value;
+    if (currentUser != null) {
+      if (currentUser.merchant != null) {
+        merchant.value = currentUser.merchant;
+        lastFetchTime.value = DateTime.now();
+        print("Initial merchant data loaded from user model: ${currentUser.merchant?.name}");
+      } else {
+        fetchMerchantData();
+      }
     }
   }
 
   bool _shouldRefreshData() {
     if (merchant.value == null) return true;
-    return DateTime.now().difference(lastFetchTime.value) >
-        cacheValidityDuration;
+    return DateTime.now().difference(lastFetchTime.value) > cacheValidityDuration;
   }
 
   Future<void> fetchMerchantData({bool forceRefresh = false}) async {
+    // Check if we already have merchant data from user model
+    final currentUser = _authService.currentUser.value;
+    if (!forceRefresh && currentUser?.merchant != null) {
+      merchant.value = currentUser!.merchant;
+      lastFetchTime.value = DateTime.now();
+      return;
+    }
+
     // Return cached data if available and still valid
     if (!forceRefresh && !_shouldRefreshData()) {
       return;

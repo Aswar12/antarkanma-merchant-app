@@ -6,9 +6,11 @@ import 'package:antarkanma_merchant/app/data/models/paginated_response.dart';
 import 'package:antarkanma_merchant/app/services/auth_service.dart';
 import 'package:antarkanma_merchant/app/services/storage_service.dart';
 import 'package:antarkanma_merchant/app/services/product_service.dart';
+import 'package:antarkanma_merchant/config.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
 
 class MerchantService {
   final MerchantProvider _merchantProvider;
@@ -16,6 +18,7 @@ class MerchantService {
   final StorageService _storageService;
   final ProductService _productService;
   final GetStorage _storage;
+  final Dio _dio;
 
   // Storage keys
   static const String _merchantProductsKey = 'merchant_products_by_page';
@@ -42,13 +45,76 @@ class MerchantService {
     _authService = authService ?? Get.find<AuthService>(),
     _storageService = storageService ?? StorageService.instance,
     _productService = productService ?? Get.find<ProductService>(),
-    _storage = storage ?? GetStorage();
+    _storage = storage ?? GetStorage(),
+    _dio = Dio(BaseOptions(baseUrl: Config.baseUrl));
 
   get token => _authService.getToken();
   Map<String, dynamic>? get user => _storageService.getUser();
   int? get ownerId => user != null ? int.tryParse(user!['id'].toString()) : null;
 
   MerchantModel? _currentMerchant;
+
+  // New methods for order approval/rejection
+  Future<bool> approveOrder(String orderId) async {
+    try {
+      if (_currentMerchant?.id == null) {
+        final merchant = await getMerchant();
+        if (merchant == null) {
+          throw Exception('Failed to get merchant information');
+        }
+      }
+
+      final response = await _dio.put(
+        '/api/merchants/orders/$orderId/approve',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: {
+          'merchant_id': _currentMerchant!.id,
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error approving order: $e');
+      return false;
+    }
+  }
+
+  Future<bool> rejectOrder(String orderId, String reason) async {
+    try {
+      if (_currentMerchant?.id == null) {
+        final merchant = await getMerchant();
+        if (merchant == null) {
+          throw Exception('Failed to get merchant information');
+        }
+      }
+
+      final response = await _dio.put(
+        '/api/merchants/orders/$orderId/reject',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: {
+          'merchant_id': _currentMerchant!.id,
+          'reason': reason,
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error rejecting order: $e');
+      return false;
+    }
+  }
 
   Future<MerchantModel?> getMerchant() async {
     try {

@@ -1,217 +1,220 @@
-import 'package:dio/dio.dart';
-import 'package:antarkanma_merchant/config.dart';
+import 'package:dio/dio.dart' as dio;
+import '../../../config.dart';
+import '../../services/auth_service.dart';
+import '../../services/storage_service.dart';
+import 'package:get/get.dart';
 
 class TransactionProvider {
-  final Dio _dio = Dio();
-  final String baseUrl = Config.baseUrl;
+  final dio.Dio _dio;
+  final StorageService _storage = StorageService.instance;
 
-  TransactionProvider() {
-    _setupBaseOptions();
-    _setupInterceptors();
-  }
+  TransactionProvider({dio.Dio? dioClient}) : _dio = dioClient ?? dio.Dio() {
+    // Configure Dio defaults
+    _dio.options.baseUrl = Config.baseUrl;
+    _dio.options.connectTimeout =
+        const Duration(milliseconds: Config.connectTimeout);
+    _dio.options.receiveTimeout =
+        const Duration(milliseconds: Config.receiveTimeout);
+    _dio.options.validateStatus = (status) {
+      return status != null && status < 500;
+    };
 
-  void _setupBaseOptions() {
-    _dio.options = BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      validateStatus: (status) => status! < 500,
-    );
-  }
-
-  void _setupInterceptors() {
+    // Add auth interceptor
     _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          print('Making request to: ${options.path}');
-          print('Request data: ${options.data}');
+      dio.InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          // Add auth token
+          final token = _storage.getToken();
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          options.headers['Accept'] = 'application/json';
+          options.headers['Content-Type'] = 'application/json';
 
-          options.headers.addAll({
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          });
+          print('Making request to: ${options.uri}');
+          print('Headers: ${options.headers}');
+          print('Query Parameters: ${options.queryParameters}');
 
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          print('Response received: ${response.data}');
+          print('Response status: ${response.statusCode}');
+          print('Response data: ${response.data}');
+
+          if (response.statusCode == 401) {
+            // Handle unauthorized
+            print('Unauthorized request');
+            _storage.clearAuth();
+            Get.offAllNamed('/login');
+            return handler.reject(
+              dio.DioException(
+                requestOptions: response.requestOptions,
+                response: response,
+                type: dio.DioExceptionType.unknown,
+                error: 'Unauthorized',
+              ),
+            );
+          }
+
           return handler.next(response);
         },
-        onError: (DioException error, handler) {
-          print('Error occurred: ${error.message}');
+        onError: (error, handler) {
+          print('API Error: ${error.message}');
           print('Error response: ${error.response?.data}');
-          _handleError(error);
+          print('Error type: ${error.type}');
+          print('Error stacktrace: ${error.stackTrace}');
           return handler.next(error);
         },
       ),
     );
   }
 
-  Future<Response> getOrders(
-    String token, {
-    int? merchantId,
+  Future<dio.Response> getMerchantOrders({
+    required int page,
     String? status,
-    int page = 1,
-    int limit = 10,
-    required List<int> orderIds, // Add the required orderIds parameter here
+    String? startDate,
+    String? endDate,
+    String? search,
+    String? sortBy = 'created_at',
+    String? sortOrder = 'desc',
   }) async {
     try {
-      final Map<String, dynamic> queryParams = {
-        'page': page,
-        'limit': limit,
+      final merchantId =
+          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
+      }
+
+      final queryParams = {
+        'page': page.toString(),
+        if (status != null) 'status': status,
+        if (startDate != null) 'start_date': startDate,
+        if (endDate != null) 'end_date': endDate,
+        if (search != null) 'search': search,
+        if (sortBy != null) 'sort_by': sortBy,
+        if (sortOrder != null) 'sort_order': sortOrder,
       };
 
-      if (status != null) queryParams['status'] = status;
-      if (orderIds.isNotEmpty) queryParams['orderIds'] = orderIds.join(','); // Join order IDs for the API call
-
-      final response = await _dio.get(
-        'https://dev.antarkanmaa.my.id/api/merchant/$merchantId/orders',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
-        queryParameters: queryParams,
-      );
-      return response;
-    } catch (e) {
-      print('Error fetching orders: $e');
-      throw Exception('Failed to load orders: $e');
-    }
-  }
-
-  Future<Response> getPendingOrders(String token, int merchantId) async {
-    try {
+      print(
+          'Requesting orders for merchant $merchantId with params: $queryParams');
       final response = await _dio.get(
         '/merchants/$merchantId/orders',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200) {
+        if (response.data is! Map) {
+          throw dio.DioException(
+            requestOptions: response.requestOptions,
+            error: 'Invalid response format',
+            type: dio.DioExceptionType.unknown,
+          );
+        }
+      }
+
+      return response;
+    } on dio.DioException catch (e) {
+      print('DioException in getMerchantOrders:');
+      print('  Message: ${e.message}');
+      print('  Error: ${e.error}');
+      print('  Response: ${e.response?.data}');
+      print('  Stack trace: ${e.stackTrace}');
+      rethrow;
+    } catch (e, stackTrace) {
+      print('Error in getMerchantOrders: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  Future<dio.Response> getPendingTransactions() async {
+    try {
+      final merchantId =
+          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
+      }
+
+      return await _dio.get(
+        '/merchants/$merchantId/orders',
         queryParameters: {
           'status': 'WAITING_APPROVAL',
+          'sort_by': 'created_at',
+          'sort_order': 'desc',
         },
       );
-      return response;
-    } catch (e) {
-      print('Error fetching pending orders: $e');
-      throw Exception('Failed to load pending orders: $e');
+    } catch (e, stackTrace) {
+      print('Error in getPendingTransactions: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 
-  Future<Response> approveOrder(
-      String token, int orderId, int merchantId) async {
+  Future<dio.Response> approveOrder(
+    dynamic orderId,
+  ) async {
     try {
-      final response = await _dio.post(
-        '/orders/$orderId/merchant-approval',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
+      final merchantId =
+          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
+      }
+
+      return await _dio.put(
+        '/merchants/orders/$orderId/approve',
         data: {
           'merchant_id': merchantId,
-          'is_approved': true,
         },
       );
-      return response;
-    } catch (e) {
-      print('Error approving order: $e');
-      throw Exception('Failed to approve order: $e');
+    } catch (e, stackTrace) {
+      print('Error in approveOrder: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 
-  Future<Response> rejectOrder(
-    String token,
-    int orderId,
-    int merchantId, {
+  Future<dio.Response> rejectOrder(
+    dynamic orderId, {
     String? reason,
   }) async {
     try {
-      final Map<String, dynamic> data = {
-        'merchant_id': merchantId,
-        'is_approved': false,
-      };
-      if (reason != null) {
-        data['reason'] = reason;
+      final merchantId =
+          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
       }
 
-      final response = await _dio.post(
-        '/orders/$orderId/merchant-approval',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
-        data: data,
-      );
-      return response;
-    } catch (e) {
-      print('Error rejecting order: $e');
-      throw Exception('Failed to reject order: $e');
-    }
-  }
-
-  Future<Response> markOrderReady(
-      String token, int orderId, int merchantId) async {
-    try {
-      final response = await _dio.post(
-        '/orders/$orderId/ready',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
+      return await _dio.put(
+        '/merchants/orders/$orderId/reject',
         data: {
           'merchant_id': merchantId,
+          'reason': reason,
         },
       );
-      return response;
-    } catch (e) {
-      print('Error marking order as ready: $e');
-      throw Exception('Failed to mark order as ready: $e');
+    } catch (e, stackTrace) {
+      print('Error in rejectOrder: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 
-  void _handleError(DioException error) {
-    String message;
-    print('Error status code: ${error.response?.statusCode}');
-    print('Error response data: ${error.response?.data}');
-
-    if (error.response?.data != null && error.response?.data['meta'] != null) {
-      message = error.response?.data['meta']['message'] ?? 'An error occurred';
-    } else {
-      switch (error.response?.statusCode) {
-        case 401:
-          message = 'Unauthorized access. Please log in again.';
-          break;
-        case 403:
-          message = 'You don\'t have permission to perform this action.';
-          break;
-        case 404:
-          message = 'Resource not found.';
-          break;
-        case 422:
-          if (error.response?.data != null &&
-              error.response?.data['data'] != null) {
-            final errors = error.response?.data['data'];
-            if (errors is Map) {
-              message = errors.values.first.first.toString();
-            } else {
-              message = 'Validation error occurred';
-            }
-          } else {
-            message = 'Validation error occurred';
-          }
-          break;
-        case 500:
-          message = 'Failed to process request';
-          break;
-        default:
-          message = error.response?.data?['message'] ?? 'An error occurred';
+  Future<dio.Response> markOrderReady(
+    dynamic orderId,
+  ) async {
+    try {
+      final merchantId =
+          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
       }
+
+      return await _dio.post(
+        '/merchants/$merchantId/orders/$orderId/ready',
+      );
+    } catch (e, stackTrace) {
+      print('Error in markOrderReady: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
-    throw Exception(message);
   }
 }

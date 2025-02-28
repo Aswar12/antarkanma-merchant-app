@@ -1,208 +1,214 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../data/models/order_model.dart';
+import '../data/models/order_summary_model.dart';
 import '../services/transaction_service.dart';
-import '../services/storage_service.dart';
-import '../data/models/transaction_model.dart';
-import '../controllers/base_order_controller.dart';
-import '../widgets/custom_snackbar.dart';
+import '../modules/merchant/widgets/reject_order_dialog.dart';
+import 'base_order_controller.dart';
 
 class MerchantOrderController extends BaseOrderController {
   final TransactionService _transactionService;
-  final StorageService _storageService;
-  final RxBool isLoading = false.obs;
-  final RxBool isRefreshing = false.obs;
-  final RxString currentStatus = 'ALL'.obs;
-  final RxString errorMessage = ''.obs;
-  final RxList<TransactionModel> orders = <TransactionModel>[].obs;
-  final RxMap<String, int> stats = <String, int>{}.obs;
-  final RxBool hasMore = false.obs;
-  final RxList<TransactionModel> filteredOrders = <TransactionModel>[].obs;
 
   MerchantOrderController({
-    TransactionService? transactionService,
-    StorageService? storageService,
-  })  : _transactionService = transactionService ?? Get.find<TransactionService>(),
-        _storageService = storageService ?? StorageService.instance;
+    required TransactionService transactionService,
+  }) : _transactionService = transactionService;
+
+  final isLoading = true.obs;
+  final hasError = false.obs;
+  final errorMessage = ''.obs;
+  final orders = <OrderModel>[].obs;
+  final stats = Rx<OrderStatsModel?>(null);
+  final hasMore = false.obs;
+  final currentPage = 1.obs;
+  final selectedStatus = RxString('WAITING_APPROVAL');
+  final isLoadingMore = false.obs;
+  final autoApprove = false.obs; // Auto-approve toggle
+
+  // Computed properties
+  List<OrderModel> get filteredOrders => orders;
+  String get currentStatus => selectedStatus.value;
 
   @override
   void onInit() {
     super.onInit();
-    checkPendingNotification();
     loadOrders();
   }
 
-  void checkPendingNotification() async {
-    try {
-      final pendingNotification = _storageService.getMap('pending_notification');
-      if (pendingNotification != null) {
-        final type = pendingNotification['type'];
-        final status = pendingNotification['status'];
-        final orderId = pendingNotification['order_id'];
-        
-        if (type == 'transaction_approved' && 
-            status == 'WAITING_APPROVAL' && 
-            orderId != null) {
-          // Clear the pending notification
-          _storageService.remove('pending_notification');
-          
-          // Check if auto-approve is enabled
-          if (_transactionService.getAutoApprove()) {
-            // Auto approve the order
-            await approveTransaction(orderId);
-          } else {
-            // Set status filter to WAITING_APPROVAL and refresh orders
-            filterOrders('WAITING_APPROVAL');
-          }
-        }
-      }
-    } catch (e) {
-      // Replace print with logging
-      print('Error checking pending notification: $e');
-      errorMessage.value = 'Error checking notifications';
-    }
+  Future<void> refreshOrders() async {
+    await loadOrders(refresh: true);
   }
 
-  Future<void> loadOrders() async {
-    if (isLoading.value) return;
-    
-    isLoading.value = true;
-    errorMessage.value = '';
+  Future<void> loadOrders({bool refresh = false}) async {
+    if (refresh) {
+      currentPage.value = 1;
+      orders.clear();
+    }
+
+    if (isLoading.value && !refresh) return;
+
     try {
-      final result = await _transactionService.getOrders(
-        orderIds: [], // Add the required orderIds parameter here
-        page: 1,
-        status: currentStatus.value == 'ALL' ? null : currentStatus.value,
+      isLoading.value = true;
+      hasError.value = false;
+      errorMessage.value = '';
+
+      final response = await _transactionService.getOrders(
+        page: currentPage.value,
+        status: selectedStatus.value == 'ALL' ? null : selectedStatus.value,
       );
-      
-      orders.value = result.orders;
-      stats.value = result.stats;
-      hasMore.value = result.hasMore;
-      _updateFilteredOrders();
-    } catch (e) {
-      // Replace print with logging
+
+      if (currentPage.value == 1) {
+        orders.value = response.orders;
+      } else {
+        orders.addAll(response.orders);
+      }
+
+      stats.value = response.stats;
+      hasMore.value = response.hasMore;
+
+      // Auto-approve new orders if enabled
+      if (autoApprove.value) {
+        final newOrders = response.orders.where((order) => order.orderStatus == 'WAITING_APPROVAL');
+        for (final order in newOrders) {
+          approveTransaction(order.id);
+        }
+      }
+    } catch (e, stackTrace) {
       print('Error loading orders: $e');
-      errorMessage.value = 'Failed to load orders';
+      print('Stack trace: $stackTrace');
+      hasError.value = true;
+      errorMessage.value = 'Failed to load orders: $e';
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> refreshOrders() async {
-    if (isRefreshing.value) return;
-    
-    isRefreshing.value = true;
-    errorMessage.value = '';
-    try {
-      final result = await _transactionService.getOrders(
-        orderIds: [], // Add the required orderIds parameter here
-        page: 1,
-        status: currentStatus.value == 'ALL' ? null : currentStatus.value,
-      );
-      
-      orders.value = result.orders;
-      stats.value = result.stats;
-      hasMore.value = result.hasMore;
-      _updateFilteredOrders();
-    } catch (e) {
-      // Replace print with logging
-      print('Error refreshing orders: $e');
-      errorMessage.value = 'Failed to refresh orders';
-    } finally {
-      isRefreshing.value = false;
-    }
-  }
+  Future<void> loadMoreOrders() async {
+    if (!hasMore.value || isLoadingMore.value) return;
 
-  void _updateFilteredOrders() {
-    if (currentStatus.value.toUpperCase() == 'ALL') {
-      filteredOrders.value = orders;
-    } else {
-      filteredOrders.value = orders.where((order) => 
-        order.status.toUpperCase() == currentStatus.value.toUpperCase()
-      ).toList();
+    try {
+      isLoadingMore.value = true;
+      currentPage.value++;
+
+      final response = await _transactionService.getOrders(
+        page: currentPage.value,
+        status: selectedStatus.value == 'ALL' ? null : selectedStatus.value,
+      );
+
+      orders.addAll(response.orders);
+      stats.value = response.stats;
+      hasMore.value = response.hasMore;
+    } catch (e, stackTrace) {
+      print('Error loading more orders: $e');
+      print('Stack trace: $stackTrace');
+      currentPage.value--; // Revert page increment on error
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
   void filterOrders(String status) {
-    if (currentStatus.value.toUpperCase() != status.toUpperCase()) {
-      currentStatus.value = status.toUpperCase();
-      loadOrders();
+    if (selectedStatus.value != status) {
+      selectedStatus.value = status;
+      orders.clear();
+      currentPage.value = 1;
+      loadOrders(refresh: true);
+    }
+  }
+
+  void toggleAutoApprove() {
+    autoApprove.value = !autoApprove.value;
+    Get.snackbar(
+      'Auto Approve',
+      autoApprove.value ? 'Auto approve diaktifkan' : 'Auto approve dinonaktifkan',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: autoApprove.value ? Colors.green : Colors.orange,
+      colorText: Colors.white,
+    );
+  }
+
+  @override
+  Future<void> approveTransaction(dynamic orderId) async {
+    try {
+      await _transactionService.approveOrder(orderId);
+      await loadOrders(refresh: true);
+      Get.snackbar(
+        'Success',
+        'Order #$orderId has been approved',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      print('Error approving order: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to approve order #$orderId',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
   @override
-  Future<void> approveTransaction(dynamic transactionId) async {
+  void showRejectDialog(dynamic orderId) {
+    Get.dialog(
+      RejectOrderDialog(
+        onSubmit: (reason) {
+          rejectTransaction(orderId, reason: reason);
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<void> rejectTransaction(dynamic orderId, {String? reason}) async {
     try {
-      await _transactionService.approveOrder(transactionId);
-      showCustomSnackbar(
-        title: 'Success',
-        message: 'Order approved successfully',
+      await _transactionService.rejectOrder(orderId, reason: reason);
+      await loadOrders(refresh: true);
+      Get.snackbar(
+        'Success',
+        'Order #$orderId has been rejected',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
       );
-      await refreshOrders();
     } catch (e) {
-      // Replace print with logging
-      print('Error approving transaction: $e');
-      showCustomSnackbar(
-        title: 'Error',
-        message: 'Failed to approve order',
-        isError: true,
+      print('Error rejecting order: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to reject order #$orderId',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
     }
   }
 
   @override
-  Future<void> rejectTransaction(dynamic transactionId, {String? reason}) async {
-    try {
-      await _transactionService.rejectOrder(transactionId, reason: reason);
-      showCustomSnackbar(
-        title: 'Success',
-        message: 'Order rejected successfully',
-      );
-      await refreshOrders();
-    } catch (e) {
-      // Replace print with logging
-      print('Error rejecting transaction: $e');
-      showCustomSnackbar(
-        title: 'Error',
-        message: 'Failed to reject order',
-        isError: true,
-      );
-    }
-  }
-
-  Future<void> markAsReadyForPickup(dynamic orderId) async {
+  Future<void> markOrderReady(dynamic orderId) async {
     try {
       await _transactionService.markOrderReady(orderId);
-      showCustomSnackbar(
-        title: 'Success',
-        message: 'Order marked as ready for pickup',
+      await loadOrders(refresh: true);
+      Get.snackbar(
+        'Success',
+        'Order #$orderId is ready for pickup',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
       );
-      await refreshOrders();
     } catch (e) {
-      // Replace print with logging
       print('Error marking order as ready: $e');
-      showCustomSnackbar(
-        title: 'Error',
-        message: 'Failed to mark order as ready',
-        isError: true,
+      Get.snackbar(
+        'Error',
+        'Failed to mark order #$orderId as ready',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
     }
   }
 
-  Future<void> completeOrder(dynamic orderId) async {
-    try {
-      await _transactionService.markOrderReady(orderId);
-      showCustomSnackbar(
-        title: 'Success',
-        message: 'Order completed successfully',
-      );
-      await refreshOrders();
-    } catch (e) {
-      // Replace print with logging
-      print('Error completing order: $e');
-      showCustomSnackbar(
-        title: 'Error',
-        message: 'Failed to complete order',
-        isError: true,
-      );
-    }
-  }
+  // Alias for markOrderReady to maintain compatibility
+  Future<void> markAsReadyForPickup(dynamic orderId) => markOrderReady(orderId);
 }

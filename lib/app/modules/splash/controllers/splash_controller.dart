@@ -145,8 +145,9 @@ class SplashController extends GetxController {
       await Future.delayed(const Duration(seconds: 2));
       Get.offAllNamed(Routes.login);
       
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error in splash controller: $e');
+      print('Stack trace: $stackTrace');
       Get.offAllNamed(Routes.login);
     } finally {
       _isLoading.value = false;
@@ -155,14 +156,25 @@ class SplashController extends GetxController {
   }
 
   Future<void> _loadMerchantData() async {
-    _loadingText.value = 'Memuat data merchant...';
-    await Future.wait([
-      _merchantService.getMerchant(),
-      _merchantService.getMerchantProducts(),
-      _transactionService.getOrders(
-        orderIds: [], // Add the required orderIds parameter here
-        page: 1,
-      ),
-    ]);
+    try {
+      _loadingText.value = 'Memuat data merchant...';
+      
+      // Load merchant and product data first
+      await Future.wait([
+        _merchantService.getMerchant(),
+        _merchantService.getMerchantProducts(),
+      ]);
+
+      // Load orders separately to handle any potential errors
+      try {
+        await _transactionService.getOrders(page: 1);
+      } catch (e) {
+        print('Error loading initial orders: $e');
+        // Continue even if orders fail to load
+      }
+    } catch (e) {
+      print('Error loading merchant data: $e');
+      // Continue even if some data fails to load
+    }
   }
 }

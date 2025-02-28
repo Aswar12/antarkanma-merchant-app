@@ -16,59 +16,58 @@ class HeaderSection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(Dimenssions.height16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: primaryGradient,
-        ),
+        color: logoColor,
       ),
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Toko Saya',
-                      style: textwhite.copyWith(
-                        fontSize: Dimenssions.font24,
-                        fontWeight: semiBold,
-                      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Dashboard',
+                    style: textwhite.copyWith(
+                      fontSize: Dimenssions.font24,
+                      fontWeight: semiBold,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Selamat datang kembali!',
+                  ),
+                  SizedBox(height: Dimenssions.height4),
+                  Obx(() {
+                    final waitingCount = controller.orderSummary.value?.statusCounts['WAITING_APPROVAL'] ?? 0;
+                    return Text(
+                      '$waitingCount pesanan menunggu persetujuan',
                       style: textwhite.copyWith(
                         fontSize: Dimenssions.font14,
                       ),
-                    ),
-                  ],
-                ),
-                // Auto Approve Toggle
-                Obx(() => Switch(
-                      value: controller.autoApprove.value,
-                      onChanged: (value) => controller.toggleAutoApprove(),
-                      activeColor: logoColorSecondary,
-                      activeTrackColor: logoColorSecondary.withOpacity(0.5),
-                      inactiveThumbColor: Colors.white,
-                      inactiveTrackColor: Colors.white.withOpacity(0.3),
-                    )),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Auto Approve: ${controller.autoApprove.value ? 'Aktif' : 'Tidak Aktif'}',
-              style: textwhite.copyWith(
-                fontSize: Dimenssions.font12,
-                fontWeight: medium,
+                    );
+                  }),
+                ],
               ),
-            ),
-          ],
-        ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Status Toko',
+                    style: textwhite.copyWith(
+                      fontSize: Dimenssions.font14,
+                    ),
+                  ),
+                  Obx(() => Switch(
+                    value: controller.isOpen.value,
+                    onChanged: (value) => controller.toggleMerchantStatus(),
+                    activeColor: logoColorSecondary,
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: Colors.white.withOpacity(0.5),
+                  )),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

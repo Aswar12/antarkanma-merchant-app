@@ -1,11 +1,12 @@
+import 'package:antarkanma_merchant/app/data/models/order_model.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/widgets/profile_photo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../controllers/merchant_home_controller.dart';
 import '../../../../theme.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/empty_state.dart';
-import '../../../widgets/order_details_bottom_sheet.dart';
-import 'package:intl/intl.dart';
 
 class MerchantHomePage extends GetView<MerchantHomeController> {
   const MerchantHomePage({super.key});
@@ -24,7 +25,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
           key: const PageStorageKey<String>('merchant_home'),
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Header Section with Auto Approve Toggle
+            // Header Section with Store Status Toggle
             SliverAppBar(
               expandedHeight: 120,
               pinned: true,
@@ -45,33 +46,36 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Pesanan Masuk',
+                                'Dashboard',
                                 style: textwhite.copyWith(
                                   fontSize: Dimenssions.font24,
                                   fontWeight: semiBold,
                                 ),
                               ),
                               SizedBox(height: Dimenssions.height4),
-                              Obx(() => Text(
-                                '${controller.newTransactions.length} pesanan menunggu persetujuan',
-                                style: textwhite.copyWith(
-                                  fontSize: Dimenssions.font14,
-                                ),
-                              )),
+                              Obx(() {
+                                final waitingCount = controller.orderSummary.value?.statusCounts['WAITING_APPROVAL'] ?? 0;
+                                return Text(
+                                  '$waitingCount pesanan menunggu persetujuan',
+                                  style: textwhite.copyWith(
+                                    fontSize: Dimenssions.font14,
+                                  ),
+                                );
+                              }),
                             ],
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'Auto Approve',
+                                'Status Toko',
                                 style: textwhite.copyWith(
                                   fontSize: Dimenssions.font14,
                                 ),
                               ),
                               Obx(() => Switch(
-                                value: controller.autoApprove.value,
-                                onChanged: (value) => controller.toggleAutoApprove(),
+                                value: controller.isOpen.value,
+                                onChanged: (value) => controller.toggleMerchantStatus(),
                                 activeColor: logoColorSecondary,
                                 inactiveThumbColor: Colors.white,
                                 inactiveTrackColor: Colors.white.withOpacity(0.5),
@@ -85,221 +89,174 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 ),
               ),
             ),
-            // Empty, Loading, or List State
+            // Combined Overview and Summary
             SliverToBoxAdapter(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const ShimmerLoading();
-                }
-                
-                if (controller.newTransactions.isEmpty) {
-                  return const EmptyState();
-                }
-
-                if (controller.hasError.value) {
-                  return Center(
-                    child: Text(
-                      controller.errorMessage.value,
-                      style: TextStyle(color: Colors.red),
+              child: Container(
+                margin: EdgeInsets.all(Dimenssions.height16),
+                padding: EdgeInsets.all(Dimenssions.height16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(Dimenssions.radius12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
-                  );
-                }
-                
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: controller.newTransactions.length,
-                  itemBuilder: (context, index) {
-                    final transaction = controller.newTransactions[index];
-                    return Container(
-                      margin: EdgeInsets.symmetric(
-                        horizontal: Dimenssions.height16,
-                        vertical: Dimenssions.height8,
-                      ),
-                      padding: EdgeInsets.all(Dimenssions.height16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(Dimenssions.radius12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Order #${transaction.id}',
+                                'Ringkasan',
                                 style: primaryTextStyle.copyWith(
                                   fontSize: Dimenssions.font16,
                                   fontWeight: semiBold,
                                 ),
                               ),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Dimenssions.width8,
-                                  vertical: Dimenssions.height4,
+                              SizedBox(height: Dimenssions.height4),
+                              Obx(() => Text(
+                                'Rp ${NumberFormat('#,###', 'id_ID').format(controller.todayRevenue.value)}',
+                                style: primaryTextStyle.copyWith(
+                                  fontSize: Dimenssions.font24,
+                                  fontWeight: semiBold,
+                                  color: Colors.green,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: logoColorSecondary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(Dimenssions.radius4),
-                                ),
-                                child: Text(
-                                  transaction.statusDisplay,
-                                  style: primaryTextOrange.copyWith(
-                                    fontSize: Dimenssions.font12,
-                                    fontWeight: medium,
-                                  ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )),
+                              Text(
+                                'Pendapatan Hari Ini',
+                                style: subtitleTextStyle.copyWith(
+                                  fontSize: Dimenssions.font12,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: Dimenssions.height12),
-                          if (transaction.items.isNotEmpty) ...[
+                        ),
+                        Container(
+                          height: Dimenssions.height50,
+                          width: 1,
+                          color: Colors.grey.withOpacity(0.3),
+                        ),
+                        SizedBox(width: Dimenssions.width12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Row(
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(Dimenssions.radius8),
-                                  child: Image.network(
-                                    transaction.items.first.product.firstImageUrl ?? '',
-                                    width: Dimenssions.height60,
-                                    height: Dimenssions.height60,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      width: Dimenssions.height60,
-                                      height: Dimenssions.height60,
-                                      color: backgroundColor3,
-                                      child: Icon(
-                                        Icons.image_not_supported,
-                                        color: subtitleColor,
-                                        size: Dimenssions.height24,
-                                      ),
-                                    ),
-                                  ),
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Colors.blue,
+                                  size: Dimenssions.height16,
                                 ),
-                                SizedBox(width: Dimenssions.width12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        transaction.items.first.product.name,
-                                        style: primaryTextStyle.copyWith(
-                                          fontSize: Dimenssions.font14,
-                                          fontWeight: medium,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${transaction.items.first.quantity}x @ ${NumberFormat.currency(
-                                          locale: 'id_ID',
-                                          symbol: 'Rp ',
-                                          decimalDigits: 0,
-                                        ).format(transaction.items.first.price)}',
-                                        style: subtitleTextStyle.copyWith(
-                                          fontSize: Dimenssions.font12,
-                                        ),
-                                      ),
-                                      if (transaction.items.length > 1)
-                                        Text(
-                                          '+${transaction.items.length - 1} items lainnya',
-                                          style: subtitleTextStyle.copyWith(
-                                            fontSize: Dimenssions.font12,
-                                            fontWeight: medium,
-                                          ),
-                                        ),
-                                    ],
+                                SizedBox(width: Dimenssions.width4),
+                                Obx(() => Text(
+                                  '${controller.todayCompletedOrders.value} Selesai',
+                                  style: primaryTextStyle.copyWith(
+                                    fontSize: Dimenssions.font14,
+                                    color: Colors.blue,
                                   ),
-                                ),
+                                )),
                               ],
                             ),
-                            SizedBox(height: Dimenssions.height12),
+                            SizedBox(height: Dimenssions.height4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.analytics,
+                                  color: Colors.orange,
+                                  size: Dimenssions.height16,
+                                ),
+                                SizedBox(width: Dimenssions.width4),
+                                Obx(() => Text(
+                                  'Rp ${NumberFormat('#,###', 'id_ID').format(controller.todayAverageOrder.value)}',
+                                  style: primaryTextStyle.copyWith(
+                                    fontSize: Dimenssions.font14,
+                                    color: Colors.orange,
+                                  ),
+                                )),
+                              ],
+                            ),
                           ],
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    transaction.customerName,
-                                    style: primaryTextStyle.copyWith(
-                                      fontSize: Dimenssions.font14,
-                                      fontWeight: medium,
-                                    ),
-                                  ),
-                                  Text(
-                                    transaction.customerPhone,
-                                    style: subtitleTextStyle.copyWith(
-                                      fontSize: Dimenssions.font12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                transaction.formattedTotalAmount,
-                                style: primaryTextOrange.copyWith(
-                                  fontSize: Dimenssions.font16,
-                                  fontWeight: semiBold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: Dimenssions.height16),
+                        ),
+                      ],
+                    ),
+                    Divider(height: Dimenssions.height24),
+                    Obx(() {
+                      final summary = controller.orderSummary.value?.summary;
+                      if (summary == null) return const SizedBox.shrink();
+
+                      return Column(
+                        children: [
                           Row(
                             children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () => controller.rejectTransaction(transaction.id),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    padding: EdgeInsets.symmetric(vertical: Dimenssions.height12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(Dimenssions.radius8),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Tolak',
-                                    style: textwhite.copyWith(
-                                      fontSize: Dimenssions.font14,
-                                      fontWeight: medium,
-                                    ),
-                                  ),
-                                ),
+                              _buildStatCard(
+                                'Total',
+                                summary.totalOrders.toString(),
+                                Colors.blue,
                               ),
-                              SizedBox(width: Dimenssions.width12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () => controller.approveTransaction(transaction.id),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: logoColorSecondary,
-                                    padding: EdgeInsets.symmetric(vertical: Dimenssions.height12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(Dimenssions.radius8),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Terima',
-                                    style: textwhite.copyWith(
-                                      fontSize: Dimenssions.font14,
-                                      fontWeight: medium,
-                                    ),
-                                  ),
-                                ),
+                              SizedBox(width: Dimenssions.width8),
+                              _buildStatCard(
+                                'Diproses',
+                                summary.totalProcessing.toString(),
+                                Colors.orange,
+                              ),
+                              SizedBox(width: Dimenssions.width8),
+                              _buildStatCard(
+                                'Selesai',
+                                summary.totalCompleted.toString(),
+                                Colors.green,
                               ),
                             ],
                           ),
                         ],
-                      ),
-                    );
-                  },
-                );
-              }),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.all(Dimenssions.height8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(Dimenssions.radius8),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: primaryTextStyle.copyWith(
+                fontSize: Dimenssions.font12,
+                color: color,
+              ),
+            ),
+            SizedBox(height: Dimenssions.height4),
+            Text(
+              value,
+              style: primaryTextStyle.copyWith(
+                fontSize: Dimenssions.font16,
+                fontWeight: semiBold,
+                color: color,
+              ),
             ),
           ],
         ),

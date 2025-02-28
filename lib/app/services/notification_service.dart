@@ -29,16 +29,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       'order_id': message.data['order_id'],
     });
 
-    // Fetch orders
-    print('Fetching orders for transaction approved notification...');
+    // Fetch orders and refresh UI
     final transactionService = Get.find<TransactionService>();
     final homeController = Get.find<MerchantHomeController>();
-    await transactionService.getOrders(
-      orderIds: [], // Add the required orderIds parameter here
-      page: 1, // Adjust page as needed
-    );
-    homeController.loadData(); // Refresh the displayed orders
-    print('Orders fetched and loadData called.');
+    await homeController.fetchData(); // Use fetchData instead of loadData
   }
 }
 
@@ -111,14 +105,14 @@ class NotificationService extends GetxService {
         final data = jsonDecode(response.payload!);
         _handleNotificationNavigation(data);
       } catch (e) {
-        print('Error parsing notification payload: $e');
+        Get.log('Error parsing notification payload: $e');
       }
     }
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    print('Got a message whilst in the foreground!');
-    print('Message data: ${message.data}');
+    Get.log('Got a message whilst in the foreground!');
+    Get.log('Message data: ${message.data}');
 
     if (message.notification != null) {
       await showNotification(
@@ -137,21 +131,14 @@ class NotificationService extends GetxService {
         'order_id': message.data['order_id'],
       });
 
-      // Fetch orders
-      print('Fetching orders for transaction approved notification...');
-      final transactionService = Get.find<TransactionService>();
+      // Fetch orders and refresh UI
       final homeController = Get.find<MerchantHomeController>();
-      await transactionService.getOrders(
-        orderIds: [], // Add the required orderIds parameter here
-        page: 1, // Adjust page as needed
-      );
-      homeController.loadData(); // Refresh the displayed orders
-      print('Orders fetched and loadData called.');
+      await homeController.fetchData(); // Use fetchData instead of loadData
     }
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {
-    print('Message opened app: ${message.data}');
+    Get.log('Message opened app: ${message.data}');
     _handleNotificationNavigation(message.data);
   }
 
