@@ -12,10 +12,10 @@ class MerchantOrderCard extends StatelessWidget {
   final Function(TransactionModel) onTap;
 
   const MerchantOrderCard({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   Widget _buildHeader(String orderId, String status, String date) {
     return Container(

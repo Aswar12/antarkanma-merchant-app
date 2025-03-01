@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import '../data/models/merchant_model.dart';
 import '../services/merchant_service.dart';
 import '../services/auth_service.dart';
-import '../routes/app_pages.dart';
 
 class MerchantController extends GetxController {
   final MerchantService _merchantService;

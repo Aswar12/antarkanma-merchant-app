@@ -11,14 +11,14 @@ class CachedImageView extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   const CachedImageView({
-    Key? key,
+    super.key,
     required this.imageUrl,
     this.width,
     this.height,
     this.fit = BoxFit.cover,
     this.placeholder = 'assets/image_shoes.png',
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   bool _isValidUrl(String url) {
     return url.isNotEmpty && 

@@ -8,9 +8,9 @@ class MerchantInfoSection extends StatelessWidget {
   final ProductModel product;
 
   const MerchantInfoSection({
-    Key? key,
+    super.key,
     required this.product,
-  }) : super(key: key);
+  });
 
   String _getOperatingHours() {
     final merchant = product.merchant;

@@ -130,7 +130,7 @@ class ProductService extends GetxService {
       
       return PaginatedResponse<ProductModel>.fromJson(
         response.data,
-        (json) => ProductModel.fromJson(json as Map<String, dynamic>),
+        (json) => ProductModel.fromJson(json),
       );
     } catch (e) {
       debugPrint('❌ Error fetching products: $e');
@@ -179,7 +179,7 @@ class ProductService extends GetxService {
 
       return PaginatedResponse<ProductModel>.fromJson(
         response.data,
-        (json) => ProductModel.fromJson(json as Map<String, dynamic>),
+        (json) => ProductModel.fromJson(json),
       );
     } catch (e) {
       debugPrint('Error fetching products by category: $e');

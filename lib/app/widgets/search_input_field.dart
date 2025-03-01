@@ -9,13 +9,13 @@ class SearchInputField extends StatefulWidget {
   final FocusNode? focusNode;
 
   const SearchInputField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.hintText,
     this.onClear,
     this.onChanged,
     this.focusNode,
-  }) : super(key: key);
+  });
 
   @override
   State<SearchInputField> createState() => _SearchInputFieldState();

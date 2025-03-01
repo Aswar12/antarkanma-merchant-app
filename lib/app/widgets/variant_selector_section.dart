@@ -11,11 +11,11 @@ class VariantSelectorSection extends StatelessWidget {
   final Function(VariantModel) onVariantSelected;
 
   const VariantSelectorSection({
-    Key? key,
+    super.key,
     required this.product,
     required this.selectedVariant,
     required this.onVariantSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +146,7 @@ class VariantSelectorSection extends StatelessWidget {
                 SizedBox(height: Dimenssions.height12),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

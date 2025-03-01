@@ -87,7 +87,7 @@ class TransactionProvider {
 
       final queryParams = {
         'page': page.toString(),
-        if (status != null) 'status': status,
+        'order_status': status == 'ALL' ? null : status,  // Changed this line
         if (startDate != null) 'start_date': startDate,
         if (endDate != null) 'end_date': endDate,
         if (search != null) 'search': search,
@@ -95,8 +95,10 @@ class TransactionProvider {
         if (sortOrder != null) 'sort_order': sortOrder,
       };
 
-      print(
-          'Requesting orders for merchant $merchantId with params: $queryParams');
+      // Remove null values from queryParams
+      queryParams.removeWhere((key, value) => value == null);
+
+      print('Requesting orders for merchant $merchantId with params: $queryParams');
       final response = await _dio.get(
         '/merchants/$merchantId/orders',
         queryParameters: queryParams,
@@ -127,6 +129,22 @@ class TransactionProvider {
     }
   }
 
+  Future<dio.Response> getOrderSummary() async {
+    try {
+      final merchantId =
+          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
+      }
+
+      return await _dio.get('/merchants/$merchantId/order-summary');
+    } catch (e, stackTrace) {
+      print('Error in getOrderSummary: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
   Future<dio.Response> getPendingTransactions() async {
     try {
       final merchantId =
@@ -138,7 +156,7 @@ class TransactionProvider {
       return await _dio.get(
         '/merchants/$merchantId/orders',
         queryParameters: {
-          'status': 'WAITING_APPROVAL',
+          'order_status': 'WAITING_APPROVAL',
           'sort_by': 'created_at',
           'sort_order': 'desc',
         },
@@ -202,14 +220,9 @@ class TransactionProvider {
     dynamic orderId,
   ) async {
     try {
-      final merchantId =
-          Get.find<AuthService>().currentUser.value?.merchant?.id;
-      if (merchantId == null) {
-        throw Exception('Merchant ID not found');
-      }
-
+      print('Marking order $orderId as ready for pickup');
       return await _dio.post(
-        '/merchants/$merchantId/orders/$orderId/ready',
+        '/orders/$orderId/ready-for-pickup',
       );
     } catch (e, stackTrace) {
       print('Error in markOrderReady: $e');

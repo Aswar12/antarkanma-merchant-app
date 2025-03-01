@@ -21,25 +21,25 @@ class PaginatedOrderResponse {
   });
 
   factory PaginatedOrderResponse.fromJson(Map<String, dynamic> json) {
-    final ordersData = json['orders'];
+    final data = json['data'] as Map<String, dynamic>;
+    final ordersData = data['orders'] as Map<String, dynamic>;
     final List<OrderModel> ordersList = [];
     
-    if (ordersData != null && ordersData['data'] != null) {
+    if (ordersData['data'] != null) {
       ordersList.addAll((ordersData['data'] as List)
           .map((order) => OrderModel.fromJson(order as Map<String, dynamic>)));
     }
 
     return PaginatedOrderResponse(
       orders: ordersList,
-      stats: OrderStatsModel.fromJson(json['status_counts'] ?? {}),
-      summary: OrderSummaryModel.fromJson(json),
-      hasMore: ordersData != null && 
-               ordersData['current_page'] != null && 
+      stats: OrderStatsModel.fromJson(data['status_counts'] ?? {}),
+      summary: OrderSummaryModel.fromJson(data),
+      hasMore: ordersData['current_page'] != null && 
                ordersData['last_page'] != null &&
                int.parse(ordersData['current_page'].toString()) < int.parse(ordersData['last_page'].toString()),
-      currentPage: int.parse(ordersData?['current_page']?.toString() ?? '1'),
-      lastPage: int.parse(ordersData?['last_page']?.toString() ?? '1'),
-      total: int.parse(ordersData?['total']?.toString() ?? '0'),
+      currentPage: int.parse(ordersData['current_page']?.toString() ?? '1'),
+      lastPage: int.parse(ordersData['last_page']?.toString() ?? '1'),
+      total: int.parse(ordersData['total']?.toString() ?? '0'),
     );
   }
 }

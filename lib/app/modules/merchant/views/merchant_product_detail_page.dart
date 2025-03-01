@@ -12,8 +12,7 @@ import 'product_form_page.dart';
 class MerchantProductDetailPage extends StatefulWidget {
   final ProductModel product;
 
-  const MerchantProductDetailPage({Key? key, required this.product})
-      : super(key: key);
+  const MerchantProductDetailPage({super.key, required this.product});
 
   @override
   State<MerchantProductDetailPage> createState() =>
@@ -437,7 +436,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                 SizedBox(height: 12),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

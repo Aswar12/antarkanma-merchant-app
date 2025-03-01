@@ -22,7 +22,8 @@ class MerchantService {
 
   // Storage keys
   static const String _merchantProductsKey = 'merchant_products_by_page';
-  static const String _merchantProductsMetadataKey = 'merchant_products_metadata';
+  static const String _merchantProductsMetadataKey =
+      'merchant_products_metadata';
   static const String _lastRefreshKey = 'merchant_last_refresh';
 
   // Optimization constants
@@ -31,7 +32,7 @@ class MerchantService {
   static const Duration requestThrottle = Duration(milliseconds: 500);
 
   DateTime? _lastRequestTime;
-  Map<int, DateTime> _pageLastAccess = {};
+  final Map<int, DateTime> _pageLastAccess = {};
   bool _prefetchInProgress = false;
 
   MerchantService({
@@ -40,17 +41,17 @@ class MerchantService {
     StorageService? storageService,
     ProductService? productService,
     GetStorage? storage,
-  }) : 
-    _merchantProvider = merchantProvider ?? MerchantProvider(),
-    _authService = authService ?? Get.find<AuthService>(),
-    _storageService = storageService ?? StorageService.instance,
-    _productService = productService ?? Get.find<ProductService>(),
-    _storage = storage ?? GetStorage(),
-    _dio = Dio(BaseOptions(baseUrl: Config.baseUrl));
+  })  : _merchantProvider = merchantProvider ?? MerchantProvider(),
+        _authService = authService ?? Get.find<AuthService>(),
+        _storageService = storageService ?? StorageService.instance,
+        _productService = productService ?? Get.find<ProductService>(),
+        _storage = storage ?? GetStorage(),
+        _dio = Dio(BaseOptions(baseUrl: Config.baseUrl));
 
   get token => _authService.getToken();
   Map<String, dynamic>? get user => _storageService.getUser();
-  int? get ownerId => user != null ? int.tryParse(user!['id'].toString()) : null;
+  int? get ownerId =>
+      user != null ? int.tryParse(user!['id'].toString()) : null;
 
   MerchantModel? _currentMerchant;
 
@@ -212,7 +213,7 @@ class MerchantService {
 
       final paginatedResponse = PaginatedResponse<ProductModel>.fromJson(
         response.data,
-        (json) => ProductModel.fromJson(json as Map<String, dynamic>),
+        (json) => ProductModel.fromJson(json),
       );
 
       // Only cache if no filters are applied

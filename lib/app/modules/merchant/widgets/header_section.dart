@@ -7,9 +7,9 @@ class HeaderSection extends StatelessWidget {
   final MerchantHomeController controller;
 
   const HeaderSection({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -8,12 +8,12 @@ class EmptyPlaceholder extends StatelessWidget {
   final VoidCallback? onRefresh;
 
   const EmptyPlaceholder({
-    Key? key,
+    super.key,
     required this.imagePath,
     required this.title,
     this.subtitle,
     this.onRefresh,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class EmptyPlaceholder extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Image with error handling
-                Container(
+                SizedBox(
                   width: Dimenssions.width80,
                   height: Dimenssions.width80,
                   child: Image.asset(

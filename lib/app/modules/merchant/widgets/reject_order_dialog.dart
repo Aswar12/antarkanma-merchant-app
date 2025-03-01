@@ -6,7 +6,7 @@ class RejectOrderDialog extends StatelessWidget {
   final TextEditingController reasonController = TextEditingController();
   final Function(String) onSubmit;
 
-  RejectOrderDialog({Key? key, required this.onSubmit}) : super(key: key);
+  RejectOrderDialog({super.key, required this.onSubmit});
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../controllers/merchant_order_controller.dart';
 import '../../../../theme.dart';
@@ -11,159 +12,305 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor1,
-      body: RefreshIndicator(
-        onRefresh: () => controller.refreshOrders(),
-        color: logoColor,
-        backgroundColor: backgroundColor1,
-        strokeWidth: 3,
-        displacement: 40,
-        child: CustomScrollView(
-          key: const PageStorageKey<String>('merchant_orders'),
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // Header Section with Status Filter
-            SliverAppBar(
-              expandedHeight: 120,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  padding: EdgeInsets.all(Dimenssions.height16),
-                  decoration: BoxDecoration(
-                    color: logoColor,
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: logoColor,
+      statusBarIconBrightness: Brightness.light,
+    ));
+
+    final statuses = [
+      'ALL',
+      'WAITING_APPROVAL',
+      'PROCESSING',
+      'READY_FOR_PICKUP',
+      'PICKED_UP',
+      'COMPLETED',
+      'CANCELED'
+    ];
+
+    return DefaultTabController(
+      length: 7,
+      initialIndex: 1, // Set WAITING_APPROVAL as default
+      child: Builder(builder: (context) {
+        final tabController = DefaultTabController.of(context);
+        
+        // Initial load
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (tabController != null) {
+            controller.filterOrders(statuses[tabController.index]);
+            
+            // Listen to tab changes
+            tabController.addListener(() {
+              if (!tabController.indexIsChanging) {
+                controller.filterOrders(statuses[tabController.index]);
+              }
+            });
+          }
+        });
+
+        return Scaffold(
+          backgroundColor: logoColor,
+          appBar: AppBar(
+            backgroundColor: logoColor,
+            elevation: 0,
+            title: Row(
+              children: [
+                Icon(
+                  Icons.receipt_long,
+                  color: Colors.white,
+                  size: Dimenssions.height24,
+                ),
+                SizedBox(width: Dimenssions.width8),
+                Text(
+                  'Daftar Pesanan',
+                  style: textwhite.copyWith(
+                    fontSize: Dimenssions.font18,
+                    fontWeight: semiBold,
                   ),
+                ),
+              ],
+            ),
+            actions: [
+              Container(
+                margin: EdgeInsets.only(right: Dimenssions.width16),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Dimenssions.width10,
+                  vertical: Dimenssions.height4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black12,
+                  borderRadius: BorderRadius.circular(Dimenssions.radius20),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Terima Otomatis',
+                      style: textwhite.copyWith(
+                        fontSize: Dimenssions.font12,
+                      ),
+                    ),
+                    SizedBox(width: Dimenssions.width4),
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Obx(() => Switch(
+                            value: controller.autoApprove.value,
+                            onChanged: (value) =>
+                                controller.toggleAutoApprove(),
+                            activeColor: logoColorSecondary,
+                            inactiveThumbColor: Colors.white,
+                            inactiveTrackColor: Colors.white.withOpacity(0.5),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          )),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: Size.fromHeight(kToolbarHeight + 8),
+              child: Obx(() => TabBar(
+                    isScrollable: true,
+                    indicatorColor: Colors.white,
+                    indicatorWeight: 3,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white.withOpacity(0.7),
+                    labelStyle: TextStyle(
+                      fontSize: Dimenssions.font14,
+                      fontWeight: semiBold,
+                    ),
+                    unselectedLabelStyle: TextStyle(
+                      fontSize: Dimenssions.font14,
+                      fontWeight: medium,
+                    ),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: Dimenssions.width8),
+                    labelPadding: EdgeInsets.symmetric(
+                      horizontal: Dimenssions.width12,
+                      vertical: Dimenssions.height12,
+                    ),
+                    tabs: [
+                      _buildTab('Semua', controller.getOrderCount('ALL'), Icons.list),
+                      _buildTab('Menunggu Persetujuan', controller.getOrderCount('WAITING_APPROVAL'), Icons.pending_outlined),
+                      _buildTab('Diproses', controller.getOrderCount('PROCESSING'), Icons.sync),
+                      _buildTab('Siap Diambil', controller.getOrderCount('READY_FOR_PICKUP'), Icons.check_circle_outline),
+                      _buildTab('Dalam Pengantaran', controller.getOrderCount('PICKED_UP'), Icons.local_shipping_outlined),
+                      _buildTab('Selesai', controller.getOrderCount('COMPLETED'), Icons.done_all),
+                      _buildTab('Dibatalkan', controller.getOrderCount('CANCELED'), Icons.cancel_outlined),
+                    ],
+                  )),
+            ),
+          ),
+          body: Container(
+            color: backgroundColor1,
+            child: TabBarView(
+              physics: BouncingScrollPhysics(),
+              children: List.generate(7, (index) => _buildOrderList()),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildTab(String label, int count, IconData icon) {
+    return Tab(
+      height: 40,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          SizedBox(width: Dimenssions.width6),
+          Text(label),
+          if (count > 0) ...[
+            SizedBox(width: Dimenssions.width6),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              constraints: BoxConstraints(minWidth: 20),
+              child: Text(
+                count.toString(),
+                style: textwhite.copyWith(
+                  fontSize: 10,
+                  fontWeight: semiBold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderList() {
+    return RefreshIndicator(
+      onRefresh: () => controller.refreshOrders(),
+      color: logoColor,
+      backgroundColor: backgroundColor1,
+      strokeWidth: 3,
+      displacement: 40,
+      child: Obx(() {
+        if (controller.isLoading.value && controller.currentPage.value == 1) {
+          return const ShimmerLoading();
+        }
+
+        final orders = controller.filteredOrders;
+
+        if (orders.isEmpty) {
+          if (controller.hasError.value) {
+            return Center(
+              child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: EdgeInsets.all(Dimenssions.height16),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Daftar Pesanan',
-                                style: textwhite.copyWith(
-                                  fontSize: Dimenssions.font24,
-                                  fontWeight: semiBold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'Auto Approve',
-                                style: textwhite.copyWith(
-                                  fontSize: Dimenssions.font14,
-                                ),
-                              ),
-                              Obx(() => Switch(
-                                value: controller.autoApprove.value,
-                                onChanged: (value) => controller.toggleAutoApprove(),
-                                activeColor: logoColorSecondary,
-                                inactiveThumbColor: Colors.white,
-                                inactiveTrackColor: Colors.white.withOpacity(0.5),
-                              )),
-                            ],
-                          ),
-                        ],
+                      Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: Dimenssions.height48,
                       ),
                       SizedBox(height: Dimenssions.height8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildStatusFilter('ALL', 'Semua'),
-                            SizedBox(width: Dimenssions.width8),
-                            _buildStatusFilter('WAITING_APPROVAL', 'Menunggu'),
-                            SizedBox(width: Dimenssions.width8),
-                            _buildStatusFilter('PROCESSING', 'Diproses'),
-                            SizedBox(width: Dimenssions.width8),
-                            _buildStatusFilter('READY_FOR_PICKUP', 'Siap Diambil'),
-                            SizedBox(width: Dimenssions.width8),
-                            _buildStatusFilter('COMPLETED', 'Selesai'),
-                            SizedBox(width: Dimenssions.width8),
-                            _buildStatusFilter('CANCELED', 'Dibatalkan'),
-                          ],
+                      Text(
+                        controller.errorMessage.value,
+                        style: TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: Dimenssions.height16),
+                      ElevatedButton.icon(
+                        onPressed: () => controller.refreshOrders(),
+                        icon: Icon(Icons.refresh),
+                        label: Text('Coba Lagi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: logoColor,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Dimenssions.width16,
+                            vertical: Dimenssions.height12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(Dimenssions.radius8),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+            );
+          }
+          return Center(
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: Dimenssions.height16),
+                child: EmptyState(),
+              ),
             ),
-            // Empty, Loading, or List State
-            SliverToBoxAdapter(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const ShimmerLoading();
-                }
-                
-                if (controller.filteredOrders.isEmpty) {
-                  return const EmptyState();
-                }
+          );
+        }
 
-                if (controller.hasError.value) {
-                  return Center(
-                    child: Text(
-                      controller.errorMessage.value,
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  );
-                }
-                
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: controller.filteredOrders.length,
-                  itemBuilder: (context, index) {
-                    final order = controller.filteredOrders[index];
-                    return TransactionCard(
-                      order: order,
-                      controller: controller,
-                    );
-                  },
-                );
-              }),
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (scrollInfo is ScrollEndNotification &&
+                scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 200 &&
+                !controller.isLoadingMore.value &&
+                controller.hasMore.value) {
+              controller.loadMoreOrders();
+            }
+            return true;
+          },
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(
+              horizontal: Dimenssions.width8,
+              vertical: Dimenssions.height8,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusFilter(String status, String label) {
-    return Obx(() {
-      final isSelected = controller.currentStatus == status;
-      return InkWell(
-        onTap: () => controller.filterOrders(status),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: Dimenssions.width12,
-            vertical: Dimenssions.height6,
-          ),
-          decoration: BoxDecoration(
-            color: isSelected ? logoColorSecondary : Colors.white,
-            borderRadius: BorderRadius.circular(Dimenssions.radius20),
-          ),
-          child: Text(
-            label,
-            style: isSelected
-                ? textwhite.copyWith(
-                    fontSize: Dimenssions.font12,
-                    fontWeight: medium,
-                  )
-                : primaryTextStyle.copyWith(
-                    fontSize: Dimenssions.font12,
-                    fontWeight: medium,
+            itemCount: orders.length + (controller.hasMore.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index < orders.length) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: Dimenssions.height8),
+                  child: TransactionCard(
+                    order: orders[index],
+                    controller: controller,
                   ),
+                );
+              } else if (controller.isLoadingMore.value) {
+                return Padding(
+                  padding: EdgeInsets.all(Dimenssions.height16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(logoColor),
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return Padding(
+                  padding: EdgeInsets.all(Dimenssions.height16),
+                  child: Text(
+                    'Tidak ada pesanan lagi',
+                    style: subtitleTextStyle.copyWith(
+                      fontSize: Dimenssions.font12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              }
+            },
           ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }

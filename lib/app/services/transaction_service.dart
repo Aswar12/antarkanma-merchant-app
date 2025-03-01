@@ -1,4 +1,3 @@
-import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
 import '../data/providers/transaction_provider.dart';
 import '../data/models/transaction_model.dart' as transaction;
@@ -162,6 +161,19 @@ class TransactionService {
       await _transactionProvider.markOrderReady(orderId);
     } catch (e) {
       print('Error marking order as ready: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderSummaryModel> getOrderSummary() async {
+    try {
+      final response = await _transactionProvider.getOrderSummary();
+      if (response.data != null && response.data['data'] != null) {
+        return OrderSummaryModel.fromJson(response.data['data']);
+      }
+      throw Exception('Failed to fetch order summary');
+    } catch (e) {
+      print('Error fetching order summary: $e');
       rethrow;
     }
   }

@@ -7,11 +7,11 @@ class ProfilePhoto extends StatelessWidget {
   final double size;
 
   const ProfilePhoto({
-    Key? key,
+    super.key,
     this.photoUrl,
     required this.name,
     this.size = 50,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

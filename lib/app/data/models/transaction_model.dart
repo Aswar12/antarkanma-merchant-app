@@ -1,10 +1,8 @@
 import 'package:antarkanma_merchant/app/data/models/order_item_model.dart';
-import 'package:antarkanma_merchant/app/data/models/user_location_model.dart';
 import 'package:antarkanma_merchant/app/data/models/user_model.dart';
 import 'package:antarkanma_merchant/app/data/models/item_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:collection/collection.dart';
 
 class OrderModel {
   final dynamic id;

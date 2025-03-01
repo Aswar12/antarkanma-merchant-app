@@ -401,7 +401,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
         const Icon(Icons.star, size: 14, color: Colors.amber),
         const SizedBox(width: 4),
         Text(
-          '${product.averageRating.toStringAsFixed(1)}',
+          product.averageRating.toStringAsFixed(1),
           style: TextStyle(
             color: Colors.grey[700],
             fontSize: 12,

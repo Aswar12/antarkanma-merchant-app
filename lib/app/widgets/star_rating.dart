@@ -6,11 +6,11 @@ class StarRating extends StatelessWidget {
   final Color? color;
 
   const StarRating({
-    Key? key,
+    super.key,
     required this.rating,
     this.size = 16,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

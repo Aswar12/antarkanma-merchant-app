@@ -7,17 +7,17 @@ class QuickActionButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const QuickActionButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: Dimenssions.width80,
         child: Column(
           children: [

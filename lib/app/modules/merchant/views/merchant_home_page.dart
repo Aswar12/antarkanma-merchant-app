@@ -1,12 +1,8 @@
-import 'package:antarkanma_merchant/app/data/models/order_model.dart';
-import 'package:antarkanma_merchant/app/modules/merchant/widgets/profile_photo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/merchant_home_controller.dart';
 import '../../../../theme.dart';
-import '../widgets/shimmer_loading.dart';
-import '../widgets/empty_state.dart';
 
 class MerchantHomePage extends GetView<MerchantHomeController> {
   const MerchantHomePage({super.key});

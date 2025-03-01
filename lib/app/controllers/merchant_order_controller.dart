@@ -5,33 +5,130 @@ import '../data/models/order_summary_model.dart';
 import '../services/transaction_service.dart';
 import '../modules/merchant/widgets/reject_order_dialog.dart';
 import 'base_order_controller.dart';
+import '../data/models/paginated_order_response.dart';
+import 'package:logger/logger.dart';
+import 'package:flutter/foundation.dart';
 
 class MerchantOrderController extends BaseOrderController {
   final TransactionService _transactionService;
+  final _logger = Logger();
 
   MerchantOrderController({
     required TransactionService transactionService,
   }) : _transactionService = transactionService;
 
-  final isLoading = true.obs;
+  final isLoading = false.obs;
   final hasError = false.obs;
   final errorMessage = ''.obs;
   final orders = <OrderModel>[].obs;
+  final orderCounts = <String, int>{}.obs;
   final stats = Rx<OrderStatsModel?>(null);
   final hasMore = false.obs;
   final currentPage = 1.obs;
-  final selectedStatus = RxString('WAITING_APPROVAL');
+  final selectedStatus = RxString('ALL');
   final isLoadingMore = false.obs;
-  final autoApprove = false.obs; // Auto-approve toggle
+  final autoApprove = false.obs;
+  final loadingOrders = <String, bool>{}.obs;
+  final dateRange = Rx<DateTimeRange?>(null);
+  final searchQuery = ''.obs;
 
-  // Computed properties
-  List<OrderModel> get filteredOrders => orders;
-  String get currentStatus => selectedStatus.value;
+  // Helper method to convert UI status to API status
+  String? _getApiStatus(String uiStatus) {
+    if (uiStatus == 'ALL') return null;
+    return uiStatus;
+  }
+
+  // Computed properties with proper filtering
+  List<OrderModel> get filteredOrders {
+    if (selectedStatus.value == 'ALL') {
+      return orders;
+    }
+    return orders.where((order) => order.orderStatus == selectedStatus.value).toList();
+  }
+
+  // Order counts by status
+  int getOrderCount(String status) {
+    if (status == 'ALL') {
+      return stats.value?.statusCounts['total_orders'] ?? 0;
+    }
+    return stats.value?.statusCounts[_getApiStatus(status) ?? ''] ?? 0;
+  }
+
+  void _updateOrderCounts(PaginatedOrderResponse response) {
+    if (kDebugMode) {
+      print('Status counts: ${response.stats.statusCounts}');
+    }
+    stats.value = response.stats;
+    orderCounts.value = {
+      'ALL': response.summary.summary.totalOrders,
+      'PENDING': response.stats.statusCounts['PENDING'] ?? 0,
+      'WAITING_APPROVAL': response.stats.statusCounts['WAITING_APPROVAL'] ?? 0,
+      'PROCESSING': response.stats.statusCounts['PROCESSING'] ?? 0,
+      'READY_FOR_PICKUP': response.stats.statusCounts['READY_FOR_PICKUP'] ?? 0,
+      'PICKED_UP': response.stats.statusCounts['PICKED_UP'] ?? 0,
+      'COMPLETED': response.stats.statusCounts['COMPLETED'] ?? 0,
+      'CANCELED': response.stats.statusCounts['CANCELED'] ?? 0,
+    };
+    if (kDebugMode) {
+      print('Updated order counts: $orderCounts');
+    }
+  }
 
   @override
   void onInit() {
     super.onInit();
-    loadOrders();
+    selectedStatus.value = 'WAITING_APPROVAL';
+    _initialLoad();
+    _startPeriodicRefresh();
+  }
+
+  void _startPeriodicRefresh() {
+    Future.delayed(Duration(seconds: 30), () {
+      if (Get.currentRoute.contains('merchant_order')) {
+        refreshOrders();
+        _startPeriodicRefresh();
+      }
+    });
+  }
+
+  @override
+  Future<void> fetchOrderSummary() async {
+    try {
+      final response = await _transactionService.getOrders(
+        page: 1,
+        status: _getApiStatus(selectedStatus.value),
+      );
+      _updateOrderCounts(response);
+    } catch (e) {
+      _logger.e('Error fetching order summary: $e');
+    }
+  }
+
+  Future<void> _initialLoad() async {
+    try {
+      hasError.value = false;
+      errorMessage.value = '';
+
+      final response = await _transactionService.getOrders(
+        page: currentPage.value,
+        status: _getApiStatus(selectedStatus.value),
+      );
+
+      orders.value = response.orders;
+      hasMore.value = response.hasMore;
+      _updateOrderCounts(response);
+
+      if (autoApprove.value) {
+        final newOrders = response.orders
+            .where((order) => order.orderStatus == 'WAITING_APPROVAL');
+        for (final order in newOrders) {
+          approveTransaction(order.id);
+        }
+      }
+    } catch (e) {
+      hasError.value = true;
+      errorMessage.value = 'Failed to load orders: $e';
+    }
   }
 
   Future<void> refreshOrders() async {
@@ -53,7 +150,7 @@ class MerchantOrderController extends BaseOrderController {
 
       final response = await _transactionService.getOrders(
         page: currentPage.value,
-        status: selectedStatus.value == 'ALL' ? null : selectedStatus.value,
+        status: _getApiStatus(selectedStatus.value),
       );
 
       if (currentPage.value == 1) {
@@ -62,28 +159,26 @@ class MerchantOrderController extends BaseOrderController {
         orders.addAll(response.orders);
       }
 
-      stats.value = response.stats;
       hasMore.value = response.hasMore;
+      _updateOrderCounts(response);
 
-      // Auto-approve new orders if enabled
       if (autoApprove.value) {
-        final newOrders = response.orders.where((order) => order.orderStatus == 'WAITING_APPROVAL');
+        final newOrders = response.orders
+            .where((order) => order.orderStatus == 'WAITING_APPROVAL');
         for (final order in newOrders) {
           approveTransaction(order.id);
         }
       }
-    } catch (e, stackTrace) {
-      print('Error loading orders: $e');
-      print('Stack trace: $stackTrace');
+    } catch (e) {
       hasError.value = true;
-      errorMessage.value = 'Failed to load orders: $e';
+      errorMessage.value = 'Failed to load more orders: $e';
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> loadMoreOrders() async {
-    if (!hasMore.value || isLoadingMore.value) return;
+    if (isLoadingMore.value) return;
 
     try {
       isLoadingMore.value = true;
@@ -91,16 +186,18 @@ class MerchantOrderController extends BaseOrderController {
 
       final response = await _transactionService.getOrders(
         page: currentPage.value,
-        status: selectedStatus.value == 'ALL' ? null : selectedStatus.value,
+        status: _getApiStatus(selectedStatus.value),
+        startDate: dateRange.value?.start.toIso8601String(),
+        endDate: dateRange.value?.end.toIso8601String(),
+        search: searchQuery.value,
       );
 
       orders.addAll(response.orders);
-      stats.value = response.stats;
       hasMore.value = response.hasMore;
-    } catch (e, stackTrace) {
-      print('Error loading more orders: $e');
-      print('Stack trace: $stackTrace');
-      currentPage.value--; // Revert page increment on error
+      _updateOrderCounts(response);
+    } catch (e) {
+      _logger.e('Error loading more orders: $e');
+      currentPage.value--;
     } finally {
       isLoadingMore.value = false;
     }
@@ -108,10 +205,23 @@ class MerchantOrderController extends BaseOrderController {
 
   void filterOrders(String status) {
     if (selectedStatus.value != status) {
+      if (kDebugMode) {
+        print('Switching to status: $status');
+        print('API status will be: ${_getApiStatus(status)}');
+      }
       selectedStatus.value = status;
       orders.clear();
       currentPage.value = 1;
-      loadOrders(refresh: true);
+      loadOrders(refresh: true).then((_) {
+        if (kDebugMode) {
+          print('After loading orders:');
+          print('Selected status: ${selectedStatus.value}');
+          print('Orders count: ${orders.length}');
+          print('Orders statuses: ${orders.map((o) => '${o.id}: ${o.orderStatus}').toList()}');
+          print('Filtered orders count: ${filteredOrders.length}');
+          print('Filtered orders: ${filteredOrders.map((o) => '${o.id}: ${o.orderStatus}').toList()}');
+        }
+      });
     }
   }
 
@@ -119,7 +229,9 @@ class MerchantOrderController extends BaseOrderController {
     autoApprove.value = !autoApprove.value;
     Get.snackbar(
       'Auto Approve',
-      autoApprove.value ? 'Auto approve diaktifkan' : 'Auto approve dinonaktifkan',
+      autoApprove.value
+          ? 'Auto approve diaktifkan'
+          : 'Auto approve dinonaktifkan',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: autoApprove.value ? Colors.green : Colors.orange,
       colorText: Colors.white,
@@ -129,6 +241,7 @@ class MerchantOrderController extends BaseOrderController {
   @override
   Future<void> approveTransaction(dynamic orderId) async {
     try {
+      loadingOrders[orderId.toString()] = true;
       await _transactionService.approveOrder(orderId);
       await loadOrders(refresh: true);
       Get.snackbar(
@@ -139,7 +252,6 @@ class MerchantOrderController extends BaseOrderController {
         colorText: Colors.white,
       );
     } catch (e) {
-      print('Error approving order: $e');
       Get.snackbar(
         'Error',
         'Failed to approve order #$orderId',
@@ -147,6 +259,8 @@ class MerchantOrderController extends BaseOrderController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    } finally {
+      loadingOrders.remove(orderId.toString());
     }
   }
 
@@ -164,6 +278,7 @@ class MerchantOrderController extends BaseOrderController {
   @override
   Future<void> rejectTransaction(dynamic orderId, {String? reason}) async {
     try {
+      loadingOrders[orderId.toString()] = true;
       await _transactionService.rejectOrder(orderId, reason: reason);
       await loadOrders(refresh: true);
       Get.snackbar(
@@ -174,7 +289,6 @@ class MerchantOrderController extends BaseOrderController {
         colorText: Colors.white,
       );
     } catch (e) {
-      print('Error rejecting order: $e');
       Get.snackbar(
         'Error',
         'Failed to reject order #$orderId',
@@ -182,12 +296,15 @@ class MerchantOrderController extends BaseOrderController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    } finally {
+      loadingOrders.remove(orderId.toString());
     }
   }
 
   @override
   Future<void> markOrderReady(dynamic orderId) async {
     try {
+      loadingOrders[orderId.toString()] = true;
       await _transactionService.markOrderReady(orderId);
       await loadOrders(refresh: true);
       Get.snackbar(
@@ -198,7 +315,6 @@ class MerchantOrderController extends BaseOrderController {
         colorText: Colors.white,
       );
     } catch (e) {
-      print('Error marking order as ready: $e');
       Get.snackbar(
         'Error',
         'Failed to mark order #$orderId as ready',
@@ -206,9 +322,10 @@ class MerchantOrderController extends BaseOrderController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    } finally {
+      loadingOrders.remove(orderId.toString());
     }
   }
 
-  // Alias for markOrderReady to maintain compatibility
   Future<void> markAsReadyForPickup(dynamic orderId) => markOrderReady(orderId);
 }

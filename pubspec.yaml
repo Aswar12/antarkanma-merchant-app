@@ -40,6 +40,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   firebase_messaging: ^15.2.0
   shimmer_animation: ^2.2.2
+  logger: ^2.0.2+1
  
  
 dev_dependencies:

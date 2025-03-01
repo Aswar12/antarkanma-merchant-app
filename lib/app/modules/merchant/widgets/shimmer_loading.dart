@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../theme.dart';
 
 class ShimmerLoading extends StatelessWidget {
-  const ShimmerLoading({Key? key}) : super(key: key);
+  const ShimmerLoading({super.key});
 
   @override
   Widget build(BuildContext context) {

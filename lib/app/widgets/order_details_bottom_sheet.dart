@@ -9,10 +9,10 @@ class OrderDetailsBottomSheet extends StatelessWidget {
   final BaseOrderController controller;
 
   const OrderDetailsBottomSheet({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.controller,
-  }) : super(key: key);
+  });
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(

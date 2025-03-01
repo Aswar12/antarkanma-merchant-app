@@ -1,4 +1,3 @@
-import 'package:antarkanma_merchant/config.dart';
 import 'package:get/get.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';

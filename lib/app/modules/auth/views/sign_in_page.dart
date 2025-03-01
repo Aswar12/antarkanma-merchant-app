@@ -146,7 +146,7 @@ class SignInPage extends GetView<AuthController> {
   }
 
   Widget signButton() {
-    return Container(
+    return SizedBox(
       height: Dimenssions.height50,
       width: double.infinity,
       child: Obx(
