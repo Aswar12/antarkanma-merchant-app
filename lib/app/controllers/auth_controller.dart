@@ -14,12 +14,23 @@ class AuthController extends GetxController {
 
   var isConfirmPasswordHidden = true.obs;
   final formKey = GlobalKey<FormState>();
-  final identifierController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
-  final nameController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneNumberController = TextEditingController();
+  
+  // Controllers
+  late TextEditingController identifierController;
+  late TextEditingController passwordController;
+  late TextEditingController confirmPasswordController;
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late TextEditingController phoneNumberController;
+  
+  // Observable values for text fields
+  final RxString identifier = ''.obs;
+  final RxString password = ''.obs;
+  final RxString confirmPassword = ''.obs;
+  final RxString name = ''.obs;
+  final RxString email = ''.obs;
+  final RxString phone = ''.obs;
+  
   final RxBool isLoading = false.obs;
   final RxBool isPasswordHidden = true.obs;
   final rememberMe = false.obs;
@@ -36,7 +47,36 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _initializeControllers();
     rememberMe.value = _storageService.getRememberMe();
+  }
+
+  void _initializeControllers() {
+    identifierController = TextEditingController()
+      ..addListener(() => identifier.value = identifierController.text);
+    passwordController = TextEditingController()
+      ..addListener(() => password.value = passwordController.text);
+    confirmPasswordController = TextEditingController()
+      ..addListener(() => confirmPassword.value = confirmPasswordController.text);
+    nameController = TextEditingController()
+      ..addListener(() => name.value = nameController.text);
+    emailController = TextEditingController()
+      ..addListener(() => email.value = emailController.text);
+    phoneNumberController = TextEditingController()
+      ..addListener(() => phone.value = phoneNumberController.text);
+  }
+
+  void resetControllers() {
+    // Dispose old controllers
+    identifierController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    nameController.dispose();
+    emailController.dispose();
+    phoneNumberController.dispose();
+
+    // Initialize new controllers
+    _initializeControllers();
   }
 
   void togglePasswordVisibility() =>
@@ -189,13 +229,8 @@ class AuthController extends GetxController {
         await _storageService.clearAll();
       }
 
-      // Reset controllers
-      identifierController.clear();
-      passwordController.clear();
-      confirmPasswordController.clear();
-      nameController.clear();
-      emailController.clear();
-      phoneNumberController.clear();
+      // Reset controllers safely
+      resetControllers();
 
       // Reset observable values except remember me if enabled
       isLoading.value = false;

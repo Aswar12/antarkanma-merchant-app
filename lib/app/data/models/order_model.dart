@@ -77,11 +77,13 @@ class OrderModel {
 class OrderItem {
   final int quantity;
   final String price;
+  final String? customerNote;
   final ProductInfo product;
 
   OrderItem({
     required this.quantity,
     required this.price,
+    this.customerNote,
     required this.product,
   });
 
@@ -89,6 +91,7 @@ class OrderItem {
     return OrderItem(
       quantity: json['quantity'],
       price: json['price'],
+      customerNote: json['customer_note'],
       product: ProductInfo.fromJson(json['product']),
     );
   }

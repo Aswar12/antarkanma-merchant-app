@@ -31,31 +31,59 @@ class _CustomInputFieldState extends State<CustomInputField> {
   late bool _obscureText;
   bool _isFocused = false;
   bool _hasText = false;
+  FocusNode? _focusNode;
 
   @override
   void initState() {
     super.initState();
     _obscureText = widget.initialObscureText;
     _hasText = widget.controller.text.isNotEmpty;
-    widget.controller.addListener(_updateHasText);
+    _focusNode = FocusNode();
+    _focusNode!.addListener(_handleFocusChange);
+    widget.controller.addListener(_handleTextChange);
+  }
+
+  @override
+  void didUpdateWidget(CustomInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_handleTextChange);
+      widget.controller.addListener(_handleTextChange);
+      _hasText = widget.controller.text.isNotEmpty;
+    }
+  }
+
+  void _handleFocusChange() {
+    if (mounted) {
+      setState(() {
+        _isFocused = _focusNode!.hasFocus;
+      });
+    }
+  }
+
+  void _handleTextChange() {
+    if (mounted) {
+      setState(() {
+        _hasText = widget.controller.text.isNotEmpty;
+      });
+    }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_updateHasText);
+    widget.controller.removeListener(_handleTextChange);
+    _focusNode?.removeListener(_handleFocusChange);
+    _focusNode?.dispose();
+    _focusNode = null;
     super.dispose();
   }
 
-  void _updateHasText() {
-    setState(() {
-      _hasText = widget.controller.text.isNotEmpty;
-    });
-  }
-
   void _toggleVisibility() {
-    setState(() {
-      _obscureText = !_obscureText;
-    });
+    if (mounted) {
+      setState(() {
+        _obscureText = !_obscureText;
+      });
+    }
   }
 
   Widget _buildIcon() {
@@ -89,7 +117,7 @@ class _CustomInputFieldState extends State<CustomInputField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 10), // Reduced margin
+      margin: const EdgeInsets.only(top: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -115,31 +143,25 @@ class _CustomInputFieldState extends State<CustomInputField> {
             ),
             child: Row(
               children: [
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 _buildIcon(),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
-                  child: Focus(
-                    onFocusChange: (hasFocus) {
-                      setState(() {
-                        _isFocused = hasFocus;
-                      });
-                    },
-                    child: TextFormField(
-                      style: primaryTextStyle,
-                      obscureText: _obscureText,
-                      controller: widget.controller,
-                      validator: widget.validator,
-                      decoration: InputDecoration(
-                        hintText: widget.hintText,
-                        hintStyle: subtitleTextStyle,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        focusedErrorBorder: InputBorder.none,
-                        isCollapsed: true,
-                      ),
+                  child: TextFormField(
+                    focusNode: _focusNode,
+                    style: primaryTextStyle,
+                    obscureText: _obscureText,
+                    controller: widget.controller,
+                    validator: widget.validator,
+                    decoration: InputDecoration(
+                      hintText: widget.hintText,
+                      hintStyle: subtitleTextStyle,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      isCollapsed: true,
                     ),
                   ),
                 ),

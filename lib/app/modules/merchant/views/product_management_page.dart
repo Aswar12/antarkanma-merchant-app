@@ -218,14 +218,25 @@ class ProductManagementPage extends GetView<MerchantProductController> {
   Widget _buildProductGrid() {
     return RefreshIndicator(
       onRefresh: () async {
-        controller.currentPage = 1;
-        return controller.fetchProducts();
+        await controller.refreshProducts();
       },
-      child: ScrollConfiguration(
-        behavior:
-            ScrollConfiguration.of(Get.context!).copyWith(scrollbars: false),
+      color: logoColor,
+      backgroundColor: backgroundColor1,
+      displacement: 20,
+      strokeWidth: 3,
+      triggerMode: RefreshIndicatorTriggerMode.onEdge,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (!controller.isLoadingMore.value &&
+              scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent * 0.8) {
+            controller.loadMoreProducts();
+          }
+          return false;
+        },
         child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.all(16),
@@ -239,11 +250,17 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     if (index >= controller.filteredProducts.length) {
-                      controller.loadMoreProducts();
-                      return const Center(child: CircularProgressIndicator());
+                      if (controller.hasMoreData.value) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      return null;
                     }
-                    return _buildProductCard(
-                        controller.filteredProducts[index]);
+                    return _buildProductCard(controller.filteredProducts[index]);
                   },
                   childCount: controller.hasMoreData.value
                       ? controller.filteredProducts.length + 1
@@ -448,7 +465,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => controller.fetchProducts(),
+            onPressed: () => controller.refreshProducts(),
             style: ElevatedButton.styleFrom(
               backgroundColor: logoColor,
               shape: RoundedRectangleBorder(
@@ -505,12 +522,12 @@ class ProductManagementPage extends GetView<MerchantProductController> {
       final result =
           await Get.to(() => MerchantProductDetailPage(product: product));
       if (result != null) {
-        controller.fetchProducts();
+        controller.refreshProducts();
       }
     } else {
       final result = await Get.to(() => ProductFormPage(product: null));
       if (result != null) {
-        controller.fetchProducts();
+        controller.refreshProducts();
       }
     }
   }

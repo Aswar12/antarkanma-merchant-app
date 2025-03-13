@@ -85,12 +85,13 @@ class AppBinding extends Bindings {
         fenix: true,
       );
       
-      Get.lazyPut(
-        () => AuthController(
+      // Register AuthController as permanent to prevent disposal issues
+      Get.put(
+        AuthController(
           authService: authService,
           storageService: storageService,
         ),
-        fenix: true,
+        permanent: true,
       );
 
       Get.put(

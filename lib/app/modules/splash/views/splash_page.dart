@@ -148,20 +148,6 @@ class _SplashPageState extends State<SplashPage>
                                     ),
                                   ],
                                 ),
-                                child: Obx(() => Text(
-                                      splashController.loadingText,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: Dimenssions.font16,
-                                        fontWeight: FontWeight.w500,
-                                        shadows: [
-                                          Shadow(
-                                            color: logoColorSecondary,
-                                            blurRadius: 8,
-                                          ),
-                                        ],
-                                      ),
-                                    )),
                               ),
                             ],
                           )

@@ -298,26 +298,68 @@ class TransactionCard extends StatelessWidget {
                                     ),
                                   ),
                                   SizedBox(height: Dimenssions.height4),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: Dimenssions.width8,
-                                      vertical: Dimenssions.height2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: backgroundColor3.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(
-                                          Dimenssions.radius4),
-                                    ),
-                                    child: Text(
-                                      '${order.items.first.quantity}x @ ${NumberFormat.currency(
-                                        locale: 'id_ID',
-                                        symbol: 'Rp ',
-                                        decimalDigits: 0,
-                                      ).format(double.parse(order.items.first.price))}',
-                                      style: subtitleTextStyle.copyWith(
-                                        fontSize: Dimenssions.font12,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: Dimenssions.width8,
+                                          vertical: Dimenssions.height2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: backgroundColor3.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                              Dimenssions.radius4),
+                                        ),
+                                        child: Text(
+                                          '${order.items.first.quantity}x @ ${NumberFormat.currency(
+                                            locale: 'id_ID',
+                                            symbol: 'Rp ',
+                                            decimalDigits: 0,
+                                          ).format(double.parse(order.items.first.price))}',
+                                          style: subtitleTextStyle.copyWith(
+                                            fontSize: Dimenssions.font12,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      if (order.items.first.customerNote != null && order.items.first.customerNote!.isNotEmpty) ...[
+                                        SizedBox(height: Dimenssions.height4),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: Dimenssions.width8,
+                                            vertical: Dimenssions.height2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.yellow.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                                Dimenssions.radius4),
+                                            border: Border.all(
+                                              color: Colors.yellow.shade700.withOpacity(0.3),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.note,
+                                                size: 12,
+                                                color: Colors.yellow.shade700,
+                                              ),
+                                              SizedBox(width: Dimenssions.width4),
+                                              Expanded(
+                                                child: Text(
+                                                  order.items.first.customerNote!,
+                                                  style: TextStyle(
+                                                    color: Colors.yellow.shade900,
+                                                    fontSize: Dimenssions.font12,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                   SizedBox(height: Dimenssions.height8),
                                   Container(

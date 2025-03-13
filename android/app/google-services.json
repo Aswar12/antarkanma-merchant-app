@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:786441533391:android:72773bee166ef9040704ba",
+        "android_client_info": {
+          "package_name": "com.antarkanma.courier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYc17gAQl4tJmkk5nQcH0aw9UCtZ4ylnc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:786441533391:android:c5dd6a18a73a88180704ba",
         "android_client_info": {
           "package_name": "com.antarkanma.merchant"
@@ -29,25 +48,6 @@
         "mobilesdk_app_id": "1:786441533391:android:62cc1518a45455480704ba",
         "android_client_info": {
           "package_name": "com.antarkanma.user"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBYc17gAQl4tJmkk5nQcH0aw9UCtZ4ylnc"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:786441533391:android:5ea436cc19c9e7820704ba",
-        "android_client_info": {
-          "package_name": "com.example.antarkanma"
         }
       },
       "oauth_client": [],

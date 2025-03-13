@@ -140,6 +140,12 @@ class MerchantProductController extends GetxController {
     _applyFilters();
   }
 
+  Future<void> refreshProducts() async {
+    currentPage = 1;
+    hasMoreData.value = true;
+    await fetchProducts();
+  }
+
   void _resetAndRefetch() {
     currentPage = 1;
     hasMoreData.value = true;
@@ -196,9 +202,5 @@ class MerchantProductController extends GetxController {
 
     // Update filtered products in a single batch
     filteredProducts.assignAll(filtered);
-  }
-
-  void refreshProducts() {
-    _resetAndRefetch();
   }
 }

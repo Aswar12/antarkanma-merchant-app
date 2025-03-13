@@ -4,31 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/theme.dart';
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends GetView<AuthController> {
   final GlobalKey<FormState> _signUpFormKey = GlobalKey<FormState>();
 
   SignUpPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final AuthController controller = Get.put(AuthController());
-
-    return Scaffold(
-      backgroundColor: backgroundColor1,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(Dimenssions.height20),
-            child: Form(
-              key: _signUpFormKey,
-              child: Column(
-                children: [
-                  header(),
-                  SizedBox(height: Dimenssions.height30),
-                  registrationForm(controller),
-                  signButton(controller),
-                  footer(),
-                ],
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          controller.resetControllers();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: backgroundColor1,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(Dimenssions.height20),
+              child: Form(
+                key: _signUpFormKey,
+                child: Column(
+                  children: [
+                    header(),
+                    SizedBox(height: Dimenssions.height30),
+                    registrationForm(),
+                    signButton(),
+                    footer(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -42,8 +48,7 @@ class SignUpPage extends StatelessWidget {
       children: [
         Image.asset(
           'assets/logo.png',
-          height: Dimenssions
-              .height65, // Reduced from height80 to height65 (20% smaller)
+          height: Dimenssions.height65,
           fit: BoxFit.contain,
         ),
         SizedBox(height: Dimenssions.height20),
@@ -65,7 +70,7 @@ class SignUpPage extends StatelessWidget {
     );
   }
 
-  Widget registrationForm(AuthController controller) {
+  Widget registrationForm() {
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor2,
@@ -156,7 +161,7 @@ class SignUpPage extends StatelessWidget {
     );
   }
 
-  Widget signButton(AuthController controller) {
+  Widget signButton() {
     return Container(
       height: Dimenssions.height50,
       width: double.infinity,
@@ -206,7 +211,10 @@ class SignUpPage extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () => Get.toNamed('/login'),
+          onTap: () {
+            controller.resetControllers();
+            Get.toNamed('/login');
+          },
           child: Text(
             'Masuk',
             style: primaryTextOrange.copyWith(

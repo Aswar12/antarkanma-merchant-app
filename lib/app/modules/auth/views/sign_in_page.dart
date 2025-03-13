@@ -12,27 +12,35 @@ class SignInPage extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor1,
-      resizeToAvoidBottomInset: false,
-      body: SafeArea(
-        child: Form(
-          key: _signInFormKey,
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(Dimenssions.height20),
-              child: Column(
-                children: [
-                  header(),
-                  SizedBox(height: Dimenssions.height30),
-                  loginForm(),
-                  SizedBox(height: Dimenssions.height20),
-                  signButton(),
-                  SizedBox(height: Dimenssions.height30),
-                  footer(),
-                  SizedBox(height: Dimenssions.height20),
-                  quickLoginButtons(), // Add quick login buttons
-                ],
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          controller.resetControllers();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: backgroundColor1,
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          child: Form(
+            key: _signInFormKey,
+            child: SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.all(Dimenssions.height20),
+                child: Column(
+                  children: [
+                    header(),
+                    SizedBox(height: Dimenssions.height30),
+                    loginForm(),
+                    SizedBox(height: Dimenssions.height20),
+                    signButton(),
+                    SizedBox(height: Dimenssions.height30),
+                    footer(),
+                    SizedBox(height: Dimenssions.height20),
+                    quickLoginButtons(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -46,8 +54,7 @@ class SignInPage extends GetView<AuthController> {
       children: [
         Image.asset(
           'assets/logo.png',
-          height: Dimenssions
-              .height80, // Reduced from height100 to height80 (20% smaller)
+          height: Dimenssions.height80,
           fit: BoxFit.contain,
         ),
         SizedBox(height: Dimenssions.height20),
@@ -86,35 +93,27 @@ class SignInPage extends GetView<AuthController> {
       padding: EdgeInsets.all(Dimenssions.height20),
       child: Column(
         children: [
-          emailInput(),
+          CustomInputField(
+            label: 'Email atau WhatsApp',
+            hintText: 'Masukkan Email atau Nomor WA',
+            controller: controller.identifierController,
+            validator: controller.validateIdentifier,
+            icon: 'assets/icon_email.png',
+          ),
           SizedBox(height: Dimenssions.height15),
-          passwordInput(),
+          CustomInputField(
+            label: 'Password',
+            hintText: 'Masukkan Password Kamu',
+            controller: controller.passwordController,
+            validator: controller.validatePassword,
+            initialObscureText: true,
+            icon: 'assets/icon_password.png',
+            showVisibilityToggle: true,
+          ),
           SizedBox(height: Dimenssions.height10),
           rememberMeCheckbox(),
         ],
       ),
-    );
-  }
-
-  Widget emailInput() {
-    return CustomInputField(
-      label: 'Email atau WhatsApp',
-      hintText: 'Masukkan Email atau Nomor WA',
-      controller: controller.identifierController,
-      validator: controller.validateIdentifier,
-      icon: 'assets/icon_email.png',
-    );
-  }
-
-  Widget passwordInput() {
-    return CustomInputField(
-      label: 'Password',
-      hintText: 'Masukkan Password Kamu',
-      controller: controller.passwordController,
-      validator: controller.validatePassword,
-      initialObscureText: true,
-      icon: 'assets/icon_password.png',
-      showVisibilityToggle: true,
     );
   }
 
@@ -181,7 +180,6 @@ class SignInPage extends GetView<AuthController> {
     );
   }
 
-  // New method to create quick login buttons
   Widget quickLoginButtons() {
     return Column(
       children: [
@@ -189,7 +187,7 @@ class SignInPage extends GetView<AuthController> {
           onPressed: () {
             controller.identifierController.text = 'aswarthedoctor@gmail.com';
             controller.passwordController.text = 'aswar123';
-            controller.login(); // Trigger login
+            controller.login();
           },
           child: Text('Login as aswarthedoctor@gmail.com'),
         ),
@@ -198,7 +196,7 @@ class SignInPage extends GetView<AuthController> {
           onPressed: () {
             controller.identifierController.text = 'merchant@test.com';
             controller.passwordController.text = 'aswar123';
-            controller.login(); // Trigger login
+            controller.login();
           },
           child: Text('Login as merchant@test.com'),
         ),
@@ -207,7 +205,7 @@ class SignInPage extends GetView<AuthController> {
           onPressed: () {
             controller.identifierController.text = 'courier@test.com';
             controller.passwordController.text = 'aswar123';
-            controller.login(); // Trigger login
+            controller.login();
           },
           child: Text('Login as courier@test.com'),
         ),
@@ -226,7 +224,10 @@ class SignInPage extends GetView<AuthController> {
           ),
         ),
         GestureDetector(
-          onTap: () => Get.toNamed('/register'),
+          onTap: () {
+            controller.resetControllers();
+            Get.toNamed('/register');
+          },
           child: Text(
             'Daftar',
             style: primaryTextOrange.copyWith(

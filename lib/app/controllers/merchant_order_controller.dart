@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../data/models/order_model.dart';
 import '../data/models/order_summary_model.dart';
 import '../services/transaction_service.dart';
@@ -49,7 +50,13 @@ class MerchantOrderController extends BaseOrderController {
   // Order counts by status
   int getOrderCount(String status) {
     if (status == 'ALL') {
-      return stats.value?.statusCounts['total_orders'] ?? 0;
+      // Sum of all other statuses
+      return (stats.value?.statusCounts['WAITING_APPROVAL'] ?? 0) +
+             (stats.value?.statusCounts['PROCESSING'] ?? 0) +
+             (stats.value?.statusCounts['READY_FOR_PICKUP'] ?? 0) +
+             (stats.value?.statusCounts['PICKED_UP'] ?? 0) +
+             (stats.value?.statusCounts['COMPLETED'] ?? 0) +
+             (stats.value?.statusCounts['CANCELED'] ?? 0);
     }
     return stats.value?.statusCounts[_getApiStatus(status) ?? ''] ?? 0;
   }
@@ -60,8 +67,6 @@ class MerchantOrderController extends BaseOrderController {
     }
     stats.value = response.stats;
     orderCounts.value = {
-      'ALL': response.summary.summary.totalOrders,
-      'PENDING': response.stats.statusCounts['PENDING'] ?? 0,
       'WAITING_APPROVAL': response.stats.statusCounts['WAITING_APPROVAL'] ?? 0,
       'PROCESSING': response.stats.statusCounts['PROCESSING'] ?? 0,
       'READY_FOR_PICKUP': response.stats.statusCounts['READY_FOR_PICKUP'] ?? 0,
@@ -80,6 +85,26 @@ class MerchantOrderController extends BaseOrderController {
     selectedStatus.value = 'WAITING_APPROVAL';
     _initialLoad();
     _startPeriodicRefresh();
+    _setupFirebaseMessaging();
+  }
+
+  void _setupFirebaseMessaging() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.data['type'] == 'order_ready') {
+        // Refresh orders when receiving order_ready notification
+        refreshOrders();
+        
+        // Show notification to user
+        Get.snackbar(
+          message.notification?.title ?? 'Pesanan Siap',
+          message.notification?.body ?? 'Pesanan telah siap untuk diambil',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
+        );
+      }
+    });
   }
 
   void _startPeriodicRefresh() {

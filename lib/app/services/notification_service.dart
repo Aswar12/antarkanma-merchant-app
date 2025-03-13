@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../firebase_options.dart';
 import 'transaction_service.dart';
 import '../controllers/merchant_home_controller.dart';
+import '../controllers/merchant_order_controller.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -15,12 +16,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   // Initialize GetStorage for background notifications
   await GetStorage.init();
-  
+
   // Then handle the background message
-  if (message.data['type'] == 'transaction_approved' && 
+  if (message.data['type'] == 'transaction_approved' &&
       message.data['status'] == 'WAITING_APPROVAL') {
     final storage = GetStorage();
     await storage.write('pending_notification', {
@@ -32,12 +33,13 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // Fetch orders and refresh UI
     final transactionService = Get.find<TransactionService>();
     final homeController = Get.find<MerchantHomeController>();
-    await homeController.fetchData(); // Use fetchData instead of loadData
+    await homeController.fetchData();
   }
 }
 
 class NotificationService extends GetxService {
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   final GetStorage _storage = GetStorage();
   bool _isInitialized = false;
 
@@ -45,13 +47,14 @@ class NotificationService extends GetxService {
     if (_isInitialized) return;
 
     // Initialize local notifications
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    
+
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -71,9 +74,10 @@ class NotificationService extends GetxService {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // Request Android notification channel
-    final AndroidFlutterLocalNotificationsPlugin? androidPlugin = 
-        _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-            
+    final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
+        _notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
     if (androidPlugin != null) {
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
@@ -122,18 +126,29 @@ class NotificationService extends GetxService {
       );
     }
 
-    // Store notification data if needed
-    if (message.data['type'] == 'transaction_approved' && 
-        message.data['status'] == 'WAITING_APPROVAL') {
-      await _storage.write('pending_notification', {
-        'type': message.data['type'],
-        'status': message.data['status'],
-        'order_id': message.data['order_id'],
-      });
+    // Handle different notification types
+    switch (message.data['type']) {
+      case 'order_ready':
+        // Refresh orders in the merchant order controller
+        if (Get.isRegistered<MerchantOrderController>()) {
+          final orderController = Get.find<MerchantOrderController>();
+          await orderController.refreshOrders();
+        }
+        break;
 
-      // Fetch orders and refresh UI
-      final homeController = Get.find<MerchantHomeController>();
-      await homeController.fetchData(); // Use fetchData instead of loadData
+      case 'transaction_approved':
+        if (message.data['status'] == 'WAITING_APPROVAL') {
+          await _storage.write('pending_notification', {
+            'type': message.data['type'],
+            'status': message.data['status'],
+            'order_id': message.data['order_id'],
+          });
+
+          // Fetch orders and refresh UI
+          final homeController = Get.find<MerchantHomeController>();
+          await homeController.fetchData();
+        }
+        break;
     }
   }
 
@@ -143,12 +158,18 @@ class NotificationService extends GetxService {
   }
 
   void _handleNotificationNavigation(Map<String, dynamic> data) {
-    if (data['type'] == 'transaction_approved' && 
-        data['status'] == 'WAITING_APPROVAL') {
-      Get.toNamed(
-        Routes.merchantMainPage,
-        arguments: {'pending_notification': data},
-      );
+    switch (data['type']) {
+      case 'order_ready':
+        Get.toNamed(Routes.merchantMainPage);
+        break;
+      case 'transaction_approved':
+        if (data['status'] == 'WAITING_APPROVAL') {
+          Get.toNamed(
+            Routes.merchantMainPage,
+            arguments: {'pending_notification': data},
+          );
+        }
+        break;
     }
   }
 
