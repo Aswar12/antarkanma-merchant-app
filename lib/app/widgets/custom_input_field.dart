@@ -11,6 +11,9 @@ class CustomInputField extends StatefulWidget {
   final bool initialObscureText;
   final dynamic icon;
   final bool showVisibilityToggle;
+  final int? maxLines;
+  final TextInputType? keyboardType;
+  final VoidCallback? onVisibilityToggle;
 
   const CustomInputField({
     super.key,
@@ -21,7 +24,11 @@ class CustomInputField extends StatefulWidget {
     this.initialObscureText = false,
     required this.icon,
     this.showVisibilityToggle = false,
-  });
+    this.maxLines,
+    this.keyboardType,
+    this.onVisibilityToggle,
+  }) : assert(!initialObscureText || (maxLines == null || maxLines == 1),
+            'Obscured fields cannot be multiline.');
 
   @override
   _CustomInputFieldState createState() => _CustomInputFieldState();
@@ -50,6 +57,9 @@ class _CustomInputFieldState extends State<CustomInputField> {
       oldWidget.controller.removeListener(_handleTextChange);
       widget.controller.addListener(_handleTextChange);
       _hasText = widget.controller.text.isNotEmpty;
+    }
+    if (widget.initialObscureText != oldWidget.initialObscureText) {
+      _obscureText = widget.initialObscureText;
     }
   }
 
@@ -83,6 +93,7 @@ class _CustomInputFieldState extends State<CustomInputField> {
       setState(() {
         _obscureText = !_obscureText;
       });
+      widget.onVisibilityToggle?.call();
     }
   }
 
@@ -130,7 +141,9 @@ class _CustomInputFieldState extends State<CustomInputField> {
           ),
           const SizedBox(height: 12),
           Container(
-            height: 50,
+            height: widget.maxLines != null && widget.maxLines! > 1
+                ? 50.0 * widget.maxLines!
+                : 50,
             decoration: BoxDecoration(
               color: backgroundColor2,
               borderRadius: BorderRadius.circular(12),
@@ -142,9 +155,17 @@ class _CustomInputFieldState extends State<CustomInputField> {
               ),
             ),
             child: Row(
+              crossAxisAlignment: widget.maxLines != null && widget.maxLines! > 1
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.center,
               children: [
-                const SizedBox(width: 16),
-                _buildIcon(),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    top: widget.maxLines != null && widget.maxLines! > 1 ? 16 : 0,
+                  ),
+                  child: _buildIcon(),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: TextFormField(
@@ -153,6 +174,8 @@ class _CustomInputFieldState extends State<CustomInputField> {
                     obscureText: _obscureText,
                     controller: widget.controller,
                     validator: widget.validator,
+                    maxLines: widget.initialObscureText ? 1 : widget.maxLines,
+                    keyboardType: widget.keyboardType,
                     decoration: InputDecoration(
                       hintText: widget.hintText,
                       hintStyle: subtitleTextStyle,
@@ -162,6 +185,11 @@ class _CustomInputFieldState extends State<CustomInputField> {
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
                       isCollapsed: true,
+                      contentPadding: EdgeInsets.only(
+                        top: widget.maxLines != null && widget.maxLines! > 1
+                            ? 16
+                            : 0,
+                      ),
                     ),
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:antarkanma_merchant/app/controllers/merchant_product_controller.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/app/data/models/product_model.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_product_detail_page.dart';
@@ -12,47 +13,71 @@ class ProductManagementPage extends GetView<MerchantProductController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor1,
-      appBar: AppBar(
-        title: Center(
-          child: Text(
-            'Manajemen Produk',
-            style: primaryTextStyle.copyWith(color: logoColor),
+    // Set system UI overlay style
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: backgroundColor1,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ));
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: backgroundColor1,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: backgroundColor1,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Custom AppBar
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                color: backgroundColor1,
+                child: Center(
+                  child: Text(
+                    'Manajemen Produk',
+                    style: primaryTextStyle.copyWith(
+                      color: logoColor,
+                      fontSize: 18,
+                      fontWeight: semiBold,
+                    ),
+                  ),
+                ),
+              ),
+              _buildHeader(),
+              Expanded(
+                child: GetX<MerchantProductController>(
+                  builder: (controller) {
+                    if (controller.isLoading.value &&
+                        controller.products.isEmpty) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (controller.errorMessage.value.isNotEmpty) {
+                      return _buildErrorState();
+                    }
+
+                    if (controller.filteredProducts.isEmpty) {
+                      return _buildEmptyState();
+                    }
+
+                    return _buildProductGrid();
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-        backgroundColor: transparentColor,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: GetX<MerchantProductController>(
-              builder: (controller) {
-                if (controller.isLoading.value && controller.products.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (controller.errorMessage.value.isNotEmpty) {
-                  return _buildErrorState();
-                }
-
-                if (controller.filteredProducts.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return _buildProductGrid();
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToProductForm(),
-        backgroundColor: logoColor,
-        elevation: 4,
-        child: const Icon(Icons.add, color: Colors.white),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _navigateToProductForm(),
+          backgroundColor: logoColor,
+          elevation: 4,
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }
@@ -101,7 +126,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
                     ),
                     filled: true,
                     fillColor: backgroundColor1,
@@ -143,7 +168,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
                     ),
                     filled: true,
                     fillColor: backgroundColor1,
@@ -224,19 +249,17 @@ class ProductManagementPage extends GetView<MerchantProductController> {
       backgroundColor: backgroundColor1,
       displacement: 20,
       strokeWidth: 3,
-      triggerMode: RefreshIndicatorTriggerMode.onEdge,
       child: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
           if (!controller.isLoadingMore.value &&
-              scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent * 0.8) {
+              scrollInfo.metrics.pixels >=
+                  scrollInfo.metrics.maxScrollExtent * 0.8) {
             controller.loadMoreProducts();
           }
           return false;
         },
         child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.all(16),
@@ -260,7 +283,8 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                       }
                       return null;
                     }
-                    return _buildProductCard(controller.filteredProducts[index]);
+                    return _buildProductCard(
+                        controller.filteredProducts[index]);
                   },
                   childCount: controller.hasMoreData.value
                       ? controller.filteredProducts.length + 1
@@ -452,67 +476,89 @@ class ProductManagementPage extends GetView<MerchantProductController> {
   }
 
   Widget _buildErrorState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
-          const SizedBox(height: 16),
-          Text(
-            controller.errorMessage.value,
-            style: const TextStyle(color: Colors.red),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => controller.refreshProducts(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: logoColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+    return RefreshIndicator(
+      onRefresh: () => controller.refreshProducts(),
+      color: logoColor,
+      backgroundColor: backgroundColor1,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: Get.height - 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  controller.errorMessage.value,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => controller.refreshProducts(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: logoColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Coba Lagi'),
+                ),
+              ],
             ),
-            child: const Text('Coba Lagi'),
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inventory_2_outlined,
-              size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'Belum ada produk',
-            style: primaryTextStyle.copyWith(
-              fontSize: 18,
-              fontWeight: semiBold,
+    return RefreshIndicator(
+      onRefresh: () => controller.refreshProducts(),
+      color: logoColor,
+      backgroundColor: backgroundColor1,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: Get.height - 200, // Adjust height to ensure scrollable area
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inventory_2_outlined,
+                    size: 80, color: Colors.grey.shade300),
+                const SizedBox(height: 16),
+                Text(
+                  'Belum ada produk',
+                  style: primaryTextStyle.copyWith(
+                    fontSize: 18,
+                    fontWeight: semiBold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tambahkan produk pertama Anda',
+                  style: secondaryTextStyle.copyWith(fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => _navigateToProductForm(),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Tambah Produk'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: logoColor,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Tambahkan produk pertama Anda',
-            style: secondaryTextStyle.copyWith(fontSize: 14),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => _navigateToProductForm(),
-            icon: const Icon(Icons.add),
-            label: const Text('Tambah Produk'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: logoColor,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

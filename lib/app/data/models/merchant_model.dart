@@ -7,11 +7,13 @@ class MerchantModel {
   final String? status;
   final String? description;
   final String? logo;
-  final String? logoUrl;  // Added logoUrl field
+  final String? logoUrl;
   final String? openingTime;
   final String? closingTime;
   final List<String>? operatingDays;
-  final DateTime createdAt; 
+  final double? latitude;
+  final double? longitude;
+  final DateTime createdAt;
   final int? orderCount;
   final int? productsSold;
   final int? totalSales;
@@ -28,13 +30,15 @@ class MerchantModel {
     this.status = 'ACTIVE',
     this.description,
     this.logo,
-    this.logoUrl,  // Added to constructor
-    required this.createdAt,
-    this.productCount,
-    required this.updatedAt,
+    this.logoUrl,
     this.openingTime,
     this.closingTime,
     this.operatingDays,
+    this.latitude,
+    this.longitude,
+    required this.createdAt,
+    this.productCount,
+    required this.updatedAt,
     this.orderCount,
     this.productsSold,
     this.totalSales,
@@ -46,21 +50,34 @@ class MerchantModel {
       int? parseInt(dynamic value) {
         if (value == null) return null;
         if (value is int) return value == 0 ? null : value;
-        if (value is double) return value.toInt();  // Handle double values
+        if (value is double) return value.toInt();
         if (value is String) {
           try {
-            // First try parsing as double, then convert to int
             final doubleValue = double.parse(value);
             return doubleValue.toInt();
           } catch (e) {
             try {
-              // If double parsing fails, try direct int parsing
               final parsed = int.parse(value);
               return parsed == 0 ? null : parsed;
             } catch (e) {
               print('Error parsing $value to int: $e');
               return null;
             }
+          }
+        }
+        return null;
+      }
+
+      double? parseDouble(dynamic value) {
+        if (value == null) return null;
+        if (value is double) return value;
+        if (value is int) return value.toDouble();
+        if (value is String) {
+          try {
+            return double.parse(value);
+          } catch (e) {
+            print('Error parsing $value to double: $e');
+            return null;
           }
         }
         return null;
@@ -86,10 +103,12 @@ class MerchantModel {
         status: json['status']?.toString() ?? 'ACTIVE',
         description: json['description']?.toString(),
         logo: json['logo']?.toString(),
-        logoUrl: json['logo_url']?.toString(),  // Parse logo_url from JSON
+        logoUrl: json['logo_url']?.toString(),
         openingTime: json['opening_time']?.toString(),
         closingTime: json['closing_time']?.toString(),
         operatingDays: parseOperatingDays(json['operating_days']),
+        latitude: parseDouble(json['latitude']),
+        longitude: parseDouble(json['longitude']),
         productCount: parseInt(json['product_count']),
         orderCount: parseInt(json['order_count']),
         productsSold: parseInt(json['products_sold']),
@@ -104,7 +123,6 @@ class MerchantModel {
       );
     } catch (e) {
       print('Error creating MerchantModel: $e');
-      // Return a minimal valid merchant with null ID instead of 0
       return MerchantModel(
         id: null,
         ownerId: 0,
@@ -135,11 +153,13 @@ class MerchantModel {
       'status': status,
       'description': description,
       'logo': logo,
-      'logo_url': logoUrl,  // Include logoUrl in JSON
-      'product_count': productCount,
+      'logo_url': logoUrl,
       'opening_time': openingTime,
       'closing_time': closingTime,
-      'operating_days': operatingDays,
+      'operating_days': operatingDays?.join(','),
+      'latitude': latitude,
+      'longitude': longitude,
+      'product_count': productCount,
       'order_count': orderCount,
       'products_sold': productsSold,
       'total_sales': totalSales,
@@ -156,11 +176,13 @@ class MerchantModel {
     String? status,
     String? description,
     String? logo,
-    String? logoUrl,  // Added to copyWith
-    int? productCount,
+    String? logoUrl,
     String? openingTime,
     String? closingTime,
     List<String>? operatingDays,
+    double? latitude,
+    double? longitude,
+    int? productCount,
     int? orderCount,
     int? productsSold,
     int? totalSales,
@@ -177,11 +199,13 @@ class MerchantModel {
       status: status ?? this.status,
       description: description ?? this.description,
       logo: logo ?? this.logo,
-      logoUrl: logoUrl ?? this.logoUrl,  // Include in copyWith
-      productCount: productCount ?? this.productCount,
+      logoUrl: logoUrl ?? this.logoUrl,
       openingTime: openingTime ?? this.openingTime,
       closingTime: closingTime ?? this.closingTime,
       operatingDays: operatingDays ?? this.operatingDays,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      productCount: productCount ?? this.productCount,
       orderCount: orderCount ?? this.orderCount,
       productsSold: productsSold ?? this.productsSold,
       totalSales: totalSales ?? this.totalSales,
@@ -201,10 +225,8 @@ class MerchantModel {
   }
 
   String get formattedPhoneNumber => phoneNumber;
-
   String get summary => '$name - $address';
-
-  String? get merchantLogoUrl => logoUrl;  // Use the provided full URL
+  String? get merchantLogoUrl => logoUrl;
   String get merchantName => name;
   String get merchantContact => phoneNumber;
   String? get merchantOpeningHours => openingTime;
@@ -223,7 +245,9 @@ class MerchantModel {
         other.status == status &&
         other.description == description &&
         other.logo == logo &&
-        other.logoUrl == logoUrl;  // Added to equality check
+        other.logoUrl == logoUrl &&
+        other.latitude == latitude &&
+        other.longitude == longitude;
   }
 
   @override
@@ -236,11 +260,13 @@ class MerchantModel {
         status.hashCode ^
         description.hashCode ^
         logo.hashCode ^
-        logoUrl.hashCode;  // Added to hash
+        logoUrl.hashCode ^
+        latitude.hashCode ^
+        longitude.hashCode;
   }
 
   @override
   String toString() {
-    return 'MerchantModel(id: $id, name: $name, status: $status, description: $description, logo: $logo, logoUrl: $logoUrl)';
+    return 'MerchantModel(id: $id, name: $name, status: $status, description: $description, logo: $logo, logoUrl: $logoUrl, latitude: $latitude, longitude: $longitude)';
   }
 }

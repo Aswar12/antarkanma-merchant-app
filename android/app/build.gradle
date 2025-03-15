@@ -9,8 +9,8 @@ plugins {
 }
 
 android {
-    namespace = "com.antarkanma.user"
-    compileSdk = 34 // Updated for latest Android support
+    namespace = "com.antarkanma.merchant"
+    compileSdk = 35 // Updated to support plugins requiring SDK 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -26,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.antarkanma.user"
+        applicationId = "com.antarkanma.merchant"
         minSdk = 21 // Updated for FCM support
         targetSdk = 34 // Updated to match compileSdk
         versionCode = flutter.versionCode

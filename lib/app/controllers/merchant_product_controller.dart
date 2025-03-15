@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:antarkanma_merchant/app/data/models/product_model.dart';
@@ -8,6 +9,7 @@ class MerchantProductController extends GetxController {
   final MerchantService merchantService;
 
   var isLoading = false.obs;
+  var isRefreshing = false.obs;
   var errorMessage = ''.obs;
   var products = <ProductModel>[].obs;
   var filteredProducts = <ProductModel>[].obs;
@@ -56,7 +58,9 @@ class MerchantProductController extends GetxController {
 
     try {
       if (currentPage == 1) {
-        isLoading(true);
+        if (!isRefreshing.value) {
+          isLoading(true);
+        }
         errorMessage('');
       }
 
@@ -87,6 +91,7 @@ class MerchantProductController extends GetxController {
     } finally {
       isLoading(false);
       isLoadingMore(false);
+      isRefreshing(false);
     }
   }
 
@@ -141,6 +146,7 @@ class MerchantProductController extends GetxController {
   }
 
   Future<void> refreshProducts() async {
+    isRefreshing(true);
     currentPage = 1;
     hasMoreData.value = true;
     await fetchProducts();

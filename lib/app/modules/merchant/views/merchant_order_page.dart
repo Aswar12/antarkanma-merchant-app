@@ -12,9 +12,12 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
 
   @override
   Widget build(BuildContext context) {
+    // Set system UI overlay style
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: logoColor,
+      statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: backgroundColor1,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ));
 
     final statuses = [
@@ -47,104 +50,125 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
           }
         });
 
-        return Scaffold(
-          backgroundColor: logoColor,
-          appBar: AppBar(
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            systemNavigationBarColor: backgroundColor1,
+            systemNavigationBarIconBrightness: Brightness.dark,
+          ),
+          child: Scaffold(
             backgroundColor: logoColor,
-            elevation: 0,
-            title: Row(
-              children: [
-                Icon(
-                  Icons.receipt_long,
-                  color: Colors.white,
-                  size: Dimenssions.height24,
-                ),
-                SizedBox(width: Dimenssions.width8),
-                Text(
-                  'Daftar Pesanan',
-                  style: textwhite.copyWith(
-                    fontSize: Dimenssions.font18,
-                    fontWeight: semiBold,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  // Custom AppBar
+                  Container(
+                    color: logoColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.receipt_long,
+                          color: Colors.white,
+                          size: Dimenssions.height24,
+                        ),
+                        SizedBox(width: Dimenssions.width8),
+                        Text(
+                          'Daftar Pesanan',
+                          style: textwhite.copyWith(
+                            fontSize: Dimenssions.font18,
+                            fontWeight: semiBold,
+                          ),
+                        ),
+                        const Spacer(),
+                        // Auto approve switch
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Dimenssions.width10,
+                            vertical: Dimenssions.height4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black12,
+                            borderRadius: BorderRadius.circular(Dimenssions.radius20),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                'Terima Otomatis',
+                                style: textwhite.copyWith(
+                                  fontSize: Dimenssions.font12,
+                                ),
+                              ),
+                              SizedBox(width: Dimenssions.width4),
+                              Transform.scale(
+                                scale: 0.8,
+                                child: Obx(() => Switch(
+                                      value: controller.autoApprove.value,
+                                      onChanged: (value) =>
+                                          controller.toggleAutoApprove(),
+                                      activeColor: logoColorSecondary,
+                                      inactiveThumbColor: Colors.white,
+                                      inactiveTrackColor: Colors.white.withOpacity(0.5),
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            actions: [
-              Container(
-                margin: EdgeInsets.only(right: Dimenssions.width16),
-                padding: EdgeInsets.symmetric(
-                  horizontal: Dimenssions.width10,
-                  vertical: Dimenssions.height4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black12,
-                  borderRadius: BorderRadius.circular(Dimenssions.radius20),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      'Terima Otomatis',
-                      style: textwhite.copyWith(
-                        fontSize: Dimenssions.font12,
+                  // TabBar
+                  Container(
+                    color: logoColor,
+                    child: Obx(() => TabBar(
+                          isScrollable: true,
+                          indicatorColor: Colors.white,
+                          indicatorWeight: 3,
+                          labelColor: Colors.white,
+                          unselectedLabelColor: Colors.white.withOpacity(0.7),
+                          labelStyle: TextStyle(
+                            fontSize: Dimenssions.font14,
+                            fontWeight: semiBold,
+                          ),
+                          unselectedLabelStyle: TextStyle(
+                            fontSize: Dimenssions.font14,
+                            fontWeight: medium,
+                          ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: Dimenssions.width8),
+                          labelPadding: EdgeInsets.symmetric(
+                            horizontal: Dimenssions.width12,
+                            vertical: Dimenssions.height12,
+                          ),
+                          tabs: [
+                            _buildTab('Semua', controller.getOrderCount('ALL'), Icons.list),
+                            _buildTab('Menunggu Persetujuan', controller.getOrderCount('WAITING_APPROVAL'), Icons.pending_outlined),
+                            _buildTab('Diproses', controller.getOrderCount('PROCESSING'), Icons.sync),
+                            _buildTab('Siap Diambil', controller.getOrderCount('READY_FOR_PICKUP'), Icons.check_circle_outline),
+                            _buildTab('Dalam Pengantaran', controller.getOrderCount('PICKED_UP'), Icons.local_shipping_outlined),
+                            _buildTab('Selesai', controller.getOrderCount('COMPLETED'), Icons.done_all),
+                            _buildTab('Dibatalkan', controller.getOrderCount('CANCELED'), Icons.cancel_outlined),
+                          ],
+                        )),
+                  ),
+                  // TabBarView
+                  Expanded(
+                    child: Container(
+                      color: backgroundColor1,
+                      child: TabBarView(
+                        physics: const BouncingScrollPhysics(),
+                        children: List.generate(7, (index) => _buildOrderList()),
                       ),
                     ),
-                    SizedBox(width: Dimenssions.width4),
-                    Transform.scale(
-                      scale: 0.8,
-                      child: Obx(() => Switch(
-                            value: controller.autoApprove.value,
-                            onChanged: (value) =>
-                                controller.toggleAutoApprove(),
-                            activeColor: logoColorSecondary,
-                            inactiveThumbColor: Colors.white,
-                            inactiveTrackColor: Colors.white.withOpacity(0.5),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          )),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-            bottom: PreferredSize(
-              preferredSize: Size.fromHeight(kToolbarHeight + 8),
-              child: Obx(() => TabBar(
-                    isScrollable: true,
-                    indicatorColor: Colors.white,
-                    indicatorWeight: 3,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withOpacity(0.7),
-                    labelStyle: TextStyle(
-                      fontSize: Dimenssions.font14,
-                      fontWeight: semiBold,
-                    ),
-                    unselectedLabelStyle: TextStyle(
-                      fontSize: Dimenssions.font14,
-                      fontWeight: medium,
-                    ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: Dimenssions.width8),
-                    labelPadding: EdgeInsets.symmetric(
-                      horizontal: Dimenssions.width12,
-                      vertical: Dimenssions.height12,
-                    ),
-                    tabs: [
-                      _buildTab('Semua', controller.getOrderCount('ALL'), Icons.list),
-                      _buildTab('Menunggu Persetujuan', controller.getOrderCount('WAITING_APPROVAL'), Icons.pending_outlined),
-                      _buildTab('Diproses', controller.getOrderCount('PROCESSING'), Icons.sync),
-                      _buildTab('Siap Diambil', controller.getOrderCount('READY_FOR_PICKUP'), Icons.check_circle_outline),
-                      _buildTab('Dalam Pengantaran', controller.getOrderCount('PICKED_UP'), Icons.local_shipping_outlined),
-                      _buildTab('Selesai', controller.getOrderCount('COMPLETED'), Icons.done_all),
-                      _buildTab('Dibatalkan', controller.getOrderCount('CANCELED'), Icons.cancel_outlined),
-                    ],
-                  )),
-            ),
-          ),
-          body: Container(
-            color: backgroundColor1,
-            child: TabBarView(
-              physics: BouncingScrollPhysics(),
-              children: List.generate(7, (index) => _buildOrderList()),
             ),
           ),
         );
@@ -164,12 +188,12 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
           if (count > 0) ...[
             SizedBox(width: Dimenssions.width6),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.red,
                 borderRadius: BorderRadius.circular(10),
               ),
-              constraints: BoxConstraints(minWidth: 20),
+              constraints: const BoxConstraints(minWidth: 20),
               child: Text(
                 count.toString(),
                 style: textwhite.copyWith(
@@ -203,7 +227,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
           if (controller.hasError.value) {
             return Center(
               child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Padding(
                   padding: EdgeInsets.all(Dimenssions.height16),
                   child: Column(
@@ -217,14 +241,14 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                       SizedBox(height: Dimenssions.height8),
                       Text(
                         controller.errorMessage.value,
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: Dimenssions.height16),
                       ElevatedButton.icon(
                         onPressed: () => controller.refreshOrders(),
-                        icon: Icon(Icons.refresh),
-                        label: Text('Coba Lagi'),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Coba Lagi'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: logoColor,
                           foregroundColor: Colors.white,
@@ -246,10 +270,10 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
           }
           return Center(
             child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: Dimenssions.height16),
-                child: EmptyState(),
+                child: const EmptyState(),
               ),
             ),
           );

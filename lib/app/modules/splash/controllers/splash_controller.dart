@@ -14,13 +14,8 @@ class SplashController extends GetxController {
   late final MerchantService _merchantService;
   late final FCMTokenService _fcmTokenService;
   late final StorageService _storageService;
-  
-  final RxBool _isLoading = true.obs;
-  final RxString _loadingText = 'Mempersiapkan aplikasi...'.obs;
-  bool _isInitializing = false;
 
-  bool get isLoading => _isLoading.value;
-  String get loadingText => _loadingText.value;
+  bool _isInitializing = false;
 
   @override
   void onInit() {
@@ -40,39 +35,36 @@ class SplashController extends GetxController {
       _merchantService = Get.find<MerchantService>();
       _fcmTokenService = Get.find<FCMTokenService>();
 
-      await Future.delayed(const Duration(seconds: 1));
-      _loadingText.value = 'Memeriksa status login...';
-      
+      // Add minimum delay for splash screen
+      await Future.delayed(const Duration(seconds: 2));
+
       // Check for valid token first
       final token = _storageService.getToken();
       final userData = _storageService.getUser();
-      
+
       if (token != null && userData != null) {
         // Try to verify token
         final isValid = await _authService.verifyToken(token);
         if (isValid) {
-          _loadingText.value = 'Memuat data user...';
           _authService.currentUser.value = UserModel.fromJson(userData);
           if (_authService.currentUser.value?.role != 'MERCHANT') {
-            _storageService.clearAll();
+            await _storageService.clearAll();
             Get.offAllNamed(Routes.login);
             return;
           }
           _authService.isLoggedIn.value = true;
-          
+
           // Register FCM token after successful token verification
-          _loadingText.value = 'Mempersiapkan notifikasi...';
           final fcmToken = _fcmTokenService.currentToken;
           if (fcmToken != null) {
             await _fcmTokenService.registerFCMToken(fcmToken);
           }
-          
+
           await _loadMerchantData();
-          _isLoading.value = false;
-          await Future.delayed(const Duration(seconds: 1));
 
           // Check for pending notifications before navigation
-          final pendingNotification = _storageService.getMap('pending_notification');
+          final pendingNotification =
+              _storageService.getMap('pending_notification');
           if (pendingNotification != null) {
             Get.offAllNamed(
               Routes.merchantMainPage,
@@ -83,21 +75,21 @@ class SplashController extends GetxController {
             Get.offAllNamed(Routes.merchantMainPage);
           }
           return;
-        } else {
-          // If token is invalid, clear auth data but keep remember me settings
-          if (_storageService.getRememberMe()) {
-            final credentials = _storageService.getSavedCredentials();
-            await _storageService.clearAuth();
-            if (credentials != null) {
-              await _storageService.saveRememberMe(true);
-              await _storageService.saveCredentials(
-                credentials['identifier']!,
-                credentials['password']!,
-              );
-            }
-          } else {
-            await _storageService.clearAll();
+        }
+
+        // If token is invalid, clear auth data but keep remember me settings
+        if (_storageService.getRememberMe()) {
+          final credentials = _storageService.getSavedCredentials();
+          await _storageService.clearAuth();
+          if (credentials != null) {
+            await _storageService.saveRememberMe(true);
+            await _storageService.saveCredentials(
+              credentials['identifier']!,
+              credentials['password']!,
+            );
           }
+        } else {
+          await _storageService.clearAll();
         }
       }
 
@@ -105,28 +97,23 @@ class SplashController extends GetxController {
       if (_storageService.canAutoLogin()) {
         final credentials = _storageService.getSavedCredentials();
         if (credentials != null) {
-          _loadingText.value = 'Melakukan auto login...';
-          
-          // Get AuthController only when needed for auto-login
           final authController = Get.find<AuthController>();
           authController.identifierController.text = credentials['identifier']!;
           authController.passwordController.text = credentials['password']!;
           final loginSuccess = await authController.login(isAutoLogin: true);
-          
+
           if (loginSuccess) {
             // Register FCM token after successful auto-login
-            _loadingText.value = 'Mempersiapkan notifikasi...';
             final fcmToken = _fcmTokenService.currentToken;
             if (fcmToken != null) {
               await _fcmTokenService.registerFCMToken(fcmToken);
             }
-            
+
             await _loadMerchantData();
-            _isLoading.value = false;
-            await Future.delayed(const Duration(seconds: 1));
 
             // Check for pending notifications before navigation
-            final pendingNotification = _storageService.getMap('pending_notification');
+            final pendingNotification =
+                _storageService.getMap('pending_notification');
             if (pendingNotification != null) {
               Get.offAllNamed(
                 Routes.merchantMainPage,
@@ -141,39 +128,29 @@ class SplashController extends GetxController {
         }
       }
 
-      // If we reach here, no valid auth was found
-      await Future.delayed(const Duration(seconds: 2));
+      // If we reach here, navigate to login page
       Get.offAllNamed(Routes.login);
-      
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('Error in splash controller: $e');
-      print('Stack trace: $stackTrace');
       Get.offAllNamed(Routes.login);
     } finally {
-      _isLoading.value = false;
       _isInitializing = false;
     }
   }
 
   Future<void> _loadMerchantData() async {
     try {
-      _loadingText.value = 'Memuat data merchant...';
-      
-      // Load merchant and product data first
       await Future.wait([
         _merchantService.getMerchant(),
         _merchantService.getMerchantProducts(),
       ]);
 
-      // Load orders separately to handle any potential errors
       try {
         await _transactionService.getOrders(page: 1);
       } catch (e) {
-        print('Error loading initial orders: $e');
         // Continue even if orders fail to load
       }
     } catch (e) {
-      print('Error loading merchant data: $e');
       // Continue even if some data fails to load
     }
   }

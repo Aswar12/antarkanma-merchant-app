@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../constants/app_values.dart';
 import '../../../widgets/custom_input_field.dart';
+import '../../../routes/app_pages.dart';
 
 class SignInPage extends GetView<AuthController> {
   final GlobalKey<FormState> _signInFormKey = GlobalKey<FormState>();
@@ -37,8 +38,6 @@ class SignInPage extends GetView<AuthController> {
                     signButton(),
                     SizedBox(height: Dimenssions.height30),
                     footer(),
-                    SizedBox(height: Dimenssions.height20),
-                    quickLoginButtons(),
                   ],
                 ),
               ),
@@ -110,36 +109,7 @@ class SignInPage extends GetView<AuthController> {
             icon: 'assets/icon_password.png',
             showVisibilityToggle: true,
           ),
-          SizedBox(height: Dimenssions.height10),
-          rememberMeCheckbox(),
         ],
-      ),
-    );
-  }
-
-  Widget rememberMeCheckbox() {
-    return Obx(
-      () => Container(
-        margin: EdgeInsets.only(top: Dimenssions.height5),
-        child: Row(
-          children: [
-            Checkbox(
-              value: controller.rememberMe.value,
-              onChanged: (value) => controller.toggleRememberMe(),
-              activeColor: logoColorSecondary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            Text(
-              'Ingat Saya',
-              style: primaryTextStyle.copyWith(
-                fontSize: Dimenssions.font14,
-                fontWeight: medium,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -180,39 +150,6 @@ class SignInPage extends GetView<AuthController> {
     );
   }
 
-  Widget quickLoginButtons() {
-    return Column(
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            controller.identifierController.text = 'aswarthedoctor@gmail.com';
-            controller.passwordController.text = 'aswar123';
-            controller.login();
-          },
-          child: Text('Login as aswarthedoctor@gmail.com'),
-        ),
-        SizedBox(height: Dimenssions.height10),
-        ElevatedButton(
-          onPressed: () {
-            controller.identifierController.text = 'merchant@test.com';
-            controller.passwordController.text = 'aswar123';
-            controller.login();
-          },
-          child: Text('Login as merchant@test.com'),
-        ),
-        SizedBox(height: Dimenssions.height10),
-        ElevatedButton(
-          onPressed: () {
-            controller.identifierController.text = 'courier@test.com';
-            controller.passwordController.text = 'aswar123';
-            controller.login();
-          },
-          child: Text('Login as courier@test.com'),
-        ),
-      ],
-    );
-  }
-
   Widget footer() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -221,19 +158,6 @@ class SignInPage extends GetView<AuthController> {
           'Belum Punya Akun? ',
           style: subtitleTextStyle.copyWith(
             fontSize: Dimenssions.font14,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            controller.resetControllers();
-            Get.toNamed('/register');
-          },
-          child: Text(
-            'Daftar',
-            style: primaryTextOrange.copyWith(
-              fontSize: Dimenssions.font14,
-              fontWeight: semiBold,
-            ),
           ),
         ),
       ],

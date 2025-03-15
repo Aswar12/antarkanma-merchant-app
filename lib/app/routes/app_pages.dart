@@ -6,6 +6,7 @@ import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_profile_
 import 'package:antarkanma_merchant/app/modules/merchant/views/product_management_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/product_form_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_home_page.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/views/edit_store_info_page.dart';
 import 'package:antarkanma_merchant/app/modules/splash/views/splash_page.dart';
 import 'package:antarkanma_merchant/app/bindings/app_binding.dart';
 import 'package:get/get.dart';
@@ -35,23 +36,25 @@ class AppPages {
     GetPage(
       name: Routes.splash,
       page: () => const SplashPage(),
-      // Initialize AppBinding only once at splash screen
       binding: AppBinding(),
       preventDuplicates: true,
     ),
     GetPage(
       name: Routes.login,
       page: () => SignInPage(),
+      binding: AppBinding(),
       preventDuplicates: true,
     ),
     GetPage(
       name: Routes.register,
       page: () => SignUpPage(),
+      binding: AppBinding(),
       preventDuplicates: true,
     ),
     GetPage(
       name: Routes.merchantMainPage,
       page: () => const MerchantMainPage(),
+      binding: AppBinding(),
       preventDuplicates: true,
       middlewares: [
         AuthMiddleware(),
@@ -89,7 +92,7 @@ class AppPages {
         ),
         GetPage(
           name: '/edit-store-info',
-          page: () => MerchantProfilePage(),
+          page: () => const EditStoreInfoPage(),
           preventDuplicates: true,
         ),
       ],

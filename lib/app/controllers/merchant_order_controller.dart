@@ -51,12 +51,11 @@ class MerchantOrderController extends BaseOrderController {
   int getOrderCount(String status) {
     if (status == 'ALL') {
       // Sum of all other statuses
-      return (stats.value?.statusCounts['WAITING_APPROVAL'] ?? 0) +
-             (stats.value?.statusCounts['PROCESSING'] ?? 0) +
-             (stats.value?.statusCounts['READY_FOR_PICKUP'] ?? 0) +
-             (stats.value?.statusCounts['PICKED_UP'] ?? 0) +
-             (stats.value?.statusCounts['COMPLETED'] ?? 0) +
-             (stats.value?.statusCounts['CANCELED'] ?? 0);
+      return (stats.value?.statusCounts[OrderModel.STATUS_WAITING_APPROVAL] ?? 0) +
+             (stats.value?.statusCounts[OrderModel.STATUS_PROCESSING] ?? 0) +
+             (stats.value?.statusCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0) +
+             (stats.value?.statusCounts[OrderModel.STATUS_COMPLETED] ?? 0) +
+             (stats.value?.statusCounts[OrderModel.STATUS_CANCELED] ?? 0);
     }
     return stats.value?.statusCounts[_getApiStatus(status) ?? ''] ?? 0;
   }
@@ -67,12 +66,11 @@ class MerchantOrderController extends BaseOrderController {
     }
     stats.value = response.stats;
     orderCounts.value = {
-      'WAITING_APPROVAL': response.stats.statusCounts['WAITING_APPROVAL'] ?? 0,
-      'PROCESSING': response.stats.statusCounts['PROCESSING'] ?? 0,
-      'READY_FOR_PICKUP': response.stats.statusCounts['READY_FOR_PICKUP'] ?? 0,
-      'PICKED_UP': response.stats.statusCounts['PICKED_UP'] ?? 0,
-      'COMPLETED': response.stats.statusCounts['COMPLETED'] ?? 0,
-      'CANCELED': response.stats.statusCounts['CANCELED'] ?? 0,
+      OrderModel.STATUS_WAITING_APPROVAL: response.stats.statusCounts[OrderModel.STATUS_WAITING_APPROVAL] ?? 0,
+      OrderModel.STATUS_PROCESSING: response.stats.statusCounts[OrderModel.STATUS_PROCESSING] ?? 0,
+      OrderModel.STATUS_READY_FOR_PICKUP: response.stats.statusCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0,
+      OrderModel.STATUS_COMPLETED: response.stats.statusCounts[OrderModel.STATUS_COMPLETED] ?? 0,
+      OrderModel.STATUS_CANCELED: response.stats.statusCounts[OrderModel.STATUS_CANCELED] ?? 0,
     };
     if (kDebugMode) {
       print('Updated order counts: $orderCounts');
@@ -82,7 +80,7 @@ class MerchantOrderController extends BaseOrderController {
   @override
   void onInit() {
     super.onInit();
-    selectedStatus.value = 'WAITING_APPROVAL';
+    selectedStatus.value = OrderModel.STATUS_WAITING_APPROVAL;
     _initialLoad();
     _startPeriodicRefresh();
     _setupFirebaseMessaging();
@@ -145,7 +143,7 @@ class MerchantOrderController extends BaseOrderController {
 
       if (autoApprove.value) {
         final newOrders = response.orders
-            .where((order) => order.orderStatus == 'WAITING_APPROVAL');
+            .where((order) => order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL);
         for (final order in newOrders) {
           approveTransaction(order.id);
         }
@@ -189,7 +187,7 @@ class MerchantOrderController extends BaseOrderController {
 
       if (autoApprove.value) {
         final newOrders = response.orders
-            .where((order) => order.orderStatus == 'WAITING_APPROVAL');
+            .where((order) => order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL);
         for (final order in newOrders) {
           approveTransaction(order.id);
         }

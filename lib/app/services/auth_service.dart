@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 import 'package:antarkanma_merchant/app/data/models/user_model.dart';
 import 'package:antarkanma_merchant/app/data/providers/auth_provider.dart';
@@ -12,6 +14,9 @@ import 'package:antarkanma_merchant/app/services/fcm_token_service.dart';
 class AuthService extends GetxService {
   final StorageService _storageService = StorageService.instance;
   final AuthProvider _authProvider;
+
+  // Expose provider for direct API calls
+  AuthProvider get provider => _authProvider;
 
   final RxBool isLoggedIn = false.obs;
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
@@ -245,6 +250,14 @@ class AuthService extends GetxService {
           message: 'Gagal registrasi: ${e.toString()}',
           isError: true);
       return false;
+    }
+  }
+
+  Future<Response> registerMerchant(FormData formData) async {
+    try {
+      return await _authProvider.registerMerchant(formData);
+    } catch (e) {
+      throw Exception('Failed to register merchant: $e');
     }
   }
 

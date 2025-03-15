@@ -6,8 +6,19 @@ class OrderStatsModel {
   });
 
   factory OrderStatsModel.fromJson(Map<String, dynamic> json) {
+    // Convert all values to int
+    Map<String, int> counts = {};
+    json.forEach((key, value) {
+      if (value != null) {
+        // Handle both String and int values
+        counts[key] = value is int ? value : int.tryParse(value.toString()) ?? 0;
+      } else {
+        counts[key] = 0;
+      }
+    });
+    
     return OrderStatsModel(
-      statusCounts: Map<String, int>.from(json),
+      statusCounts: counts,
     );
   }
 }
@@ -22,8 +33,20 @@ class OrderSummaryModel {
   });
 
   factory OrderSummaryModel.fromJson(Map<String, dynamic> json) {
+    // Convert status counts to proper int values
+    Map<String, int> counts = {};
+    if (json['status_counts'] != null) {
+      (json['status_counts'] as Map<String, dynamic>).forEach((key, value) {
+        if (value != null) {
+          counts[key] = value is int ? value : int.tryParse(value.toString()) ?? 0;
+        } else {
+          counts[key] = 0;
+        }
+      });
+    }
+
     return OrderSummaryModel(
-      statusCounts: Map<String, int>.from(json['status_counts'] ?? {}),
+      statusCounts: counts,
       summary: OrderTotalSummaryModel.fromJson(json['summary'] ?? {}),
     );
   }
@@ -46,11 +69,17 @@ class OrderTotalSummaryModel {
 
   factory OrderTotalSummaryModel.fromJson(Map<String, dynamic> json) {
     return OrderTotalSummaryModel(
-      totalOrders: json['total_orders'] ?? 0,
-      totalCompleted: json['total_completed'] ?? 0,
-      totalProcessing: json['total_processing'] ?? 0,
-      totalPending: json['total_pending'] ?? 0,
-      totalCanceled: json['total_canceled'] ?? 0,
+      totalOrders: _parseIntValue(json['total_orders']),
+      totalCompleted: _parseIntValue(json['total_completed']),
+      totalProcessing: _parseIntValue(json['total_processing']),
+      totalPending: _parseIntValue(json['total_pending']),
+      totalCanceled: _parseIntValue(json['total_canceled']),
     );
+  }
+
+  static int _parseIntValue(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    return int.tryParse(value.toString()) ?? 0;
   }
 }

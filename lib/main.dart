@@ -13,14 +13,14 @@ import 'app/services/dimensions_service.dart';
 
 Future<void> initServices() async {
   try {
-    // Initialize core storage services
+    // Initialize core storage services first
     await GetStorage.init();
-    final storageService = StorageService.instance;
     final storage = GetStorage();
+    final storageService = StorageService.instance;
     
     // Register core services
-    Get.put(storageService, permanent: true);
     Get.put(storage, permanent: true);
+    Get.put(storageService, permanent: true);
 
     // Initialize and register DimensionsService
     final dimensionsService = DimensionsService();
@@ -52,11 +52,14 @@ Future<void> initServices() async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  await initServices();
-
-  runApp(const MyApp());
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await initServices();
+    runApp(const MyApp());
+  } catch (e) {
+    print('Error in main: $e');
+    rethrow;
+  }
 }
 
 class MyApp extends StatelessWidget {

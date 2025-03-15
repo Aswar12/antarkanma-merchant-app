@@ -156,12 +156,47 @@ class AuthProvider {
     }
   }
 
-  /// Register
+  /// Register basic user
   Future<Response> register(Map<String, dynamic> userData) async {
     try {
       return await _dio.post(Config.register, data: userData);
     } catch (e) {
       throw Exception('Registration failed: $e');
+    }
+  }
+
+  /// Register merchant with complete data
+  Future<Response> registerMerchant(FormData formData) async {
+    try {
+      return await _dio.post(
+        Config.registerMerchant,
+        data: formData,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 413) {
+        throw Exception('Logo file size too large. Maximum size is 20MB.');
+      } else if (e.response?.statusCode == 415) {
+        throw Exception('Invalid logo file type. Please upload an image file (jpeg/png/jpg/gif/webp).');
+      } else if (e.response?.statusCode == 422) {
+        final errors = e.response?.data['errors'];
+        if (errors != null) {
+          if (errors['email'] != null) {
+            throw Exception('Email already exists');
+          }
+          if (errors['phone_number'] != null) {
+            throw Exception('Phone number already exists');
+          }
+        }
+      }
+      throw Exception('Merchant registration failed: ${e.message}');
+    } catch (e) {
+      throw Exception('Merchant registration failed: $e');
     }
   }
 

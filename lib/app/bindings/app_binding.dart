@@ -1,3 +1,4 @@
+import 'package:antarkanma_merchant/app/services/profile_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -30,26 +31,31 @@ class AppBinding extends Bindings {
   @override
   void dependencies() {
     try {
-      // Core dependencies should already be initialized in initServices()
+      // Core dependencies
       final storage = Get.find<GetStorage>();
       final storageService = Get.find<StorageService>();
-      final flutterLocalNotificationsPlugin = Get.find<FlutterLocalNotificationsPlugin>();
+      final flutterLocalNotificationsPlugin =
+          Get.find<FlutterLocalNotificationsPlugin>();
       final dimensionsService = Get.find<DimensionsService>();
 
       // Register providers
       final authProvider = Get.put(AuthProvider(), permanent: true);
       final merchantProvider = Get.put(MerchantProvider(), permanent: true);
-      final transactionProvider = Get.put(TransactionProvider(), permanent: true);
-      final notificationProvider = Get.put(NotificationProvider(), permanent: true);
+      final transactionProvider =
+          Get.put(TransactionProvider(), permanent: true);
+      final notificationProvider =
+          Get.put(NotificationProvider(), permanent: true);
 
-      // Register services with their dependencies
-      final authService = Get.put(AuthService(authProvider: authProvider), permanent: true);
+      // Register base services
+      final authService =
+          Get.put(AuthService(authProvider: authProvider), permanent: true);
       final productService = Get.put(ProductService(), permanent: true);
       final categoryService = Get.put(CategoryService(), permanent: true);
       final locationService = Get.put(UserLocationService(), permanent: true);
-      final merchantOrderService = Get.put(MerchantOrderService(), permanent: true);
+      final merchantOrderService =
+          Get.put(MerchantOrderService(), permanent: true);
 
-      // Register services that depend on other services
+      // Register dependent services
       final merchantService = Get.put(
         MerchantService(
           merchantProvider: merchantProvider,
@@ -76,16 +82,10 @@ class AppBinding extends Bindings {
         permanent: true,
       );
 
-      // Initialize CategoryService after registration
+      // Initialize CategoryService
       categoryService.init();
 
-      // Register controllers lazily
-      Get.lazyPut(
-        () => SplashController(),
-        fenix: true,
-      );
-      
-      // Register AuthController as permanent to prevent disposal issues
+      // Register controllers
       Get.put(
         AuthController(
           authService: authService,
@@ -102,10 +102,13 @@ class AppBinding extends Bindings {
         permanent: true,
       );
 
+      final profileService = Get.put(ProfileService(), permanent: true);
+
       Get.put(
         MerchantProfileController(
-          authService: authService,
           merchantService: merchantService,
+          authService: authService,
+          profileService: profileService,
         ),
         permanent: true,
       );
@@ -140,12 +143,18 @@ class AppBinding extends Bindings {
 
       Get.put(CategoryController(), permanent: true);
 
-      // Initialize product form controller with fenix
+      // Initialize product form controller
       Get.lazyPut<MerchantProductFormController>(
         () => MerchantProductFormController(
           merchantService: merchantService,
         ),
         fenix: true,
+      );
+
+      // Initialize SplashController last, after all dependencies are ready
+      Get.put(
+        SplashController(),
+        permanent: true,
       );
     } catch (e) {
       print('Error in AppBinding dependencies(): $e');

@@ -3,32 +3,8 @@ import 'package:get/get.dart';
 import '../../../../theme.dart';
 import '../controllers/splash_controller.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends GetView<SplashController> {
   const SplashPage({super.key});
-
-  @override
-  State<SplashPage> createState() => _SplashPageState();
-}
-
-class _SplashPageState extends State<SplashPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final splashController = Get.find<SplashController>();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,71 +63,15 @@ class _SplashPageState extends State<SplashPage>
                       ),
                     ),
                     SizedBox(height: Dimenssions.height32),
-                    // Shimmer Loading Animation
+                    // Loading Indicator
                     SizedBox(
                       width: Dimenssions.width150 * 1.33,
-                      height: 4,
-                      child: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: logoColorSecondary.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          AnimatedBuilder(
-                            animation: _controller,
-                            builder: (context, child) {
-                              return Positioned(
-                                left: -100 + (_controller.value * 300),
-                                child: Container(
-                                  width: 100,
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        logoColorSecondary.withOpacity(0.0),
-                                        logoColorSecondary,
-                                        logoColorSecondary.withOpacity(0.0),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                      child: LinearProgressIndicator(
+                        backgroundColor: logoColorSecondary.withOpacity(0.2),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(logoColorSecondary),
                       ),
                     ),
-                    SizedBox(height: Dimenssions.height20),
-                    // Loading Text
-                    Obx(() => splashController.isLoading
-                        ? Column(
-                            children: [
-                              SizedBox(height: Dimenssions.height20),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Dimenssions.width20,
-                                  vertical: Dimenssions.height10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(
-                                      Dimenssions.radius20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          logoColorSecondary.withOpacity(0.3),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          )
-                        : const SizedBox.shrink()),
                   ],
                 ),
               ),

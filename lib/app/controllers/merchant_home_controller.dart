@@ -61,8 +61,7 @@ class MerchantHomeController extends GetxController {
       
       // Calculate today's metrics from completed orders
       todayCompletedOrders.value = result.orders.length;
-      todayRevenue.value = result.orders.fold(0.0, (sum, order) => 
-        sum + double.parse(order.totalAmount));
+      todayRevenue.value = result.orders.fold(0.0, (sum, order) => sum + order.total);
       todayAverageOrder.value = result.orders.isEmpty ? 0.0 : 
         todayRevenue.value / todayCompletedOrders.value;
 

@@ -1,5 +1,6 @@
 import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:antarkanma_merchant/app/data/models/order_model.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/views/order_details_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -19,17 +20,63 @@ class TransactionCard extends StatelessWidget {
     this.onTap,
   });
 
+  void _showOrderDetails(BuildContext context) {
+    Get.bottomSheet(
+      OrderDetailsBottomSheet(order: order),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+    );
+  }
+
+  Widget _buildProductImage(String? imageUrl) {
+    if (imageUrl == null) {
+      return Container(
+        width: Dimenssions.height70,
+        height: Dimenssions.height70,
+        decoration: BoxDecoration(
+          color: backgroundColor3,
+          borderRadius: BorderRadius.circular(Dimenssions.radius12),
+        ),
+        child: Icon(
+          Icons.image_not_supported,
+          color: subtitleColor,
+          size: Dimenssions.height24,
+        ),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      width: Dimenssions.height70,
+      height: Dimenssions.height70,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        width: Dimenssions.height70,
+        height: Dimenssions.height70,
+        decoration: BoxDecoration(
+          color: backgroundColor3,
+          borderRadius: BorderRadius.circular(Dimenssions.radius12),
+        ),
+        child: Icon(
+          Icons.image_not_supported,
+          color: subtitleColor,
+          size: Dimenssions.height24,
+        ),
+      ),
+    );
+  }
+
   Color _getStatusColor() {
     switch (order.orderStatus) {
-      case 'WAITING_APPROVAL':
+      case OrderModel.STATUS_WAITING_APPROVAL:
         return Colors.orange.shade600;
-      case 'PROCESSING':
+      case OrderModel.STATUS_PROCESSING:
         return Colors.blue.shade600;
-      case 'READY_FOR_PICKUP':
+      case OrderModel.STATUS_READY_FOR_PICKUP:
         return Colors.green.shade600;
-      case 'COMPLETED':
+      case OrderModel.STATUS_COMPLETED:
         return Colors.teal.shade600;
-      case 'CANCELED':
+      case OrderModel.STATUS_CANCELED:
         return Colors.red.shade600;
       default:
         return Colors.grey.shade600;
@@ -38,15 +85,15 @@ class TransactionCard extends StatelessWidget {
 
   IconData _getStatusIcon() {
     switch (order.orderStatus) {
-      case 'WAITING_APPROVAL':
+      case OrderModel.STATUS_WAITING_APPROVAL:
         return Icons.pending_outlined;
-      case 'PROCESSING':
+      case OrderModel.STATUS_PROCESSING:
         return Icons.sync;
-      case 'READY_FOR_PICKUP':
+      case OrderModel.STATUS_READY_FOR_PICKUP:
         return Icons.check_circle_outline;
-      case 'COMPLETED':
+      case OrderModel.STATUS_COMPLETED:
         return Icons.done_all;
-      case 'CANCELED':
+      case OrderModel.STATUS_CANCELED:
         return Icons.cancel_outlined;
       default:
         return Icons.help_outline;
@@ -62,7 +109,9 @@ class TransactionCard extends StatelessWidget {
       tag: 'order_${order.id}',
       child: Material(
         color: Colors.transparent,
-        child: AnimatedContainer(
+        child: InkWell(
+          onTap: () => _showOrderDetails(context),
+          child: AnimatedContainer(
           duration: Duration(milliseconds: 300),
           margin: EdgeInsets.symmetric(
             horizontal: Dimenssions.height8,
@@ -136,8 +185,7 @@ class TransactionCard extends StatelessWidget {
                                   ),
                                   SizedBox(width: Dimenssions.width4),
                                   Text(
-                                    DateFormat('dd MMM yyyy, HH:mm').format(
-                                        DateTime.parse(order.createdAt)),
+                                    order.formattedDate,
                                     style: subtitleTextStyle.copyWith(
                                       fontSize: Dimenssions.font10,
                                     ),
@@ -216,28 +264,8 @@ class TransactionCard extends StatelessWidget {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(
                                         Dimenssions.radius12),
-                                    child: Image.network(
-                                      order.items.first.product.firstImageUrl ??
-                                          '',
-                                      width: Dimenssions.height70,
-                                      height: Dimenssions.height70,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Container(
-                                        width: Dimenssions.height70,
-                                        height: Dimenssions.height70,
-                                        decoration: BoxDecoration(
-                                          color: backgroundColor3,
-                                          borderRadius: BorderRadius.circular(
-                                              Dimenssions.radius12),
-                                        ),
-                                        child: Icon(
-                                          Icons.image_not_supported,
-                                          color: subtitleColor,
-                                          size: Dimenssions.height24,
-                                        ),
-                                      ),
+                                    child: _buildProductImage(
+                                      order.items.first.product.firstImageUrl,
                                     ),
                                   ),
                                 ),
@@ -299,7 +327,8 @@ class TransactionCard extends StatelessWidget {
                                   ),
                                   SizedBox(height: Dimenssions.height4),
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         padding: EdgeInsets.symmetric(
@@ -307,22 +336,22 @@ class TransactionCard extends StatelessWidget {
                                           vertical: Dimenssions.height2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: backgroundColor3.withOpacity(0.2),
+                                          color:
+                                              backgroundColor3.withOpacity(0.2),
                                           borderRadius: BorderRadius.circular(
                                               Dimenssions.radius4),
                                         ),
                                         child: Text(
-                                          '${order.items.first.quantity}x @ ${NumberFormat.currency(
-                                            locale: 'id_ID',
-                                            symbol: 'Rp ',
-                                            decimalDigits: 0,
-                                          ).format(double.parse(order.items.first.price))}',
+                                          '${order.items.first.quantity}x @ ${order.items.first.formattedPrice}',
                                           style: subtitleTextStyle.copyWith(
                                             fontSize: Dimenssions.font12,
                                           ),
                                         ),
                                       ),
-                                      if (order.items.first.customerNote != null && order.items.first.customerNote!.isNotEmpty) ...[
+                                      if (order.items.first.customerNote !=
+                                              null &&
+                                          order.items.first.customerNote!
+                                              .isNotEmpty) ...[
                                         SizedBox(height: Dimenssions.height4),
                                         Container(
                                           padding: EdgeInsets.symmetric(
@@ -330,11 +359,13 @@ class TransactionCard extends StatelessWidget {
                                             vertical: Dimenssions.height2,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.yellow.withOpacity(0.1),
+                                            color:
+                                                Colors.yellow.withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(
                                                 Dimenssions.radius4),
                                             border: Border.all(
-                                              color: Colors.yellow.shade700.withOpacity(0.3),
+                                              color: Colors.yellow.shade700
+                                                  .withOpacity(0.3),
                                               width: 1,
                                             ),
                                           ),
@@ -345,13 +376,17 @@ class TransactionCard extends StatelessWidget {
                                                 size: 12,
                                                 color: Colors.yellow.shade700,
                                               ),
-                                              SizedBox(width: Dimenssions.width4),
+                                              SizedBox(
+                                                  width: Dimenssions.width4),
                                               Expanded(
                                                 child: Text(
-                                                  order.items.first.customerNote!,
+                                                  order.items.first
+                                                      .customerNote!,
                                                   style: TextStyle(
-                                                    color: Colors.yellow.shade900,
-                                                    fontSize: Dimenssions.font12,
+                                                    color:
+                                                        Colors.yellow.shade900,
+                                                    fontSize:
+                                                        Dimenssions.font12,
                                                   ),
                                                 ),
                                               ),
@@ -387,7 +422,7 @@ class TransactionCard extends StatelessWidget {
                                         ),
                                         SizedBox(width: Dimenssions.width6),
                                         Text(
-                                          order.formattedTotalAmount,
+                                          order.formattedTotal,
                                           style: primaryTextOrange.copyWith(
                                             fontSize: Dimenssions.font14,
                                             fontWeight: semiBold,
@@ -521,7 +556,7 @@ class TransactionCard extends StatelessWidget {
                                               SizedBox(
                                                   width: Dimenssions.width4),
                                               Text(
-                                                order.courier!.plate,
+                                                order.courier!.plate ?? '-',
                                                 style: TextStyle(
                                                   color: logoColorSecondary,
                                                   fontSize: Dimenssions.font10,
@@ -544,7 +579,7 @@ class TransactionCard extends StatelessWidget {
                   ),
                 ),
                 // Action buttons
-                if (order.orderStatus == 'WAITING_APPROVAL') ...[
+                if (order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL) ...[
                   Container(
                     padding: EdgeInsets.all(Dimenssions.height12),
                     decoration: BoxDecoration(
@@ -602,7 +637,7 @@ class TransactionCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                ] else if (order.orderStatus == 'PROCESSING') ...[
+                ] else if (order.orderStatus == OrderModel.STATUS_PROCESSING) ...[
                   Container(
                     padding: EdgeInsets.all(Dimenssions.height12),
                     decoration: BoxDecoration(
@@ -690,6 +725,6 @@ class TransactionCard extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }

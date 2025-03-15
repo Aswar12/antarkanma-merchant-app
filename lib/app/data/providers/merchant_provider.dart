@@ -78,8 +78,9 @@ class MerchantProvider {
     Map<String, dynamic>? queryParams,
   }) async {
     try {
-      print('Fetching products for merchant ID: $merchantId (page: $page, pageSize: $pageSize)');
-      
+      print(
+          'Fetching products for merchant ID: $merchantId (page: $page, pageSize: $pageSize)');
+
       final Map<String, dynamic> params = {
         'page': page,
         'page_size': pageSize,
@@ -117,7 +118,7 @@ class MerchantProvider {
   }) async {
     try {
       print('Fetching orders for merchant ID: $merchantId');
-      
+
       final Map<String, dynamic> queryParams = {
         'page': page,
         'limit': limit,
@@ -169,9 +170,11 @@ class MerchantProvider {
     }
   }
 
-  Future<Response> approveTransaction(String token, int merchantId, dynamic transactionId) async {
+  Future<Response> approveTransaction(
+      String token, int merchantId, dynamic transactionId) async {
     try {
-      print('Approving transaction $transactionId for merchant ID: $merchantId');
+      print(
+          'Approving transaction $transactionId for merchant ID: $merchantId');
       final response = await _dio.put(
         '/merchants/$merchantId/transactions/$transactionId/approve',
         options: Options(
@@ -188,9 +191,11 @@ class MerchantProvider {
     }
   }
 
-  Future<Response> rejectTransaction(String token, int merchantId, dynamic transactionId) async {
+  Future<Response> rejectTransaction(
+      String token, int merchantId, dynamic transactionId) async {
     try {
-      print('Rejecting transaction $transactionId for merchant ID: $merchantId');
+      print(
+          'Rejecting transaction $transactionId for merchant ID: $merchantId');
       final response = await _dio.put(
         '/merchants/$merchantId/transactions/$transactionId/reject',
         options: Options(
@@ -214,7 +219,8 @@ class MerchantProvider {
     String status,
   ) async {
     try {
-      print('Updating order status: Merchant ID: $merchantId, Order ID: $orderId, New Status: $status');
+      print(
+          'Updating order status: Merchant ID: $merchantId, Order ID: $orderId, New Status: $status');
       final response = await _dio.put(
         '/merchants/$merchantId/orders/$orderId/status',
         options: Options(
@@ -430,7 +436,8 @@ class MerchantProvider {
           message = 'Resource not found.';
           break;
         case 422:
-          if (error.response?.data != null && error.response?.data['data'] != null) {
+          if (error.response?.data != null &&
+              error.response?.data['data'] != null) {
             final errors = error.response?.data['data'];
             if (errors is Map) {
               message = errors.values.first.first.toString();

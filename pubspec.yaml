@@ -41,7 +41,9 @@ dependencies:
   firebase_messaging: ^15.2.0
   shimmer_animation: ^2.2.2
   logger: ^2.0.2+1
- 
+  path_provider: ^2.1.2
+  print_bluetooth_thermal: ^1.1.6
+  connectivity_plus: ^5.0.2
  
 dev_dependencies:
   flutter_test:

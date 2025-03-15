@@ -1,10 +1,10 @@
-
 import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
+import 'package:flutter/services.dart';
 
 class AddOperationalHoursBottomSheet extends StatefulWidget {
   const AddOperationalHoursBottomSheet({super.key});
@@ -37,26 +37,21 @@ class _AddOperationalHoursBottomSheetState
   @override
   void initState() {
     super.initState();
-    print('Initializing AddOperationalHoursBottomSheet');
     // Initialize with existing values if available
     final merchant = profileController.merchant;
     if (merchant != null) {
-      print('Current merchant data:');
-      print('Opening Time: ${merchant.openingTime}');
-      print('Closing Time: ${merchant.closingTime}');
-      print('Operating Days: ${merchant.operatingDays}');
-
       if (merchant.openingTime != null) {
         openingTimeController.text = merchant.openingTime!;
+        profileController.openingTimeController.text = merchant.openingTime!;
       }
       if (merchant.closingTime != null) {
         closingTimeController.text = merchant.closingTime!;
+        profileController.closingTimeController.text = merchant.closingTime!;
       }
       if (merchant.operatingDays != null) {
         selectedDays.value = List<String>.from(merchant.operatingDays!);
+        profileController.operatingDays.value = List<String>.from(merchant.operatingDays!);
       }
-    } else {
-      print('No merchant data available');
     }
   }
 
@@ -95,6 +90,13 @@ class _AddOperationalHoursBottomSheetState
       String formattedTime =
           '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       controller.text = formattedTime;
+      
+      // Update controller values
+      if (controller == openingTimeController) {
+        profileController.openingTimeController.text = formattedTime;
+      } else if (controller == closingTimeController) {
+        profileController.closingTimeController.text = formattedTime;
+      }
     }
   }
 
@@ -120,31 +122,19 @@ class _AddOperationalHoursBottomSheetState
     try {
       isLoading.value = true;
 
-      // Update merchant data
-      final success = await profileController.updateOperationalHours(
-        openingTimeController.text,
-        closingTimeController.text,
-        selectedDays.toList(),
-      );
+      // Update controller values
+      profileController.openingTimeController.text = openingTimeController.text;
+      profileController.closingTimeController.text = closingTimeController.text;
+      profileController.operatingDays.value = selectedDays.toList();
 
-      if (success) {
-        // Refresh both controllers
-       
-        await merchantController.fetchMerchantData();
+      // Call the update method
+      await profileController.updateOperatingHours();
 
-        Get.back(); // Close bottom sheet
-        showCustomSnackbar(
-          title: 'Sukses',
-          message: 'Jam operasional berhasil diperbarui',
-          isError: false,
-        );
-      } else {
-        showCustomSnackbar(
-          title: 'Error',
-          message: 'Gagal memperbarui jam operasional',
-          isError: true,
-        );
-      }
+      // Refresh both controllers
+      await merchantController.fetchMerchantData();
+
+      Get.back(); // Close bottom sheet
+      
     } catch (e) {
       showCustomSnackbar(
         title: 'Error',
@@ -244,11 +234,14 @@ class _AddOperationalHoursBottomSheetState
                           if (selected) {
                             if (!selectedDays.contains(day)) {
                               selectedDays.add(day);
+                              profileController.operatingDays.add(day);
                             }
                           } else {
                             selectedDays.remove(day);
+                            profileController.operatingDays.remove(day);
                           }
                           selectedDays.refresh();
+                          profileController.operatingDays.refresh();
                         },
                         selectedColor: logoColor.withOpacity(0.2),
                         checkmarkColor: logoColor,
