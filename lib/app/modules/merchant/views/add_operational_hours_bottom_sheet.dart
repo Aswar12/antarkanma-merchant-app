@@ -1,4 +1,3 @@
-import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +16,6 @@ class AddOperationalHoursBottomSheet extends StatefulWidget {
 class _AddOperationalHoursBottomSheetState
     extends State<AddOperationalHoursBottomSheet> {
   final MerchantProfileController profileController = Get.find<MerchantProfileController>();
-  final MerchantController merchantController = Get.find<MerchantController>();
   final TextEditingController openingTimeController = TextEditingController();
   final TextEditingController closingTimeController = TextEditingController();
 
@@ -31,7 +29,7 @@ class _AddOperationalHoursBottomSheetState
     'Minggu'
   ];
 
-  final RxList<String> selectedDays = <String>[].obs;
+  final RxSet<String> selectedDays = <String>{}.obs; // Changed to Set to prevent duplicates
   final RxBool isLoading = false.obs;
 
   @override
@@ -49,8 +47,12 @@ class _AddOperationalHoursBottomSheetState
         profileController.closingTimeController.text = merchant.closingTime!;
       }
       if (merchant.operatingDays != null) {
-        selectedDays.value = List<String>.from(merchant.operatingDays!);
-        profileController.operatingDays.value = List<String>.from(merchant.operatingDays!);
+        // Convert to title case for display and ensure uniqueness
+        final days = merchant.operatingDays!.map((day) {
+          return day[0].toUpperCase() + day.substring(1).toLowerCase();
+        }).toSet(); // Convert to Set to remove duplicates
+        selectedDays.value = days;
+        profileController.operatingDays.value = days.toList();
       }
     }
   }
@@ -89,7 +91,9 @@ class _AddOperationalHoursBottomSheetState
     if (picked != null) {
       String formattedTime =
           '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-      controller.text = formattedTime;
+      setState(() {
+        controller.text = formattedTime;
+      });
       
       // Update controller values
       if (controller == openingTimeController) {
@@ -125,15 +129,13 @@ class _AddOperationalHoursBottomSheetState
       // Update controller values
       profileController.openingTimeController.text = openingTimeController.text;
       profileController.closingTimeController.text = closingTimeController.text;
-      profileController.operatingDays.value = selectedDays.toList();
+      profileController.operatingDays.value = selectedDays.toList(); // Convert Set to List
 
       // Call the update method
       await profileController.updateOperatingHours();
-
-      // Refresh both controllers
-      await merchantController.fetchMerchantData();
-
-      Get.back(); // Close bottom sheet
+      
+      // Force refresh the profile page
+      profileController.update(['merchant_profile']);
       
     } catch (e) {
       showCustomSnackbar(
@@ -144,6 +146,39 @@ class _AddOperationalHoursBottomSheetState
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _toggleDay(String day, bool selected) {
+    setState(() {
+      if (selected) {
+        // Check if the day is already selected (shouldn't happen with Set, but just in case)
+        if (selectedDays.contains(day)) {
+          showCustomSnackbar(
+            title: 'Perhatian',
+            message: 'Hari $day sudah dipilih',
+            isError: true,
+          );
+          return;
+        }
+        
+        // Add the day if we haven't reached the maximum
+        if (selectedDays.length >= 7) {
+          showCustomSnackbar(
+            title: 'Perhatian',
+            message: 'Maksimal 7 hari dapat dipilih',
+            isError: true,
+          );
+          return;
+        }
+        selectedDays.add(day);
+      } else {
+        selectedDays.remove(day);
+      }
+      
+      // Update controller immediately
+      profileController.operatingDays.value = selectedDays.toList();
+      profileController.update(['merchant_profile']);
+    });
   }
 
   @override
@@ -223,34 +258,22 @@ class _AddOperationalHoursBottomSheetState
                 ),
               ),
               SizedBox(height: 8),
-              Obx(() => Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: daysOfWeek.map((day) {
-                      return FilterChip(
-                        label: Text(day),
-                        selected: selectedDays.contains(day),
-                        onSelected: (selected) {
-                          if (selected) {
-                            if (!selectedDays.contains(day)) {
-                              selectedDays.add(day);
-                              profileController.operatingDays.add(day);
-                            }
-                          } else {
-                            selectedDays.remove(day);
-                            profileController.operatingDays.remove(day);
-                          }
-                          selectedDays.refresh();
-                          profileController.operatingDays.refresh();
-                        },
-                        selectedColor: logoColor.withOpacity(0.2),
-                        checkmarkColor: logoColor,
-                        labelStyle: TextStyle(
-                          color: selectedDays.contains(day) ? logoColor : Colors.black,
-                        ),
-                      );
-                    }).toList(),
-                  )),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: daysOfWeek.map((day) {
+                  return FilterChip(
+                    label: Text(day),
+                    selected: selectedDays.contains(day),
+                    onSelected: (selected) => _toggleDay(day, selected),
+                    selectedColor: logoColor.withOpacity(0.2),
+                    checkmarkColor: logoColor,
+                    labelStyle: TextStyle(
+                      color: selectedDays.contains(day) ? logoColor : Colors.black,
+                    ),
+                  );
+                }).toList(),
+              ),
               SizedBox(height: 24),
               Obx(() => SizedBox(
                     width: double.infinity,

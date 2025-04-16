@@ -7,14 +7,21 @@ import 'package:antarkanma_merchant/app/services/merchant_service.dart';
 import 'package:antarkanma_merchant/app/services/auth_service.dart';
 import 'package:antarkanma_merchant/app/services/profile_service.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:mime/mime.dart';
 
 class MerchantProfileController extends GetxController {
+  // Constants for image validation
+  static const List<String> _supportedImageTypes = ['jpg', 'jpeg', 'png', 'heic'];
+  static const double _maxFileSizeMB = 2.0;
+  static const double _maxImageDimension = 800.0;
+  static const int _imageQuality = 80;
+
   final MerchantService merchantService;
   final AuthService authService;
   final ProfileService profileService;
   final formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
-  
+
   // Text Controllers
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -79,24 +86,60 @@ class MerchantProfileController extends GetxController {
     newLogoFile(file);
   }
 
+  // Validate image file
+  Future<void> _validateImageFile(File file) async {
+    // Check file size
+    final sizeInBytes = await file.length();
+    final sizeInMb = sizeInBytes / (1024 * 1024);
+    if (sizeInMb > _maxFileSizeMB) {
+      throw 'Ukuran file terlalu besar. Maksimal ${_maxFileSizeMB}MB';
+    }
+
+    // Check file extension
+    final extension = file.path.split('.').last.toLowerCase();
+    if (!_supportedImageTypes.contains(extension)) {
+      throw 'Format file tidak didukung. Gunakan format: ${_supportedImageTypes.join(", ")}';
+    }
+
+    // Check MIME type
+    final mimeType = lookupMimeType(file.path);
+    if (mimeType == null || !mimeType.startsWith('image/')) {
+      throw 'File harus berupa gambar';
+    }
+
+    // Verify specific image MIME types
+    final validMimeTypes = ['image/jpeg', 'image/png', 'image/heic'];
+    if (!validMimeTypes.contains(mimeType)) {
+      throw 'Format gambar tidak didukung. Gunakan JPEG, PNG, atau HEIC';
+    }
+  }
+
   Future<void> pickAndUpdateLogo() async {
     try {
+      // Configure image picker with optimized settings
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1000,
-        maxHeight: 1000,
-        imageQuality: 85,
+        maxWidth: _maxImageDimension,
+        maxHeight: _maxImageDimension,
+        imageQuality: _imageQuality,
+        requestFullMetadata: true, // Enable full metadata
       );
 
       if (pickedFile != null) {
         isUploadingLogo(true);
+
+        final file = File(pickedFile.path);
         
+        // Validate the image file
+        await _validateImageFile(file);
+
         final success = await profileService.updateMerchantLogo(
           merchant!.id!,
           pickedFile.path,
         );
 
         if (success) {
+          await merchantService.clearCache(); // Clear cache before fetching
           await fetchMerchantData();
           Get.snackbar(
             'Sukses',
@@ -105,17 +148,20 @@ class MerchantProfileController extends GetxController {
             backgroundColor: Colors.green,
             colorText: Colors.white,
           );
+          update(); // Force UI update
         } else {
-          throw 'Gagal memperbarui logo';
+          throw 'Gagal memperbarui logo. Silakan coba lagi';
         }
       }
     } catch (e) {
+      print('Error updating logo: $e'); // For debugging
       Get.snackbar(
         'Error',
-        'Gagal memperbarui logo: $e',
+        e.toString(),
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: Duration(seconds: 5),
       );
     } finally {
       isUploadingLogo(false);
@@ -125,7 +171,7 @@ class MerchantProfileController extends GetxController {
   Future<void> updateLocation(LatLng newLocation) async {
     try {
       isLoading(true);
-      
+
       final success = await profileService.updateMerchantLocation(
         merchantId: merchant!.id!,
         latitude: newLocation.latitude,
@@ -134,6 +180,8 @@ class MerchantProfileController extends GetxController {
 
       if (success) {
         location.value = newLocation;
+        await merchantService.clearCache(); // Clear cache before fetching
+        await fetchMerchantData();
         Get.snackbar(
           'Sukses',
           'Lokasi berhasil diperbarui',
@@ -141,6 +189,7 @@ class MerchantProfileController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+        update(); // Force UI update
       } else {
         throw 'Gagal memperbarui lokasi';
       }
@@ -161,7 +210,8 @@ class MerchantProfileController extends GetxController {
     try {
       isLoading(true);
 
-      if (openingTimeController.text.isEmpty || closingTimeController.text.isEmpty) {
+      if (openingTimeController.text.isEmpty ||
+          closingTimeController.text.isEmpty) {
         throw 'Jam operasional harus diisi';
       }
 
@@ -169,15 +219,31 @@ class MerchantProfileController extends GetxController {
         throw 'Pilih minimal satu hari operasional';
       }
 
+      // Convert operating days to Set to remove any duplicates
+      final uniqueDays = operatingDays.toSet().toList();
+      if (uniqueDays.length > 7) {
+        throw 'Maksimal 7 hari dapat dipilih';
+      }
+
       final success = await profileService.updateOperatingHours(
         merchantId: merchant!.id!,
         openingTime: openingTimeController.text,
         closingTime: closingTimeController.text,
-        operatingDays: operatingDays,
+        operatingDays: uniqueDays,
       );
 
       if (success) {
+        // Clear cache before fetching new data
+        await merchantService.clearCache();
+        
+        // Refresh merchant data
         await fetchMerchantData();
+        
+        // Update UI with unique days
+        operatingDays.value = uniqueDays;
+        operatingDays.refresh();
+        
+        // Close bottom sheet and show success message
         Get.back();
         Get.snackbar(
           'Sukses',
@@ -186,6 +252,9 @@ class MerchantProfileController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+        
+        // Force rebuild profile page
+        update(); // Force UI update
       } else {
         throw 'Gagal memperbarui jam operasional';
       }
@@ -208,7 +277,7 @@ class MerchantProfileController extends GetxController {
       final merchant = await merchantService.getMerchant();
       if (merchant != null) {
         merchantData(merchant);
-        
+
         // Initialize text controllers with current data
         nameController.text = merchant.name ?? '';
         descriptionController.text = merchant.description ?? '';
@@ -222,10 +291,14 @@ class MerchantProfileController extends GetxController {
           location.value = LatLng(merchant.latitude!, merchant.longitude!);
         }
 
-        // Initialize operating days
+        // Initialize operating days, ensuring uniqueness
         if (merchant.operatingDays != null) {
-          operatingDays.value = merchant.operatingDays!;
+          operatingDays.value = merchant.operatingDays!.toSet().toList();
+          operatingDays.refresh();
         }
+
+        // Force UI update
+        update();
       }
       hasError(false);
       errorMessage('');
@@ -252,6 +325,7 @@ class MerchantProfileController extends GetxController {
       );
 
       if (success) {
+        await merchantService.clearCache(); // Clear cache before fetching
         await fetchMerchantData();
         Get.back();
         Get.snackbar(
@@ -261,6 +335,7 @@ class MerchantProfileController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+        update(); // Force UI update
       } else {
         throw 'Gagal memperbarui informasi toko';
       }
@@ -278,10 +353,26 @@ class MerchantProfileController extends GetxController {
   }
 
   void toggleOperatingDay(String day) {
-    if (operatingDays.contains(day)) {
-      operatingDays.remove(day);
+    final currentDays = operatingDays.toSet(); // Convert to Set for uniqueness check
+    
+    if (currentDays.contains(day)) {
+      currentDays.remove(day);
     } else {
-      operatingDays.add(day);
+      if (currentDays.length >= 7) {
+        Get.snackbar(
+          'Perhatian',
+          'Maksimal 7 hari dapat dipilih',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+      currentDays.add(day);
     }
+    
+    operatingDays.value = currentDays.toList();
+    operatingDays.refresh();
+    update(); // Force UI update
   }
 }

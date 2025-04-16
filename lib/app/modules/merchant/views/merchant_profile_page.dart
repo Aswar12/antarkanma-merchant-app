@@ -30,32 +30,45 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
         }
 
         if (controller.hasError.value) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: alertColor),
-                SizedBox(height: 16),
-                Text(
-                  controller.errorMessage.value,
-                  style: primaryTextStyle.copyWith(color: alertColor),
-                  textAlign: TextAlign.center,
+          return RefreshIndicator(
+            onRefresh: () => controller.fetchMerchantData(),
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 64, color: alertColor),
+                      SizedBox(height: 16),
+                      Text(
+                        controller.errorMessage.value,
+                        style: primaryTextStyle.copyWith(color: alertColor),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           );
         }
 
-        return ListView(
-          padding: EdgeInsets.all(Dimenssions.width16),
-          children: [
-            _buildHeader(),
-            _buildStoreInfoCard(),
-            _buildOperationalHoursCard(),
-            _buildPaymentMethodsCard(),
-            _buildMenuSection(),
-            SizedBox(height: Dimenssions.height10),
-          ],
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchMerchantData(),
+          child: ListView(
+            physics: AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(Dimenssions.width16),
+            children: [
+              _buildHeader(),
+              _buildStoreInfoCard(),
+              _buildOperationalHoursCard(),
+              _buildPaymentMethodsCard(),
+              _buildMenuSection(),
+              SizedBox(height: Dimenssions.height10),
+            ],
+          ),
         );
       }),
     );
@@ -292,7 +305,10 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => Get.toNamed(Routes.merchantEditInfo),
+                onPressed: () async {
+                  await Get.toNamed(Routes.merchantEditInfo);
+                  controller.fetchMerchantData(); // Refresh after edit
+                },
                 icon: Icon(Icons.edit, size: Dimenssions.height18),
                 label: Text('Edit Informasi'),
                 style: OutlinedButton.styleFrom(
@@ -308,6 +324,8 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
   }
 
   Widget _buildOperationalHoursCard() {
+    final merchant = controller.merchantData.value;
+      
     return Card(
       elevation: 1,
       color: backgroundColor1,
@@ -335,12 +353,63 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
               ],
             ),
             Divider(height: Dimenssions.height24),
+            if (merchant?.openingTime != null && merchant?.closingTime != null)
+              Padding(
+                padding: EdgeInsets.only(bottom: Dimenssions.height16),
+                child: Row(
+                  children: [
+                    Icon(Icons.schedule, color: logoColor, size: 20),
+                    SizedBox(width: Dimenssions.width8),
+                    Text(
+                      '${merchant?.openingTime} - ${merchant?.closingTime}',
+                      style: primaryTextStyle,
+                    ),
+                  ],
+                ),
+              ),
+            if (merchant?.operatingDays != null && merchant!.operatingDays!.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(bottom: Dimenssions.height16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hari Operasional:',
+                      style: primaryTextStyle.copyWith(fontWeight: medium),
+                    ),
+                    SizedBox(height: Dimenssions.height8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: merchant.operatingDays!.map((day) {
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Dimenssions.width12,
+                            vertical: Dimenssions.height6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: logoColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(Dimenssions.radius15),
+                          ),
+                          child: Text(
+                            day,
+                            style: primaryTextStyle.copyWith(
+                              color: logoColor,
+                              fontSize: Dimenssions.font12,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
             SizedBox(height: Dimenssions.height16),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  Get.bottomSheet(
+                onPressed: () async {
+                  await Get.bottomSheet(
                     AddOperationalHoursBottomSheet(),
                     backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
@@ -350,6 +419,8 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
                     ),
                     isScrollControlled: true,
                   );
+                  // Refresh after bottom sheet is closed
+                  controller.fetchMerchantData();
                 },
                 icon: Icon(Icons.edit, size: Dimenssions.height18),
                 label: Text('Atur Jam Operasional'),

@@ -37,6 +37,16 @@ class _MapPickerPageState extends State<MapPickerPage> {
     super.dispose();
   }
 
+  void _moveMap(LatLng location, double zoom) {
+    if (!mounted) return;
+    
+    try {
+      _mapController.move(location, zoom);
+    } catch (e) {
+      print('Error moving map: $e');
+    }
+  }
+
   Future<void> _getCurrentLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -45,7 +55,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
           _selectedLocation = _defaultLocation;
           _isLoading = false;
         });
-        _mapController.move(_defaultLocation, 15);
+        _moveMap(_defaultLocation, 15);
         Get.snackbar(
           'Info',
           'Layanan lokasi tidak aktif. Menggunakan lokasi default.',
@@ -63,7 +73,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
             _selectedLocation = _defaultLocation;
             _isLoading = false;
           });
-          _mapController.move(_defaultLocation, 15);
+          _moveMap(_defaultLocation, 15);
           Get.snackbar(
             'Info',
             'Izin lokasi ditolak. Menggunakan lokasi default.',
@@ -79,7 +89,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
           _selectedLocation = _defaultLocation;
           _isLoading = false;
         });
-        _mapController.move(_defaultLocation, 15);
+        _moveMap(_defaultLocation, 15);
         Get.snackbar(
           'Info',
           'Izin lokasi ditolak secara permanen. Menggunakan lokasi default.',
@@ -96,7 +106,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
         _selectedLocation = _defaultLocation;
         _isLoading = false;
       });
-      _mapController.move(_defaultLocation, 15);
+      _moveMap(_defaultLocation, 15);
       Get.snackbar(
         'Error',
         'Gagal mendapatkan lokasi: ${e.toString()}',
@@ -107,12 +117,17 @@ class _MapPickerPageState extends State<MapPickerPage> {
   }
 
   Future<void> _getAccurateLocation() async {
+    if (!mounted) return;
+    
     setState(() {
       _isGettingAccurateLocation = true;
       _accuracy = 'Mendapatkan lokasi akurat...';
     });
 
     try {
+      // Ensure map is initialized
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       // Cancel any existing stream
       await _positionStream?.cancel();
 
@@ -162,7 +177,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
             }
           });
 
-          _mapController.move(_selectedLocation!, 18);
+          _moveMap(_selectedLocation!, 18);
         }
       });
 
@@ -174,7 +189,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
         _isLoading = false;
       });
 
-      _mapController.move(_selectedLocation!, 18);
+      _moveMap(_selectedLocation!, 18);
 
       // Set a timeout to stop getting updates after 30 seconds
       await Future.delayed(const Duration(seconds: 30));
@@ -198,7 +213,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
         _isLoading = false;
         _isGettingAccurateLocation = false;
       });
-      _mapController.move(_defaultLocation, 15);
+      _moveMap(_defaultLocation, 15);
       Get.snackbar(
         'Error',
         'Gagal mendapatkan lokasi akurat: ${e.toString()}',

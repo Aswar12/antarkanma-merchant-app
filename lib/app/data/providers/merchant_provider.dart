@@ -244,11 +244,21 @@ class MerchantProvider {
       String token, int merchantId, Map<String, dynamic> data) async {
     try {
       print('Updating merchant $merchantId with data: $data');
+      
+      // Convert operating days to lowercase if present
+      if (data['operating_days'] != null) {
+        data['operating_days'] = data['operating_days']
+            .map((day) => day.toString().toLowerCase())
+            .toList();
+      }
+
       final response = await _dio.put(
         '/merchant/$merchantId',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
           },
         ),
         data: data,

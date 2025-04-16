@@ -25,7 +25,7 @@ class ProfileProvider {
   ) async {
     try {
       final response = await _dio.put(
-        '/merchant/$merchantId/profile',
+        '/merchant/$merchantId',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -48,7 +48,7 @@ class ProfileProvider {
   ) async {
     try {
       final response = await _dio.put(
-        '/merchant/$merchantId/location',
+        '/merchant/$merchantId',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -72,25 +72,48 @@ class ProfileProvider {
     String imagePath,
   ) async {
     try {
-      final formData = FormData.fromMap({
-        'logo': await MultipartFile.fromFile(
-          imagePath,
-          filename: 'merchant_logo.jpg',
+      // Create FormData with the logo file
+      final formData = FormData();
+      formData.files.add(
+        MapEntry(
+          'logo',
+          await MultipartFile.fromFile(
+            imagePath,
+            filename: 'logo.png',
+          ),
         ),
-      });
+      );
 
+      // Make the request with proper headers and form data
       final response = await _dio.post(
         '/merchant/$merchantId/logo',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+          validateStatus: (status) {
+            // Log the status code for debugging
+            print('Response status code: $status');
+            return status! < 500;
           },
         ),
         data: formData,
       );
+
+      // Log response for debugging
+      print('Response data: ${response.data}');
+      print('Response headers: ${response.headers}');
+
       return response;
     } catch (e) {
+      print('Error details: $e');
+      if (e is DioException) {
+        print('DioError type: ${e.type}');
+        print('DioError message: ${e.message}');
+        print('DioError response: ${e.response?.data}');
+      }
       throw Exception('Failed to update merchant logo: $e');
     }
   }

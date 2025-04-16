@@ -85,13 +85,32 @@ class MerchantModel {
 
       List<String>? parseOperatingDays(dynamic value) {
         if (value == null) return null;
+        
+        Set<String> uniqueDays = {};
+        
         if (value is List) {
-          return value.map((e) => e.toString()).toList();
+          // Handle list input
+          for (var day in value) {
+            if (day != null) {
+              final formattedDay = _formatDay(day.toString());
+              if (formattedDay.isNotEmpty) {
+                uniqueDays.add(formattedDay);
+              }
+            }
+          }
+        } else if (value is String && value.isNotEmpty) {
+          // Handle comma-separated string input
+          for (var day in value.split(',')) {
+            final formattedDay = _formatDay(day);
+            if (formattedDay.isNotEmpty) {
+              uniqueDays.add(formattedDay);
+            }
+          }
         }
-        if (value is String && value.isNotEmpty) {
-          return value.split(',').map((e) => e.trim()).toList();
-        }
-        return [];
+
+        // Convert to sorted list and ensure max 7 days
+        final sortedDays = uniqueDays.toList()..sort();
+        return sortedDays.take(7).toList();
       }
 
       return MerchantModel(
@@ -143,7 +162,36 @@ class MerchantModel {
     }
   }
 
+  // Helper method to format day names consistently
+  static String _formatDay(String day) {
+    day = day.trim().toLowerCase();
+    if (day.isEmpty) return '';
+    
+    // List of valid days
+    const validDays = {
+      'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'
+    };
+    
+    // Check if it's a valid day
+    if (!validDays.contains(day)) return '';
+    
+    // Convert to title case
+    return day[0].toUpperCase() + day.substring(1);
+  }
+
   Map<String, dynamic> toJson() {
+    // Ensure operating days are properly formatted when converting to JSON
+    String? formatOperatingDays() {
+      if (operatingDays == null || operatingDays!.isEmpty) return null;
+      return operatingDays!
+          .map((day) => day.toLowerCase().trim())
+          .where((day) => day.isNotEmpty)
+          .toSet() // Ensure uniqueness
+          .toList()
+          .take(7) // Ensure maximum 7 days
+          .join(',');
+    }
+
     return {
       'id': id,
       'owner_id': ownerId,
@@ -156,7 +204,7 @@ class MerchantModel {
       'logo_url': logoUrl,
       'opening_time': openingTime,
       'closing_time': closingTime,
-      'operating_days': operatingDays?.join(','),
+      'operating_days': formatOperatingDays(),
       'latitude': latitude,
       'longitude': longitude,
       'product_count': productCount,

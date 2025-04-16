@@ -224,7 +224,7 @@ class AuthController extends GetxController {
             case DioExceptionType.connectionTimeout:
             case DioExceptionType.sendTimeout:
             case DioExceptionType.receiveTimeout:
-              errorMessage = 'Server tidak merespon. Silakan coba lagi nanti.';
+              errorMessage = 'Server sedang tidak merespon. Silakan coba lagi nanti.';
               break;
             case DioExceptionType.connectionError:
               errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
@@ -232,14 +232,16 @@ class AuthController extends GetxController {
             default:
               if (e.response?.statusCode == 503) {
                 errorMessage = 'Server sedang dalam pemeliharaan. Silakan coba lagi nanti.';
+              } else if (e.response?.statusCode == 401) {
+                errorMessage = 'Email/nomor telepon atau password salah.';
               } else {
-                errorMessage = 'Gagal terhubung ke server. Silakan coba lagi nanti.';
+                errorMessage = 'Server sedang bermasalah. Silakan coba lagi nanti.';
               }
           }
         }
         
         showCustomSnackbar(
-          title: 'Error',
+          title: 'Login Gagal',
           message: errorMessage,
           isError: true,
         );
