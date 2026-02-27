@@ -1,7 +1,5 @@
-// ignore_for_file: library_private_types_in_public_api
-
-import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
+import '../../theme.dart';
 
 class CustomInputField extends StatefulWidget {
   final String label;
@@ -11,9 +9,11 @@ class CustomInputField extends StatefulWidget {
   final bool initialObscureText;
   final dynamic icon;
   final bool showVisibilityToggle;
+  final bool readOnly;
   final int? maxLines;
   final TextInputType? keyboardType;
   final VoidCallback? onVisibilityToggle;
+  final Function(String)? onChanged;
 
   const CustomInputField({
     super.key,
@@ -24,13 +24,16 @@ class CustomInputField extends StatefulWidget {
     this.initialObscureText = false,
     required this.icon,
     this.showVisibilityToggle = false,
-    this.maxLines,
+    this.readOnly = false,
+    this.maxLines = 1,
     this.keyboardType,
     this.onVisibilityToggle,
+    this.onChanged,
   }) : assert(!initialObscureText || (maxLines == null || maxLines == 1),
             'Obscured fields cannot be multiline.');
 
   @override
+  // ignore: library_private_types_in_public_api
   _CustomInputFieldState createState() => _CustomInputFieldState();
 }
 
@@ -107,7 +110,18 @@ class _CustomInputFieldState extends State<CustomInputField> {
         child: Image.asset(
           widget.icon as String,
           color: color,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            Icons.error,
+            size: 18,
+            color: color,
+          ),
         ),
+      );
+    } else if (widget.icon is IconData) {
+      return Icon(
+        widget.icon as IconData,
+        size: 18,
+        color: color,
       );
     } else if (widget.icon is Icon) {
       final Icon originalIcon = widget.icon as Icon;
@@ -143,9 +157,11 @@ class _CustomInputFieldState extends State<CustomInputField> {
           Container(
             height: widget.maxLines != null && widget.maxLines! > 1
                 ? 50.0 * widget.maxLines!
-                : 50,
+                : 50.0,
             decoration: BoxDecoration(
-              color: backgroundColor2,
+              color: widget.readOnly
+                  ? backgroundColor2.withOpacity(0.7)
+                  : backgroundColor2,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: (_isFocused || _hasText)
@@ -155,14 +171,17 @@ class _CustomInputFieldState extends State<CustomInputField> {
               ),
             ),
             child: Row(
-              crossAxisAlignment: widget.maxLines != null && widget.maxLines! > 1
-                  ? CrossAxisAlignment.start
-                  : CrossAxisAlignment.center,
+              crossAxisAlignment:
+                  widget.maxLines != null && widget.maxLines! > 1
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.center,
               children: [
                 Padding(
                   padding: EdgeInsets.only(
                     left: 16,
-                    top: widget.maxLines != null && widget.maxLines! > 1 ? 16 : 0,
+                    top: widget.maxLines != null && widget.maxLines! > 1
+                        ? 16
+                        : 0,
                   ),
                   child: _buildIcon(),
                 ),
@@ -176,6 +195,8 @@ class _CustomInputFieldState extends State<CustomInputField> {
                     validator: widget.validator,
                     maxLines: widget.initialObscureText ? 1 : widget.maxLines,
                     keyboardType: widget.keyboardType,
+                    readOnly: widget.readOnly,
+                    onChanged: widget.onChanged,
                     decoration: InputDecoration(
                       hintText: widget.hintText,
                       hintStyle: subtitleTextStyle,
@@ -197,7 +218,12 @@ class _CustomInputFieldState extends State<CustomInputField> {
                   GestureDetector(
                     onTap: _toggleVisibility,
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 16),
+                      padding: EdgeInsets.only(
+                        right: 16,
+                        top: widget.maxLines != null && widget.maxLines! > 1
+                            ? 16
+                            : 0,
+                      ),
                       child: Icon(
                         _obscureText ? Icons.visibility_off : Icons.visibility,
                         color: (_isFocused || _hasText)

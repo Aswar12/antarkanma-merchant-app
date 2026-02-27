@@ -61,7 +61,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
         color: backgroundColor1,
         boxShadow: [
           BoxShadow(
-            color: logoColor.withOpacity(0.05),
+            color: logoColor.withValues(alpha: 0.05),
             offset: const Offset(0, 4),
             blurRadius: 16,
           ),
@@ -71,7 +71,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
         children: [
           Container(
             padding: EdgeInsets.symmetric(
-              vertical: Dimenssions.height16,
+              vertical: Dimenssions.height8,
               horizontal: Dimenssions.width16,
             ),
             child: Row(
@@ -79,14 +79,14 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                 Icon(
                   Icons.inventory_2_rounded,
                   color: logoColor,
-                  size: Dimenssions.iconSize24,
+                  size: Dimenssions.iconSize20,
                 ),
                 SizedBox(width: Dimenssions.width12),
                 Text(
                   'Manajemen Produk',
                   style: primaryTextStyle.copyWith(
                     color: logoColor,
-                    fontSize: Dimenssions.font20,
+                    fontSize: Dimenssions.font18,
                     fontWeight: bold,
                     letterSpacing: 0.5,
                   ),
@@ -95,7 +95,10 @@ class ProductManagementPage extends GetView<MerchantProductController> {
             ),
           ),
           Container(
-            padding: EdgeInsets.all(Dimenssions.height16),
+            padding: EdgeInsets.symmetric(
+              horizontal: Dimenssions.width16,
+              vertical: Dimenssions.height8,
+            ),
             child: Column(
               children: [
                 SearchInputField(
@@ -107,9 +110,47 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                     controller.searchProducts('');
                   },
                 ),
-                SizedBox(height: Dimenssions.height12),
-                _buildFilterRow(),
-                _buildVisibilityToggle(),
+                SizedBox(height: Dimenssions.height8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCompactDropdown(
+                        value: controller.selectedCategory.value,
+                        items: ['Semua', ...controller.categories],
+                        onChanged: (value) {
+                          if (value != null) {
+                            controller.filterByCategory(value);
+                          }
+                        },
+                      ),
+                    ),
+                    SizedBox(width: Dimenssions.width8),
+                    Expanded(
+                      child: _buildCompactDropdown(
+                        value: controller.sortBy.value,
+                        items: [
+                          'Baru',
+                          'A-Z',
+                          'Z-A',
+                          'price_asc',
+                          'price_desc'
+                        ],
+                        displayLabels: [
+                          'Terbaru',
+                          'A-Z',
+                          'Z-A',
+                          'Harga ↑',
+                          'Harga ↓'
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            controller.sortProducts(value);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -118,148 +159,54 @@ class ProductManagementPage extends GetView<MerchantProductController> {
     );
   }
 
-  Widget _buildFilterRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: Dimenssions.height45,
-            decoration: BoxDecoration(
-              color: backgroundColor1,
-              borderRadius: BorderRadius.circular(Dimenssions.radius12),
-              border: Border.all(
-                color: logoColor.withOpacity(0.1),
-              ),
-            ),
-            child: Obx(() => DropdownButtonFormField<String>(
-                  value: controller.selectedCategory.value,
-                  isDense: true,
-                  isExpanded: true,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: logoColor,
-                  ),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: Dimenssions.width16,
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  dropdownColor: backgroundColor1,
-                  items: ['Semua', ...controller.categories]
-                      .map((cat) => DropdownMenuItem(
-                            value: cat,
-                            child: Text(
-                              cat,
-                              style: primaryTextStyle.copyWith(
-                                fontSize: Dimenssions.font14,
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      controller.filterByCategory(value);
-                    }
-                  },
-                )),
-          ),
-        ),
-        SizedBox(width: Dimenssions.width12),
-        Expanded(
-          child: Container(
-            height: Dimenssions.height45,
-            decoration: BoxDecoration(
-              color: backgroundColor1,
-              borderRadius: BorderRadius.circular(Dimenssions.radius12),
-              border: Border.all(
-                color: logoColor.withOpacity(0.1),
-              ),
-            ),
-            child: Obx(() => DropdownButtonFormField<String>(
-                  value: controller.sortBy.value,
-                  isDense: true,
-                  isExpanded: true,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: logoColor,
-                  ),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: Dimenssions.width16,
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  dropdownColor: backgroundColor1,
-                  items: _buildSortItems(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      controller.sortProducts(value);
-                    }
-                  },
-                )),
-          ),
-        ),
-      ],
-    );
-  }
-
-  List<DropdownMenuItem<String>> _buildSortItems() {
-    return [
-      _buildSortItem('Baru', Icons.access_time_rounded, 'Terbaru'),
-      _buildSortItem('A-Z', Icons.sort_by_alpha_rounded, 'A-Z'),
-      _buildSortItem('Z-A', Icons.sort_by_alpha_rounded, 'Z-A'),
-      _buildSortItem('price_asc', Icons.arrow_upward_rounded, 'Harga ↑'),
-      _buildSortItem('price_desc', Icons.arrow_downward_rounded, 'Harga ↓'),
-    ];
-  }
-
-  DropdownMenuItem<String> _buildSortItem(
-      String value, IconData icon, String label) {
-    return DropdownMenuItem(
-      value: value,
-      child: Row(
-        children: [
-          Icon(icon, size: Dimenssions.iconSize16, color: logoColor),
-          SizedBox(width: Dimenssions.width8),
-          Text(
-            label,
-            style: primaryTextStyle.copyWith(
-              fontSize: Dimenssions.font14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVisibilityToggle() {
+  Widget _buildCompactDropdown({
+    required String value,
+    required List<String> items,
+    List<String>? displayLabels,
+    required ValueChanged<String?> onChanged,
+  }) {
     return Container(
-      margin: EdgeInsets.only(top: Dimenssions.height8),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        visualDensity: VisualDensity.compact,
-        title: Row(
-          children: [
-            Icon(
-              Icons.visibility_rounded,
-              size: Dimenssions.iconSize16,
-              color: logoColor,
-            ),
-            SizedBox(width: Dimenssions.width8),
-            Text(
-              'Tampilkan Produk Aktif',
+      height: Dimenssions.height35,
+      decoration: BoxDecoration(
+        color: backgroundColor1,
+        borderRadius: BorderRadius.circular(Dimenssions.radius8),
+        border: Border.all(
+          color: logoColor.withValues(alpha: 0.1),
+        ),
+      ),
+      child: DropdownButtonFormField<String>(
+        value: value,
+        isDense: true,
+        isExpanded: true,
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: logoColor,
+          size: Dimenssions.iconSize16,
+        ),
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: Dimenssions.width12,
+          ),
+          border: InputBorder.none,
+        ),
+        dropdownColor: backgroundColor1,
+        items: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final label = displayLabels != null && index < displayLabels.length
+              ? displayLabels[index]
+              : item;
+          return DropdownMenuItem(
+            value: item,
+            child: Text(
+              label,
               style: primaryTextStyle.copyWith(
-                fontSize: Dimenssions.font14,
+                fontSize: Dimenssions.font12,
               ),
             ),
-          ],
-        ),
-        trailing: Obx(() => Switch.adaptive(
-              value: controller.showActiveOnly.value,
-              onChanged: controller.toggleActiveOnly,
-              activeColor: logoColor,
-            )),
+          );
+        }).toList(),
+        onChanged: onChanged,
       ),
     );
   }
@@ -267,6 +214,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
   Widget _buildLoadingState() {
     return Center(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
@@ -435,7 +383,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                 Icon(
                   Icons.inventory_2_outlined,
                   size: Dimenssions.iconSize24 * 3,
-                  color: logoColor.withOpacity(0.2),
+                  color: logoColor.withValues(alpha: 0.2),
                 ),
                 SizedBox(height: Dimenssions.height16),
                 Text(
@@ -478,15 +426,18 @@ class ProductManagementPage extends GetView<MerchantProductController> {
   }
 
   Widget _buildFloatingActionButton() {
-    return FloatingActionButton(
-      onPressed: () => _navigateToProductForm(),
-      backgroundColor: logoColor,
-      foregroundColor: Colors.white,
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Dimenssions.radius16),
+    return Padding(
+      padding: EdgeInsets.only(bottom: Dimenssions.height65),
+      child: FloatingActionButton(
+        onPressed: () => _navigateToProductForm(),
+        backgroundColor: logoColor,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Dimenssions.radius16),
+        ),
+        child: const Icon(Icons.add_rounded),
       ),
-      child: const Icon(Icons.add_rounded),
     );
   }
 

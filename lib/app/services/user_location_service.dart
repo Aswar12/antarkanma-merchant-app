@@ -32,10 +32,31 @@ class UserLocationService extends GetxService {
   @override
   void onInit() {
     super.onInit();
+    // Always try to load local data first - this works without auth
     loadUserLocationsFromLocal();
-    // Only load from backend if cache is expired
-    if (_shouldSyncWithBackend()) {
+    
+    // Only attempt backend sync if user is logged in AND cache is expired
+    // This prevents crashes during app initialization before auto-login completes
+    final bool isLoggedIn =
+        _authService.isLoggedIn.value && _authService.currentUser.value != null;
+
+    print('UserLocationService onInit: isLoggedIn=$isLoggedIn');
+
+    if (isLoggedIn && _shouldSyncWithBackend()) {
+      print('Syncing locations from backend...');
       loadUserLocations();
+      
+      ever(_authService.isLoggedIn, (bool logged) async {
+        print('Login state changed: $logged');
+        await Future.delayed(const Duration(milliseconds: 500));
+        await loadUserLocations(forceRefresh: true);
+      });
+
+      ever(_authService.currentUser, (user) async {
+        print('Current user changed');
+        await Future.delayed(const Duration(milliseconds: 500));
+        await loadUserLocations(forceRefresh: true);
+      });
     }
   }
 
@@ -69,10 +90,19 @@ class UserLocationService extends GetxService {
 
   Future<void> loadUserLocations({bool forceRefresh = false}) async {
     try {
+      // Check if logged in first - don't proceed without auth
+      if (!_authService.isLoggedIn.value ||
+          _authService.currentUser.value == null) {
+        print('Not logged in yet, skipping location load');
+        return;
+      }
+
       isLoading.value = true;
+      
       final token = _authService.getToken();
       if (token == null) {
-        throw Exception('Token tidak valid');
+        print('No valid token found, skipping location load');
+        return;
       }
 
       // If not forcing refresh and we have local data, skip backend call

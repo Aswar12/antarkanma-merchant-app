@@ -19,6 +19,7 @@ class HeaderSection extends StatelessWidget {
         color: logoColor,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -26,6 +27,7 @@ class HeaderSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -38,16 +40,21 @@ class HeaderSection extends StatelessWidget {
                   SizedBox(height: Dimenssions.height4),
                   Obx(() {
                     final waitingCount = controller.orderSummary.value?.statusCounts['WAITING_APPROVAL'] ?? 0;
-                    return Text(
-                      '$waitingCount pesanan menunggu persetujuan',
-                      style: textwhite.copyWith(
-                        fontSize: Dimenssions.font14,
+                    return Flexible(
+                      child: Text(
+                        '$waitingCount pesanan menunggu persetujuan',
+                        style: textwhite.copyWith(
+                          fontSize: Dimenssions.font14,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     );
                   }),
                 ],
               ),
               Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(

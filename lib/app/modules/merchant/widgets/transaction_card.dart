@@ -3,10 +3,13 @@ import 'package:antarkanma_merchant/app/data/models/order_model.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/order_details_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'package:shimmer_animation/shimmer_animation.dart';
 import '../../../../theme.dart';
 import 'profile_photo.dart';
+
+// ─── Layout constants ─────────────────────────────────────────────────────────
+const _kCardRadius = 14.0;
+const _kPillRadius = 24.0;
+// ─────────────────────────────────────────────────────────────────────────────
 
 class TransactionCard extends StatelessWidget {
   final OrderModel order;
@@ -28,703 +31,378 @@ class TransactionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProductImage(String? imageUrl) {
-    if (imageUrl == null) {
-      return Container(
-        width: Dimenssions.height70,
-        height: Dimenssions.height70,
-        decoration: BoxDecoration(
-          color: backgroundColor3,
-          borderRadius: BorderRadius.circular(Dimenssions.radius12),
-        ),
-        child: Icon(
-          Icons.image_not_supported,
-          color: subtitleColor,
-          size: Dimenssions.height24,
-        ),
-      );
+  int _getTotalItems() {
+    int total = 0;
+    for (var item in order.items) {
+      total += item.quantity;
     }
-
-    return Image.network(
-      imageUrl,
-      width: Dimenssions.height70,
-      height: Dimenssions.height70,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => Container(
-        width: Dimenssions.height70,
-        height: Dimenssions.height70,
-        decoration: BoxDecoration(
-          color: backgroundColor3,
-          borderRadius: BorderRadius.circular(Dimenssions.radius12),
-        ),
-        child: Icon(
-          Icons.image_not_supported,
-          color: subtitleColor,
-          size: Dimenssions.height24,
-        ),
-      ),
-    );
+    return total;
   }
 
-  Color _getStatusColor() {
+  _StatusConfig _getStatusConfig() {
     switch (order.orderStatus) {
+      case OrderModel.STATUS_PENDING:
       case OrderModel.STATUS_WAITING_APPROVAL:
-        return Colors.orange.shade600;
+        return _StatusConfig(
+          label: 'Menunggu',
+          icon: Icons.pending_outlined,
+          color: statusWaiting,
+          bgColor: statusWaitingBg,
+        );
       case OrderModel.STATUS_PROCESSING:
-        return Colors.blue.shade600;
+        return _StatusConfig(
+          label: 'Diproses',
+          icon: Icons.autorenew_rounded,
+          color: statusProcessing,
+          bgColor: statusProcessingBg,
+        );
       case OrderModel.STATUS_READY_FOR_PICKUP:
-        return Colors.green.shade600;
+        return _StatusConfig(
+          label: 'Siap Diambil',
+          icon: Icons.check_circle_rounded,
+          color: statusReady,
+          bgColor: statusReadyBg,
+        );
       case OrderModel.STATUS_COMPLETED:
-        return Colors.teal.shade600;
+        return _StatusConfig(
+          label: 'Selesai',
+          icon: Icons.done_all_rounded,
+          color: statusCompleted,
+          bgColor: statusCompletedBg,
+        );
       case OrderModel.STATUS_CANCELED:
-        return Colors.red.shade600;
+        return _StatusConfig(
+          label: 'Dibatalkan',
+          icon: Icons.cancel_rounded,
+          color: statusCanceled,
+          bgColor: statusCanceledBg,
+        );
       default:
-        return Colors.grey.shade600;
-    }
-  }
-
-  IconData _getStatusIcon() {
-    switch (order.orderStatus) {
-      case OrderModel.STATUS_WAITING_APPROVAL:
-        return Icons.pending_outlined;
-      case OrderModel.STATUS_PROCESSING:
-        return Icons.sync;
-      case OrderModel.STATUS_READY_FOR_PICKUP:
-        return Icons.check_circle_outline;
-      case OrderModel.STATUS_COMPLETED:
-        return Icons.done_all;
-      case OrderModel.STATUS_CANCELED:
-        return Icons.cancel_outlined;
-      default:
-        return Icons.help_outline;
+        return _StatusConfig(
+          label: order.statusDisplay,
+          icon: Icons.help_outline_rounded,
+          color: subtitleColor,
+          bgColor: backgroundColor3,
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor();
-    final statusIcon = _getStatusIcon();
+    final statusConfig = _getStatusConfig();
+    final isActionRequired = order.isWaitingApproval || order.isProcessing;
 
-    return Hero(
-      tag: 'order_${order.id}',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showOrderDetails(context),
-          child: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
-          margin: EdgeInsets.symmetric(
-            horizontal: Dimenssions.height8,
-            vertical: Dimenssions.height6,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(Dimenssions.radius16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(Dimenssions.radius16),
-            child: Column(
-              children: [
-                // Header with order ID and status
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Dimenssions.height12,
-                    vertical: Dimenssions.height10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: backgroundColor1,
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey.withOpacity(0.1),
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(Dimenssions.height6),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
-                              borderRadius:
-                                  BorderRadius.circular(Dimenssions.radius8),
-                            ),
-                            child: Icon(
-                              statusIcon,
-                              color: statusColor,
-                              size: Dimenssions.height18,
-                            ),
-                          ),
-                          SizedBox(width: Dimenssions.width8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Order #${order.id}',
-                                style: primaryTextStyle.copyWith(
-                                  fontSize: Dimenssions.font14,
-                                  fontWeight: semiBold,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.access_time,
-                                    size: 12,
-                                    color: subtitleColor,
-                                  ),
-                                  SizedBox(width: Dimenssions.width4),
-                                  Text(
-                                    order.formattedDate,
-                                    style: subtitleTextStyle.copyWith(
-                                      fontSize: Dimenssions.font10,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Dimenssions.width10,
-                          vertical: Dimenssions.height4,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              statusColor.withOpacity(0.1),
-                              statusColor.withOpacity(0.05),
-                            ],
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(Dimenssions.radius20),
-                          border: Border.all(
-                            color: statusColor.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              statusIcon,
-                              size: 14,
-                              color: statusColor,
-                            ),
-                            SizedBox(width: Dimenssions.width4),
-                            Text(
-                              order.statusDisplay,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: Dimenssions.font12,
-                                fontWeight: medium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Order content
-                Container(
-                  padding: EdgeInsets.all(Dimenssions.height12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (order.items.isNotEmpty) ...[
-                        Row(
-                          children: [
-                            Stack(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(
-                                        Dimenssions.radius12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.08),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                        Dimenssions.radius12),
-                                    child: _buildProductImage(
-                                      order.items.first.product.firstImageUrl,
-                                    ),
-                                  ),
-                                ),
-                                if (order.items.length > 1)
-                                  Positioned(
-                                    right: 0,
-                                    bottom: 0,
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Dimenssions.width8,
-                                        vertical: Dimenssions.height4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            logoColorSecondary,
-                                            logoColorSecondary.withOpacity(0.8),
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(
-                                              Dimenssions.radius8),
-                                          bottomRight: Radius.circular(
-                                              Dimenssions.radius12),
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: logoColorSecondary
-                                                .withOpacity(0.3),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Text(
-                                        '+${order.items.length - 1}',
-                                        style: textwhite.copyWith(
-                                          fontSize: Dimenssions.font12,
-                                          fontWeight: semiBold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            SizedBox(width: Dimenssions.width12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    order.items.first.product.name,
-                                    style: primaryTextStyle.copyWith(
-                                      fontSize: Dimenssions.font14,
-                                      fontWeight: semiBold,
-                                    ),
-                                  ),
-                                  SizedBox(height: Dimenssions.height4),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: Dimenssions.width8,
-                                          vertical: Dimenssions.height2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              backgroundColor3.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(
-                                              Dimenssions.radius4),
-                                        ),
-                                        child: Text(
-                                          '${order.items.first.quantity}x @ ${order.items.first.formattedPrice}',
-                                          style: subtitleTextStyle.copyWith(
-                                            fontSize: Dimenssions.font12,
-                                          ),
-                                        ),
-                                      ),
-                                      if (order.items.first.customerNote !=
-                                              null &&
-                                          order.items.first.customerNote!
-                                              .isNotEmpty) ...[
-                                        SizedBox(height: Dimenssions.height4),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: Dimenssions.width8,
-                                            vertical: Dimenssions.height2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Colors.yellow.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(
-                                                Dimenssions.radius4),
-                                            border: Border.all(
-                                              color: Colors.yellow.shade700
-                                                  .withOpacity(0.3),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.note,
-                                                size: 12,
-                                                color: Colors.yellow.shade700,
-                                              ),
-                                              SizedBox(
-                                                  width: Dimenssions.width4),
-                                              Expanded(
-                                                child: Text(
-                                                  order.items.first
-                                                      .customerNote!,
-                                                  style: TextStyle(
-                                                    color:
-                                                        Colors.yellow.shade900,
-                                                    fontSize:
-                                                        Dimenssions.font12,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  SizedBox(height: Dimenssions.height8),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: Dimenssions.width10,
-                                      vertical: Dimenssions.height4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          logoColorSecondary.withOpacity(0.15),
-                                          logoColorSecondary.withOpacity(0.05),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                          Dimenssions.radius8),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.payment,
-                                          size: 16,
-                                          color: logoColorSecondary,
-                                        ),
-                                        SizedBox(width: Dimenssions.width6),
-                                        Text(
-                                          order.formattedTotal,
-                                          style: primaryTextOrange.copyWith(
-                                            fontSize: Dimenssions.font14,
-                                            fontWeight: semiBold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: Dimenssions.height12),
-                      ],
-                      // Customer and courier info
-                      Row(
-                        children: [
-                          // Customer info
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.all(Dimenssions.height8),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    backgroundColor3.withOpacity(0.1),
-                                    backgroundColor3.withOpacity(0.05),
-                                  ],
-                                ),
-                                borderRadius:
-                                    BorderRadius.circular(Dimenssions.radius12),
-                                border: Border.all(
-                                  color: backgroundColor3.withOpacity(0.2),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  ProfilePhoto(
-                                    photoUrl: order.customer.photo,
-                                    name: order.customerName,
-                                    size: Dimenssions.height40,
-                                  ),
-                                  SizedBox(width: Dimenssions.width8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          order.customerName,
-                                          style: primaryTextStyle.copyWith(
-                                            fontSize: Dimenssions.font14,
-                                            fontWeight: medium,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.phone,
-                                              size: 12,
-                                              color: subtitleColor,
-                                            ),
-                                            SizedBox(width: Dimenssions.width4),
-                                            Text(
-                                              order.customerPhone,
-                                              style: subtitleTextStyle.copyWith(
-                                                fontSize: Dimenssions.font10,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // Courier info if available
-                          if (order.courier != null) ...[
-                            SizedBox(width: Dimenssions.width8),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.all(Dimenssions.height8),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      logoColorSecondary.withOpacity(0.1),
-                                      logoColorSecondary.withOpacity(0.05),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                      Dimenssions.radius12),
-                                  border: Border.all(
-                                    color: logoColorSecondary.withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    ProfilePhoto(
-                                      photoUrl: order.courier!.photo,
-                                      name: order.courier!.name,
-                                      size: Dimenssions.height40,
-                                    ),
-                                    SizedBox(width: Dimenssions.width8),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            order.courier!.name,
-                                            style: primaryTextStyle.copyWith(
-                                              fontSize: Dimenssions.font14,
-                                              fontWeight: medium,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.motorcycle,
-                                                size: 12,
-                                                color: logoColorSecondary,
-                                              ),
-                                              SizedBox(
-                                                  width: Dimenssions.width4),
-                                              Text(
-                                                order.courier!.plate ?? '-',
-                                                style: TextStyle(
-                                                  color: logoColorSecondary,
-                                                  fontSize: Dimenssions.font10,
-                                                  fontWeight: medium,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Action buttons
-                if (order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL) ...[
-                  Container(
-                    padding: EdgeInsets.all(Dimenssions.height12),
-                    decoration: BoxDecoration(
-                      color: backgroundColor1,
-                      border: Border(
-                        top: BorderSide(
-                          color: Colors.grey.withOpacity(0.1),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () =>
-                                controller.showRejectDialog(order.id),
-                            icon: Icon(Icons.close, size: 18),
-                            label: Text('Tolak'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red.shade600,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: EdgeInsets.symmetric(
-                                vertical: Dimenssions.height12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(Dimenssions.radius8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: Dimenssions.width8),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () =>
-                                controller.approveTransaction(order.id),
-                            icon: Icon(Icons.check, size: 18),
-                            label: Text('Terima'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: logoColorSecondary,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: EdgeInsets.symmetric(
-                                vertical: Dimenssions.height12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(Dimenssions.radius8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ] else if (order.orderStatus == OrderModel.STATUS_PROCESSING) ...[
-                  Container(
-                    padding: EdgeInsets.all(Dimenssions.height12),
-                    decoration: BoxDecoration(
-                      color: backgroundColor1,
-                      border: Border(
-                        top: BorderSide(
-                          color: Colors.grey.withOpacity(0.1),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Obx(() {
-                      final isLoading =
-                          controller.loadingOrders[order.id.toString()] ??
-                              false;
-                      return SizedBox(
-                        width: double.infinity,
-                        height: 46,
-                        child: ElevatedButton(
-                          onPressed: isLoading
-                              ? null
-                              : () => controller.markOrderReady(order.id),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: logoColorSecondary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: Dimenssions.width16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(Dimenssions.radius8),
-                            ),
-                          ),
-                          child: isLoading
-                              ? Shimmer(
-                                  duration: Duration(milliseconds: 1500),
-                                  interval: Duration(milliseconds: 100),
-                                  color: Colors.white,
-                                  colorOpacity: 0.3,
-                                  enabled: true,
-                                  direction: ShimmerDirection.fromLTRB(),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 18,
-                                        height: 18,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        'Memproses...',
-                                        style: textwhite.copyWith(
-                                          fontSize: Dimenssions.font14,
-                                          fontWeight: medium,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.check_circle_outline, size: 18),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Siap Diambil',
-                                      style: textwhite.copyWith(
-                                        fontSize: Dimenssions.font14,
-                                        fontWeight: medium,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      );
-                    }),
+    return GestureDetector(
+      onTap: () => _showOrderDetails(context),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: backgroundColor1,
+          borderRadius: BorderRadius.circular(_kCardRadius),
+          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(Dimenssions.height12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header: Status Badge & Time
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _StatusBadge(config: statusConfig),
+                  Text(
+                    order.formattedDate,
+                    style: subtitleTextStyle.copyWith(fontSize: 11),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+
+              // Customer & Order Info
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfilePhoto(
+                    photoUrl: order.customer.photo,
+                    name: order.customerName,
+                    size: 40,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          order.customerName,
+                          style: primaryTextStyle.copyWith(
+                            fontSize: 14,
+                            fontWeight: semiBold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '#${order.id} • ${_getTotalItems()} item',
+                          style: subtitleTextStyle.copyWith(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        order.formattedTotal,
+                        style: primaryTextOrange.copyWith(
+                          fontSize: 14,
+                          fontWeight: bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      _PaymentChip(method: order.paymentMethod),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Action Buttons or Status Chips
+              if (isActionRequired ||
+                  order.orderStatus == OrderModel.STATUS_READY_FOR_PICKUP) ...[
+                const SizedBox(height: 12),
+                const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                const SizedBox(height: 12),
+                if (isActionRequired) _buildActionArea(),
+                if (order.orderStatus == OrderModel.STATUS_READY_FOR_PICKUP)
+                  _buildReadyChip(),
               ],
-            ),
+            ],
           ),
         ),
       ),
-    ));
+    );
   }
+
+  // ── "Siap Diambil" chip ───────────────────────────────────────────────────
+  Widget _buildReadyChip() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: Dimenssions.width10, vertical: Dimenssions.height6),
+      decoration: BoxDecoration(
+        color: statusReadyBg,
+        borderRadius: BorderRadius.circular(Dimenssions.radius20),
+        border: Border.all(color: statusReady.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_rounded,
+              size: Dimenssions.font12, color: statusReady),
+          SizedBox(width: Dimenssions.width5),
+          Text(
+            order.courier != null
+                ? '✓ Siap — Kurir ${order.courier?.name ?? "otw"}'
+                : '✓ Siap — Menunggu Kurir',
+            style: primaryTextStyle.copyWith(
+              fontSize: Dimenssions.font11,
+              fontWeight: semiBold,
+              color: statusReady,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Action buttons ────────────────────────────────────────────────────────
+  Widget _buildActionArea() {
+    if (order.isWaitingApproval) return _buildWaitingButtons();
+    if (order.isProcessing) return _buildReadyButton();
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildWaitingButtons() {
+    return Row(
+      children: [
+        // Tolak
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => controller.showRejectDialog(order.id),
+            icon: Icon(Icons.close_rounded, size: Dimenssions.font16),
+            label: const Text('Tolak'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: statusCanceled,
+              side: BorderSide(color: statusCanceled.withValues(alpha: 0.5)),
+              padding: EdgeInsets.symmetric(vertical: Dimenssions.height10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_kPillRadius),
+              ),
+              textStyle:
+                  TextStyle(fontSize: Dimenssions.font12, fontWeight: semiBold),
+            ),
+          ),
+        ),
+        SizedBox(width: Dimenssions.width8),
+
+        // Terima
+        Expanded(
+          flex: 2,
+          child: ElevatedButton.icon(
+            onPressed: () => controller.approveTransaction(order.id),
+            icon: Icon(Icons.check_rounded, size: Dimenssions.font16),
+            label: const Text('Terima Pesanan'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: statusReady,
+              foregroundColor: backgroundColor1,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(vertical: Dimenssions.height10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_kPillRadius),
+              ),
+              textStyle:
+                  TextStyle(fontSize: Dimenssions.font12, fontWeight: semiBold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReadyButton() {
+    return Obx(() {
+      final isLoading = controller.loadingOrders[order.id.toString()] ?? false;
+      return SizedBox(
+        width: double.infinity,
+        height: Dimenssions.height48,
+        child: ElevatedButton.icon(
+          onPressed:
+              isLoading ? null : () => controller.markOrderReady(order.id),
+          icon: isLoading
+              ? SizedBox(
+                  width: Dimenssions.font16,
+                  height: Dimenssions.font16,
+                  child: const CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
+                )
+              : Icon(Icons.local_shipping_rounded, size: Dimenssions.font18),
+          label: Text(
+            isLoading ? 'Memproses...' : 'Tandai Siap Diambil',
+            style: textwhite.copyWith(
+                fontSize: Dimenssions.font12, fontWeight: bold),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: logoColorSecondary,
+            foregroundColor: backgroundColor1,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_kPillRadius),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+// ─── Sub-Widgets ──────────────────────────────────────────────────────────────
+
+class _StatusBadge extends StatelessWidget {
+  final _StatusConfig config;
+  const _StatusBadge({required this.config});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: Dimenssions.width8, vertical: Dimenssions.height4),
+      decoration: BoxDecoration(
+        color: config.bgColor,
+        borderRadius: BorderRadius.circular(Dimenssions.radius20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(config.icon, size: Dimenssions.font11, color: config.color),
+          SizedBox(width: Dimenssions.width4),
+          Text(
+            config.label,
+            style: primaryTextStyle.copyWith(
+              fontSize: Dimenssions.font11,
+              fontWeight: semiBold,
+              color: config.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentChip extends StatelessWidget {
+  final String method;
+  const _PaymentChip({required this.method});
+
+  @override
+  Widget build(BuildContext context) {
+    String emoji;
+    switch (method.toLowerCase()) {
+      case 'cash':
+      case 'cod':
+        emoji = '💵';
+        break;
+      case 'qris':
+        emoji = '📱';
+        break;
+      case 'transfer':
+        emoji = '🏦';
+        break;
+      default:
+        emoji = '💳';
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: Dimenssions.width8, vertical: Dimenssions.height4),
+      decoration: BoxDecoration(
+        color: backgroundColor3.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(Dimenssions.radius20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: TextStyle(fontSize: Dimenssions.font12)),
+          SizedBox(width: Dimenssions.width4),
+          Text(
+            method.toUpperCase(),
+            style: primaryTextStyle.copyWith(
+              fontSize: Dimenssions.font10,
+              fontWeight: semiBold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Config model ─────────────────────────────────────────────────────────────
+class _StatusConfig {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+
+  _StatusConfig({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+  });
 }

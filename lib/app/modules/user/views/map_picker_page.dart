@@ -6,6 +6,7 @@ import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MapPickerView extends StatefulWidget {
   const MapPickerView({super.key});
@@ -107,9 +108,33 @@ class _MapPickerViewState extends State<MapPickerView> {
             interactiveFlags: InteractiveFlag.all,
           ),
           children: [
+            // CartoDB Positron tiles - Free for commercial use
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.example.app',
+              urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+              subdomains: ['a', 'b', 'c'],
+              maxZoom: 20,
+              minZoom: 1,
+              userAgentPackageName: 'com.antarkanma.merchant',
+            ),
+            RichAttributionWidget(
+              alignment: AttributionAlignment.bottomRight,
+              popupBorderRadius: BorderRadius.circular(8),
+              attributions: [
+                TextSourceAttribution(
+                  'OpenStreetMap contributors',
+                  onTap: () => launchUrl(
+                    Uri.parse('https://osm.org/copyright'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                ),
+                TextSourceAttribution(
+                  'CARTO',
+                  onTap: () => launchUrl(
+                    Uri.parse('https://carto.com/'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                ),
+              ],
             ),
             MarkerLayer(
               markers: [

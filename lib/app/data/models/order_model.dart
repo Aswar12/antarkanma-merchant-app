@@ -1,13 +1,14 @@
-import 'package:antarkanma_merchant/app/data/models/product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class OrderModel {
+  static const String STATUS_PENDING = 'PENDING';
   static const String STATUS_WAITING_APPROVAL = 'WAITING_APPROVAL';
   static const String STATUS_PROCESSING = 'PROCESSING';
   static const String STATUS_READY_FOR_PICKUP = 'READY_FOR_PICKUP';
   static const String STATUS_COMPLETED = 'COMPLETED';
   static const String STATUS_CANCELED = 'CANCELED';
+  static const String STATUS_PICKED_UP = 'PICKED_UP';
 
   final int id;
   final int transactionId;
@@ -46,6 +47,22 @@ class OrderModel {
     required this.paymentMethod,
   }) : items = orderItems;
 
+  // Helper method to check if order needs approval
+  bool get isWaitingApproval => 
+      orderStatus == STATUS_PENDING || orderStatus == STATUS_WAITING_APPROVAL;
+
+  // Helper method to check if order is being processed
+  bool get isProcessing => orderStatus == STATUS_PROCESSING;
+
+  // Helper method to check if order is ready for pickup
+  bool get isReadyForPickup => orderStatus == STATUS_READY_FOR_PICKUP;
+
+  // Helper method to check if order is completed
+  bool get isCompleted => orderStatus == STATUS_COMPLETED;
+
+  // Helper method to check if order is canceled
+  bool get isCanceled => orderStatus == STATUS_CANCELED;
+
   String get formattedTotalAmount => _formatCurrency(totalAmount);
   String get formattedTotal => _formatCurrency(totalAmount);
   String get formattedSubtotal => _formatCurrency(subtotal);
@@ -73,7 +90,8 @@ class OrderModel {
     }
   }
 
-  String get formattedDate => DateFormat('dd MMM yyyy, HH:mm').format(createdAt);
+  String get formattedDate =>
+      DateFormat('dd MMM yyyy, HH:mm').format(createdAt);
   String get customerName => customer.name ?? 'Unknown Customer';
   String get customerPhone => customer.phone ?? '-';
 
@@ -93,18 +111,19 @@ class OrderModel {
           .toList();
 
       final customerData = json['customer'] as Map<String, dynamic>;
-      final deliveryAddressData = customerData['delivery_address'] as Map<String, dynamic>?;
+      final deliveryAddressData =
+          customerData['delivery_address'] as Map<String, dynamic>?;
       final transactionData = json['transaction'] as Map<String, dynamic>;
-      
+
       // Parse amounts with proper null checks
       final totalAmount = double.parse(json['total_amount'].toString());
-      final subtotal = json['subtotal'] != null 
+      final subtotal = json['subtotal'] != null
           ? double.parse(json['subtotal'].toString())
           : totalAmount;
-      final shippingCost = transactionData['shipping_price'] != null 
+      final shippingCost = transactionData['shipping_price'] != null
           ? double.parse(transactionData['shipping_price'].toString())
           : 0.0;
-      final discount = json['discount'] != null 
+      final discount = json['discount'] != null
           ? double.parse(json['discount'].toString())
           : null;
 
@@ -122,11 +141,11 @@ class OrderModel {
           name: customerData['name'] as String?,
           phone: customerData['phone'] as String?,
           photo: customerData['photo'] as String?,
-          deliveryAddress: deliveryAddressData != null 
+          deliveryAddress: deliveryAddressData != null
               ? DeliveryAddress.fromJson(deliveryAddressData)
               : null,
         ),
-        courier: json['courier'] != null 
+        courier: json['courier'] != null
             ? CourierInfo.fromJson(json['courier'] as Map<String, dynamic>)
             : null,
         notes: json['notes'] as String?,
@@ -182,9 +201,10 @@ class OrderItem {
       price: double.parse(json['price'].toString()),
       customerNote: json['customer_note'] as String?,
       product: ProductInfo.fromJson(json['product'] as Map<String, dynamic>),
-      variant: json['variant'] != null && json['variant'] is Map<String, dynamic>
-          ? ProductVariant.fromJson(json['variant'] as Map<String, dynamic>)
-          : null,
+      variant:
+          json['variant'] != null && json['variant'] is Map<String, dynamic>
+              ? ProductVariant.fromJson(json['variant'] as Map<String, dynamic>)
+              : null,
     );
   }
 }
@@ -204,7 +224,8 @@ class ProductInfo {
     required this.galleries,
   });
 
-  String? get firstImageUrl => galleries.isNotEmpty ? galleries.first.url : null;
+  String? get firstImageUrl =>
+      galleries.isNotEmpty ? galleries.first.url : null;
 
   factory ProductInfo.fromJson(Map<String, dynamic> json) {
     return ProductInfo(
@@ -213,7 +234,8 @@ class ProductInfo {
       price: double.parse(json['price'].toString()),
       status: json['status'] as String,
       galleries: (json['galleries'] as List)
-          .map((gallery) => GalleryInfo.fromJson(gallery as Map<String, dynamic>))
+          .map((gallery) =>
+              GalleryInfo.fromJson(gallery as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -234,7 +256,8 @@ class ProductVariant {
     return ProductVariant(
       id: json['id'] as int?,
       name: json['name'] as String?,
-      price: json['price'] != null ? double.parse(json['price'].toString()) : null,
+      price:
+          json['price'] != null ? double.parse(json['price'].toString()) : null,
     );
   }
 }
@@ -277,7 +300,7 @@ class TransactionInfo {
       status: json['status'] as String,
       paymentMethod: json['payment_method'] as String,
       paymentStatus: json['payment_status'] as String,
-      shippingPrice: json['shipping_price'] != null 
+      shippingPrice: json['shipping_price'] != null
           ? double.parse(json['shipping_price'].toString())
           : 0.0,
     );
@@ -306,7 +329,8 @@ class CustomerInfo {
         phone: json['phone'] as String?,
         photo: json['photo'] as String?,
         deliveryAddress: json['delivery_address'] != null
-            ? DeliveryAddress.fromJson(json['delivery_address'] as Map<String, dynamic>)
+            ? DeliveryAddress.fromJson(
+                json['delivery_address'] as Map<String, dynamic>)
             : null,
       );
     } catch (e, stackTrace) {
@@ -377,14 +401,14 @@ class DeliveryAddress {
 }
 
 class CourierInfo {
-  final String name;
+  final String? name;
   final String? phone;
   final String? vehicle;
   final String? plate;
   final String? photo;
 
   CourierInfo({
-    required this.name,
+    this.name,
     this.phone,
     this.vehicle,
     this.plate,
@@ -392,8 +416,9 @@ class CourierInfo {
   });
 
   factory CourierInfo.fromJson(Map<String, dynamic> json) {
+    // Handle null values gracefully
     return CourierInfo(
-      name: json['name'] as String,
+      name: json['name'] as String?,
       phone: json['phone'] as String?,
       vehicle: json['vehicle'] as String?,
       plate: json['plate'] as String?,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'app/routes/app_pages.dart';
 import 'app/bindings/app_binding.dart';
 import 'firebase_options.dart';
@@ -17,10 +18,13 @@ Future<void> initServices() async {
     await GetStorage.init();
     final storage = GetStorage();
     final storageService = StorageService.instance;
-    
+
     // Register core services
     Get.put(storage, permanent: true);
     Get.put(storageService, permanent: true);
+
+    // Initialize Locale for formatting
+    await initializeDateFormatting('id_ID', null);
 
     // Initialize and register DimensionsService
     final dimensionsService = DimensionsService();

@@ -119,37 +119,85 @@ class MerchantService {
 
   Future<MerchantModel?> getMerchant() async {
     try {
+      // First check if we have valid user data
+      final userData = _storageService.getUser();
+      print('=== getMerchant() called ===');
+      print('User data from storage: $userData');
+
+      if (userData == null) {
+        print(
+            "User data is null. User not logged in, skipping merchant fetch.");
+        return null;
+      }
+
+      // Get owner ID from user data - check multiple possible keys
+      int? ownerId;
+      final userId = userData['id'];
+      final ownerIdFromUser = userData['owner_id'] ?? userData['ownerId'];
+
+      if (userId != null) {
+        ownerId = int.tryParse(userId.toString());
+        print('Using user ID as owner ID: $ownerId');
+      } else if (ownerIdFromUser != null) {
+        ownerId = int.tryParse(ownerIdFromUser.toString());
+        print('Using owner_id: $ownerId');
+      }
+      
       if (ownerId == null) {
-        throw Exception(
-            "Owner ID is null. User must be logged in to fetch merchant.");
+        print("Owner ID is null. Cannot fetch merchant data.");
+        print("Available user data keys: ${userData.keys.toList()}");
+        return null;
       }
 
+      print('Fetching merchant data for owner ID: $ownerId');
+      
       final response =
-          await _merchantProvider.getMerchantsByOwnerId(token, ownerId!);
+          await _merchantProvider.getMerchantsByOwnerId(token, ownerId);
 
-      if (response.data != null) {
-        // Handle both array and single object responses
-        var merchantData;
-        if (response.data['data'] is List) {
-          if (response.data['data'].isEmpty) return null;
-          merchantData = response.data['data'][0];
-        } else if (response.data['data'] is Map) {
-          merchantData = response.data['data'];
-        } else {
-          print('Unexpected merchant data format: ${response.data}');
-          return null;
-        }
+      print('Merchant API response status: ${response.statusCode}');
+      print('Merchant API response data: ${response.data}');
 
-        try {
-          _currentMerchant = MerchantModel.fromJson(merchantData);
-          return _currentMerchant;
-        } catch (e) {
-          print('Error parsing merchant data: $e');
-          print('Merchant data: $merchantData');
-          return null;
-        }
+      if (response.statusCode != 200) {
+        print('Failed to fetch merchant: HTTP ${response.statusCode}');
+        return null;
       }
-      return null;
+
+      if (response.data == null) {
+        print('Response data is null');
+        return null;
+      }
+
+      // Handle both array and single object responses
+      var merchantData;
+      final responseData = response.data['data'];
+
+      if (responseData == null) {
+        print('No merchant data in response');
+        return null;
+      }
+
+      if (responseData is List) {
+        if (responseData.isEmpty) {
+          print('Empty merchant list returned');
+          return null;
+        }
+        merchantData = responseData[0];
+      } else if (responseData is Map) {
+        merchantData = responseData;
+      } else {
+        print('Unexpected merchant data format: ${response.data}');
+        return null;
+      }
+
+      try {
+        _currentMerchant = MerchantModel.fromJson(merchantData);
+        print('Merchant loaded successfully: ${_currentMerchant?.name}');
+        return _currentMerchant;
+      } catch (e) {
+        print('Error parsing merchant data: $e');
+        print('Merchant data: $merchantData');
+        return null;
+      }
     } catch (e) {
       print('Error fetching merchant: $e');
       return null;
@@ -163,10 +211,14 @@ class MerchantService {
     String? category,
   }) async {
     try {
+      // Try to get merchant if not cached
       if (_currentMerchant?.id == null) {
+        print('No cached merchant, attempting to fetch...');
         final merchant = await getMerchant();
         if (merchant == null) {
-          throw Exception('Failed to get merchant information');
+          print('Could not fetch merchant - returning empty response');
+          // Return empty response instead of throwing exception
+          return PaginatedResponse(data: [], hasMore: false);
         }
       }
 
@@ -589,6 +641,66 @@ class MerchantService {
 
     allPages.remove(oldestPage);
     _pageLastAccess.remove(int.parse(oldestPage));
+  }
+
+  Future<bool> updateStatus(String status) async {
+    try {
+      if (_currentMerchant?.id == null) {
+        final merchant = await getMerchant();
+        if (merchant == null) throw Exception('Merchant ID not found');
+      }
+
+      final response = await _dio.put(
+        '/api/merchant/${_currentMerchant!.id}/status',
+        data: {'status': status},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating status: $e');
+      return false;
+    }
+  }
+
+  Future<bool> extendOperatingHours() async {
+    try {
+      if (_currentMerchant?.id == null) {
+        final merchant = await getMerchant();
+        if (merchant == null) throw Exception('Merchant ID not found');
+      }
+
+      final response = await _dio.put(
+        '/api/merchant/${_currentMerchant!.id}/extend',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error extending hours: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateProductAvailability(
+      List<Map<String, dynamic>> products) async {
+    try {
+      if (_currentMerchant?.id == null) {
+        final merchant = await getMerchant();
+        if (merchant == null) throw Exception('Merchant ID not found');
+      }
+
+      final response = await _dio.put(
+        '/api/merchant/${_currentMerchant!.id}/products/availability',
+        data: {'products': products},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating product availability: $e');
+      return false;
+    }
   }
 
   Future<void> clearCache() async {

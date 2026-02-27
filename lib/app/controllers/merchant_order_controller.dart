@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -44,18 +45,20 @@ class MerchantOrderController extends BaseOrderController {
     if (selectedStatus.value == 'ALL') {
       return orders;
     }
-    return orders.where((order) => order.orderStatus == selectedStatus.value).toList();
+    return orders
+        .where((order) => order.orderStatus == selectedStatus.value)
+        .toList();
   }
 
   // Order counts by status
   int getOrderCount(String status) {
     if (status == 'ALL') {
-      // Sum of all other statuses
-      return (stats.value?.statusCounts[OrderModel.STATUS_WAITING_APPROVAL] ?? 0) +
-             (stats.value?.statusCounts[OrderModel.STATUS_PROCESSING] ?? 0) +
-             (stats.value?.statusCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0) +
-             (stats.value?.statusCounts[OrderModel.STATUS_COMPLETED] ?? 0) +
-             (stats.value?.statusCounts[OrderModel.STATUS_CANCELED] ?? 0);
+      // ALL = hanya status aktif (WAITING + PROCESSING + READY)
+      // Match dengan backend query yang exclude COMPLETED/CANCELED
+      return (stats.value?.statusCounts[OrderModel.STATUS_WAITING_APPROVAL] ??
+              0) +
+          (stats.value?.statusCounts[OrderModel.STATUS_PROCESSING] ?? 0) +
+          (stats.value?.statusCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0);
     }
     return stats.value?.statusCounts[_getApiStatus(status) ?? ''] ?? 0;
   }
@@ -66,11 +69,16 @@ class MerchantOrderController extends BaseOrderController {
     }
     stats.value = response.stats;
     orderCounts.value = {
-      OrderModel.STATUS_WAITING_APPROVAL: response.stats.statusCounts[OrderModel.STATUS_WAITING_APPROVAL] ?? 0,
-      OrderModel.STATUS_PROCESSING: response.stats.statusCounts[OrderModel.STATUS_PROCESSING] ?? 0,
-      OrderModel.STATUS_READY_FOR_PICKUP: response.stats.statusCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0,
-      OrderModel.STATUS_COMPLETED: response.stats.statusCounts[OrderModel.STATUS_COMPLETED] ?? 0,
-      OrderModel.STATUS_CANCELED: response.stats.statusCounts[OrderModel.STATUS_CANCELED] ?? 0,
+      OrderModel.STATUS_WAITING_APPROVAL:
+          response.stats.statusCounts[OrderModel.STATUS_WAITING_APPROVAL] ?? 0,
+      OrderModel.STATUS_PROCESSING:
+          response.stats.statusCounts[OrderModel.STATUS_PROCESSING] ?? 0,
+      OrderModel.STATUS_READY_FOR_PICKUP:
+          response.stats.statusCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0,
+      OrderModel.STATUS_COMPLETED:
+          response.stats.statusCounts[OrderModel.STATUS_COMPLETED] ?? 0,
+      OrderModel.STATUS_CANCELED:
+          response.stats.statusCounts[OrderModel.STATUS_CANCELED] ?? 0,
     };
     if (kDebugMode) {
       print('Updated order counts: $orderCounts');
@@ -88,11 +96,13 @@ class MerchantOrderController extends BaseOrderController {
 
   void _setupFirebaseMessaging() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.data['type'] == 'order_ready') {
-        // Refresh orders when receiving order_ready notification
+      final type = message.data['type'];
+
+      if (type == 'new_order') {
+        // Efficient: Fetch only the new order instead of pulling all orders
+        _handleNewOrderNotification(message);
+      } else if (type == 'order_ready') {
         refreshOrders();
-        
-        // Show notification to user
         Get.snackbar(
           message.notification?.title ?? 'Pesanan Siap',
           message.notification?.body ?? 'Pesanan telah siap untuk diambil',
@@ -101,8 +111,114 @@ class MerchantOrderController extends BaseOrderController {
           colorText: Colors.white,
           duration: const Duration(seconds: 5),
         );
+      } else if (type == 'courier_heading_to_merchant') {
+        // Kurir sudah terima order dan sedang menuju toko
+        refreshOrders();
+        Get.snackbar(
+          '🛵 Kurir Sedang Menuju',
+          message.notification?.body ??
+              'Kurir sedang dalam perjalanan ke toko Anda. Segera siapkan pesanan!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 6),
+        );
+      } else if (type == 'courier_arrived_at_merchant') {
+        // Kurir sudah tiba di merchant
+        refreshOrders();
+        Get.snackbar(
+          '📦 Kurir Sudah Tiba!',
+          message.notification?.body ??
+              'Kurir sudah tiba di toko Anda. Serahkan pesanan ke kurir.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.blue,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 6),
+          margin: const EdgeInsets.all(8),
+        );
+      } else if (type == 'order_picked_up') {
+        // Kurir sudah ambil pesanan
+        refreshOrders();
+        Get.snackbar(
+          '✅ Pesanan Diambil',
+          message.notification?.body ?? 'Pesanan telah diambil oleh kurir.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
+      } else if (type == 'order_completed') {
+        // Order selesai diantarkan
+        refreshOrders();
+        Get.snackbar(
+          '🎉 Pesanan Selesai',
+          message.notification?.body ?? 'Pesanan berhasil sampai ke customer.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green.shade700,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
       }
     });
+  }
+
+  /// Handle new order notification efficiently - fetch only the new order
+  Future<void> _handleNewOrderNotification(RemoteMessage message) async {
+    try {
+      final orderId = message.data['order_id'];
+      if (orderId == null) {
+        print('No order_id in notification data');
+        return;
+      }
+
+      // Convert to int for proper comparison (avoid string vs int mismatch)
+      final orderIdInt = int.tryParse(orderId.toString());
+      if (orderIdInt == null) {
+        print('Invalid order_id format: $orderId');
+        return;
+      }
+
+      print('Received new order notification for order: $orderIdInt');
+
+      // Check if order already exists in local list (compare as integers)
+      final existingOrderIndex = orders.indexWhere((o) => o.id == orderIdInt);
+
+      if (existingOrderIndex != -1) {
+        // Order already exists, no need to fetch
+        print(
+            'Order $orderIdInt already exists in local list at index $existingOrderIndex');
+      } else {
+        // Fetch only the new order from server
+        print('Fetching new order $orderIdInt from server...');
+        final newOrder = await _transactionService.getOrderById(orderIdInt);
+
+        if (newOrder != null) {
+          // Add to beginning of list (newest first)
+          orders.insert(0, newOrder);
+
+          // Update status counts
+          final currentCount = orderCounts[newOrder.orderStatus] ?? 0;
+          orderCounts[newOrder.orderStatus] = currentCount + 1;
+
+          print('New order added to list: ${newOrder.id}');
+        } else {
+          print('Failed to fetch new order $orderIdInt');
+        }
+      }
+
+      // Show notification to user
+      Get.snackbar(
+        message.notification?.title ?? 'Pesanan Baru',
+        message.notification?.body ??
+            'Anda memiliki pesanan baru yang perlu dikonfirmasi',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+      );
+    } catch (e) {
+      print('Error handling new order notification: $e');
+    }
   }
 
   void _startPeriodicRefresh() {
@@ -142,8 +258,8 @@ class MerchantOrderController extends BaseOrderController {
       _updateOrderCounts(response);
 
       if (autoApprove.value) {
-        final newOrders = response.orders
-            .where((order) => order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL);
+        final newOrders = response.orders.where(
+            (order) => order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL);
         for (final order in newOrders) {
           approveTransaction(order.id);
         }
@@ -186,8 +302,8 @@ class MerchantOrderController extends BaseOrderController {
       _updateOrderCounts(response);
 
       if (autoApprove.value) {
-        final newOrders = response.orders
-            .where((order) => order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL);
+        final newOrders = response.orders.where(
+            (order) => order.orderStatus == OrderModel.STATUS_WAITING_APPROVAL);
         for (final order in newOrders) {
           approveTransaction(order.id);
         }
@@ -229,20 +345,21 @@ class MerchantOrderController extends BaseOrderController {
   void filterOrders(String status) {
     if (selectedStatus.value != status) {
       if (kDebugMode) {
-        print('Switching to status: $status');
-        print('API status will be: ${_getApiStatus(status)}');
+        print('🔵 Filter changed: $status');
+        print('   API status will be: ${_getApiStatus(status)}');
       }
+
       selectedStatus.value = status;
       orders.clear();
       currentPage.value = 1;
       loadOrders(refresh: true).then((_) {
         if (kDebugMode) {
-          print('After loading orders:');
-          print('Selected status: ${selectedStatus.value}');
-          print('Orders count: ${orders.length}');
-          print('Orders statuses: ${orders.map((o) => '${o.id}: ${o.orderStatus}').toList()}');
-          print('Filtered orders count: ${filteredOrders.length}');
-          print('Filtered orders: ${filteredOrders.map((o) => '${o.id}: ${o.orderStatus}').toList()}');
+          print('✅ After loading orders:');
+          print('   Selected status: ${selectedStatus.value}');
+          print('   Orders count: ${orders.length}');
+          print(
+              '   Orders: ${orders.map((o) => '${o.id} (${o.orderStatus})').toList()}');
+          print('   Filtered orders count: ${filteredOrders.length}');
         }
       });
     }
@@ -265,19 +382,40 @@ class MerchantOrderController extends BaseOrderController {
   Future<void> approveTransaction(dynamic orderId) async {
     try {
       loadingOrders[orderId.toString()] = true;
+
       await _transactionService.approveOrder(orderId);
-      await loadOrders(refresh: true);
+
+      // Remove from current list (karena status sudah berubah dari WAITING_APPROVAL ke PROCESSING)
+      orders.removeWhere((o) => o.id == orderId);
+
+      // Update counts - kurangi WAITING_APPROVAL, tambah PROCESSING
+      final waitingCount = orderCounts[OrderModel.STATUS_WAITING_APPROVAL] ?? 0;
+      orderCounts[OrderModel.STATUS_WAITING_APPROVAL] =
+          math.max(0, waitingCount - 1);
+
+      final processingCount = orderCounts[OrderModel.STATUS_PROCESSING] ?? 0;
+      orderCounts[OrderModel.STATUS_PROCESSING] = processingCount + 1;
+
+      // Refresh stats
+      await fetchOrderSummary();
+
+      // Refresh UI - notify listeners
+      update();
+
+      // Show success notification
       Get.snackbar(
-        'Success',
-        'Order #$orderId has been approved',
+        '✅ Order Disetujui',
+        'Order #$orderId sekarang ada di tab "Diproses"',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
         colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } catch (e) {
+      _logger.e('Error approving order: $e');
       Get.snackbar(
-        'Error',
-        'Failed to approve order #$orderId',
+        '❌ Error',
+        'Gagal menyetujui order #$orderId',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -302,19 +440,38 @@ class MerchantOrderController extends BaseOrderController {
   Future<void> rejectTransaction(dynamic orderId, {String? reason}) async {
     try {
       loadingOrders[orderId.toString()] = true;
+
       await _transactionService.rejectOrder(orderId, reason: reason);
-      await loadOrders(refresh: true);
+
+      // Remove from current list (karena status sudah berubah ke CANCELED)
+      orders.removeWhere((o) => o.id == orderId);
+
+      // Update counts - kurangi WAITING_APPROVAL
+      final waitingCount = orderCounts[OrderModel.STATUS_WAITING_APPROVAL] ?? 0;
+      orderCounts[OrderModel.STATUS_WAITING_APPROVAL] =
+          math.max(0, waitingCount - 1);
+
+      // Note: CANCELED tidak ditampilkan di tab, jadi tidak perlu ditambah
+
+      // Refresh stats
+      await fetchOrderSummary();
+
+      // Refresh UI
+      update();
+
       Get.snackbar(
-        'Success',
-        'Order #$orderId has been rejected',
+        'Order Ditolak',
+        'Order #$orderId telah ditolak',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.orange,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     } catch (e) {
+      _logger.e('Error rejecting order: $e');
       Get.snackbar(
-        'Error',
-        'Failed to reject order #$orderId',
+        '❌ Error',
+        'Gagal menolak order #$orderId',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -328,19 +485,39 @@ class MerchantOrderController extends BaseOrderController {
   Future<void> markOrderReady(dynamic orderId) async {
     try {
       loadingOrders[orderId.toString()] = true;
+
       await _transactionService.markOrderReady(orderId);
-      await loadOrders(refresh: true);
+
+      // Remove from current list (karena status sudah berubah dari PROCESSING ke READY_FOR_PICKUP)
+      orders.removeWhere((o) => o.id == orderId);
+
+      // Update counts - kurangi PROCESSING, tambah READY_FOR_PICKUP
+      final processingCount = orderCounts[OrderModel.STATUS_PROCESSING] ?? 0;
+      orderCounts[OrderModel.STATUS_PROCESSING] =
+          math.max(0, processingCount - 1);
+
+      final readyCount = orderCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0;
+      orderCounts[OrderModel.STATUS_READY_FOR_PICKUP] = readyCount + 1;
+
+      // Refresh stats
+      await fetchOrderSummary();
+
+      // Refresh UI
+      update();
+
       Get.snackbar(
-        'Success',
-        'Order #$orderId is ready for pickup',
+        '✅ Siap Diambil',
+        'Order #$orderId siap diambil kurir',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     } catch (e) {
+      _logger.e('Error marking order ready: $e');
       Get.snackbar(
-        'Error',
-        'Failed to mark order #$orderId as ready',
+        '❌ Error',
+        'Gagal menandai order #$orderId siap diambil',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -351,4 +528,45 @@ class MerchantOrderController extends BaseOrderController {
   }
 
   Future<void> markAsReadyForPickup(dynamic orderId) => markOrderReady(orderId);
+
+  Future<void> markOrderPickedUp(dynamic orderId) async {
+    try {
+      loadingOrders[orderId.toString()] = true;
+
+      await _transactionService.markOrderPickedUp(orderId);
+
+      // Remove from current list (karena status sudah berubah dari READY_FOR_PICKUP ke PICKED_UP)
+      orders.removeWhere((o) => o.id == orderId);
+
+      // Update counts - kurangi READY_FOR_PICKUP
+      final readyCount = orderCounts[OrderModel.STATUS_READY_FOR_PICKUP] ?? 0;
+      orderCounts[OrderModel.STATUS_READY_FOR_PICKUP] = math.max(0, readyCount - 1);
+
+      // Refresh stats
+      await fetchOrderSummary();
+
+      // Refresh UI
+      update();
+
+      Get.snackbar(
+        '✅ Pesanan Diambil',
+        'Order #$orderId telah diambil oleh kurir',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    } catch (e) {
+      _logger.e('Error marking order as picked up: $e');
+      Get.snackbar(
+        '❌ Error',
+        'Gagal menandai order #$orderId sebagai diambil',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      loadingOrders.remove(orderId.toString());
+    }
+  }
 }

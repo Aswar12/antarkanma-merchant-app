@@ -6,14 +6,19 @@ import '../services/auth_service.dart';
 
 class CategoryService extends GetxService {
   final ProductCategoryProvider _provider;
-  final AuthService _authService;
   final RxList<ProductCategory> _categories = <ProductCategory>[].obs;
   final RxBool isLoading = false.obs;
   bool _isInitialized = false;
 
-  CategoryService()
-      : _provider = ProductCategoryProvider(),
-        _authService = Get.find<AuthService>();
+  CategoryService() : _provider = ProductCategoryProvider();
+
+  // Lazy getter untuk AuthService - baru diambil saat dibutuhkan
+  AuthService get _authService {
+    if (!Get.isRegistered<AuthService>()) {
+      throw Exception('AuthService is not registered yet');
+    }
+    return Get.find<AuthService>();
+  }
 
   List<ProductCategory> get categories => _categories;
 
@@ -21,7 +26,10 @@ class CategoryService extends GetxService {
     try {
       isLoading.value = true;
       final token = _authService.getToken();
-      if (token == null) throw Exception('No authentication token found');
+      if (token == null) {
+        debugPrint('fetchCategories: No token available');
+        return [];
+      }
 
       final response = await _provider.getCategories(token);
       if (response.data != null && response.data['data'] != null) {
@@ -130,7 +138,27 @@ class CategoryService extends GetxService {
 
   Future<void> init() async {
     if (!_isInitialized) {
-      await fetchCategories();
+      try {
+        // Cek apakah AuthService sudah terdaftar sebelum memanggil
+        if (!Get.isRegistered<AuthService>()) {
+          debugPrint(
+              'CategoryService.init(): AuthService not registered yet, skipping fetch');
+          _isInitialized = true;
+          return;
+        }
+
+        // Cek apakah token sudah tersedia sebelum fetch
+        final token = _authService.getToken();
+        if (token != null) {
+          await fetchCategories();
+        } else {
+          // Token belum tersedia, skip fetch - akan dipanggil ulang setelah login
+          debugPrint(
+              'CategoryService.init(): Token not available, skipping fetch');
+        }
+      } catch (e) {
+        debugPrint('CategoryService.init() error: $e');
+      }
       _isInitialized = true;
     }
   }

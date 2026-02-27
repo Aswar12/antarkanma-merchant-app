@@ -34,7 +34,7 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
             onRefresh: () => controller.fetchMerchantData(),
             child: SingleChildScrollView(
               physics: AlwaysScrollableScrollPhysics(),
-              child: Container(
+              child: SizedBox(
                 height: MediaQuery.of(context).size.height,
                 child: Center(
                   child: Column(
@@ -200,7 +200,8 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
   }
 
   Widget _buildLogoImage() {
-    if (controller.merchantLogo != null && controller.merchantLogo!.isNotEmpty) {
+    if (controller.merchantLogo != null &&
+        controller.merchantLogo!.isNotEmpty) {
       return CachedNetworkImage(
         imageUrl: controller.merchantLogo!,
         imageBuilder: (context, imageProvider) => Container(
@@ -298,9 +299,12 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
               ],
             ),
             Divider(height: Dimenssions.height24),
-            _buildInfoRow('Telepon', controller.merchantPhone ?? 'Belum ditambahkan'),
-            _buildInfoRow('Alamat', controller.merchantAddress ?? 'Belum ditambahkan'),
-            _buildInfoRow('Deskripsi', controller.merchantDescription ?? 'Belum ditambahkan'),
+            _buildInfoRow(
+                'Telepon', controller.merchantPhone ?? 'Belum ditambahkan'),
+            _buildInfoRow(
+                'Alamat', controller.merchantAddress ?? 'Belum ditambahkan'),
+            _buildInfoRow('Deskripsi',
+                controller.merchantDescription ?? 'Belum ditambahkan'),
             SizedBox(height: Dimenssions.height16),
             SizedBox(
               width: double.infinity,
@@ -325,7 +329,7 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
 
   Widget _buildOperationalHoursCard() {
     final merchant = controller.merchantData.value;
-      
+
     return Card(
       elevation: 1,
       color: backgroundColor1,
@@ -367,7 +371,8 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
                   ],
                 ),
               ),
-            if (merchant?.operatingDays != null && merchant!.operatingDays!.isNotEmpty)
+            if (merchant?.operatingDays != null &&
+                merchant!.operatingDays!.isNotEmpty)
               Padding(
                 padding: EdgeInsets.only(bottom: Dimenssions.height16),
                 child: Column(
@@ -389,7 +394,8 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
                           ),
                           decoration: BoxDecoration(
                             color: logoColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(Dimenssions.radius15),
+                            borderRadius:
+                                BorderRadius.circular(Dimenssions.radius15),
                           ),
                           child: Text(
                             day,

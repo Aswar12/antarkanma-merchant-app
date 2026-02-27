@@ -1,5 +1,6 @@
 import 'package:antarkanma_merchant/config.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthProvider {
   final Dio _dio = Dio();
@@ -16,9 +17,9 @@ class AuthProvider {
   void _setupBaseOptions() {
     _dio.options = BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      validateStatus: (status) => status! < 500,
+      connectTimeout: const Duration(seconds: 45),
+      receiveTimeout: const Duration(seconds: 45),
+      validateStatus: (status) => status != null && status < 500,
     );
   }
 
@@ -182,7 +183,8 @@ class AuthProvider {
       if (e.response?.statusCode == 413) {
         throw Exception('Logo file size too large. Maximum size is 20MB.');
       } else if (e.response?.statusCode == 415) {
-        throw Exception('Invalid logo file type. Please upload an image file (jpeg/png/jpg/gif/webp).');
+        throw Exception(
+            'Invalid logo file type. Please upload an image file (jpeg/png/jpg/gif/webp).');
       } else if (e.response?.statusCode == 422) {
         final errors = e.response?.data['errors'];
         if (errors != null) {
@@ -261,17 +263,50 @@ class AuthProvider {
 
   void _handleError(DioException error) {
     String message;
-    switch (error.response?.statusCode) {
-      case 401:
-        message = 'Unauthorized access. Please log in again.';
-        break;
-      case 422:
-        final errors = error.response?.data['errors'];
-        message = errors.toString();
-        break;
-      default:
-        message = error.response?.data['message'] ?? 'An error occurred';
+
+    // Handle specific DioException types first
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.sendTimeout ||
+        error.type == DioExceptionType.receiveTimeout) {
+      message =
+          'Koneksi timeout. Silakan cek koneksi internet Anda atau status server.';
+    } else if (error.type == DioExceptionType.connectionError) {
+      message =
+          'Tidak dapat terhubung ke server. Pastikan backend aktif (cek "adb reverse").';
+    } else {
+      // Handle response status codes
+      switch (error.response?.statusCode) {
+        case 401:
+          message = 'Sesi telah berakhir. Silakan login kembali.';
+          break;
+        case 422:
+          final responseData = error.response?.data;
+          if (responseData is Map && responseData['errors'] != null) {
+            final errors = responseData['errors'] as Map;
+            message = errors.values.expand((e) => e as List).join('\n');
+          } else {
+            message = responseData['message'] ?? 'Data tidak valid';
+          }
+          break;
+        case 403:
+          message = 'Akses ditolak. Anda tidak memiliki izin.';
+          break;
+        case 404:
+          message = 'Resource tidak ditemukan di server.';
+          break;
+        case 500:
+          message = 'Terjadi kesalahan pada server. Silakan coba lagi nanti.';
+          break;
+        case 503:
+          message = 'Server sedang dalam pemeliharaan. Coba lagi nanti.';
+          break;
+        default:
+          message = error.response?.data?['message'] ??
+              'Terjadi kesalahan koneksi (${error.type})';
+      }
     }
+
+    debugPrint('🔴 Merchant AuthProvider Error: $message');
     throw Exception(message);
   }
 

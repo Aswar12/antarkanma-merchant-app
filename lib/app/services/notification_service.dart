@@ -128,6 +128,7 @@ class NotificationService extends GetxService {
 
     // Handle different notification types
     switch (message.data['type']) {
+      case 'new_order':
       case 'order_ready':
         // Refresh orders in the merchant order controller
         if (Get.isRegistered<MerchantOrderController>()) {
@@ -159,6 +160,7 @@ class NotificationService extends GetxService {
 
   void _handleNotificationNavigation(Map<String, dynamic> data) {
     switch (data['type']) {
+      case 'new_order':
       case 'order_ready':
         Get.toNamed(Routes.merchantMainPage);
         break;

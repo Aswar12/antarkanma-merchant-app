@@ -63,6 +63,36 @@ class TransactionProvider {
           print('Error response: ${error.response?.data}');
           print('Error type: ${error.type}');
           print('Error stacktrace: ${error.stackTrace}');
+          
+          // Handle timeout errors with user-friendly messages
+          String userMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+          if (error is dio.DioException) {
+            switch (error.type) {
+              case dio.DioExceptionType.connectionTimeout:
+                userMessage = 'Koneksi timeout. Periksa internet Anda.';
+                break;
+              case dio.DioExceptionType.sendTimeout:
+                userMessage = 'Request timeout. Silakan coba lagi.';
+                break;
+              case dio.DioExceptionType.receiveTimeout:
+                userMessage = 'Respon server terlalu lama. Silakan coba lagi.';
+                break;
+              case dio.DioExceptionType.connectionError:
+                userMessage = 'Tidak dapat terhubung ke server. Periksa jaringan.';
+                break;
+              case dio.DioExceptionType.badResponse:
+                if (error.response?.statusCode == 401) {
+                  userMessage = 'Sesi expired. Silakan login ulang.';
+                } else if (error.response?.statusCode == 503) {
+                  userMessage = 'Server sedang maintenance.';
+                }
+                break;
+              default:
+                break;
+            }
+            print('User-friendly error message: $userMessage');
+          }
+          
           return handler.next(error);
         },
       ),
@@ -79,10 +109,37 @@ class TransactionProvider {
     String? sortOrder = 'desc',
   }) async {
     try {
-      final merchantId =
-          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      final authService = Get.find<AuthService>();
+      final merchantId = authService.currentUser.value?.merchant?.id;
+      
       if (merchantId == null) {
-        throw Exception('Merchant ID not found');
+        // Log more details for debugging
+        print('Merchant ID not found!');
+        print('Current user: ${authService.currentUser.value}');
+        print('Merchant data: ${authService.currentUser.value?.merchant}');
+
+        // Return an empty success response instead of throwing
+        // This allows the app to continue loading without crashing
+        return dio.Response(
+          requestOptions:
+              dio.RequestOptions(path: '/merchants/$merchantId/orders'),
+          statusCode: 200,
+          data: {
+            'success': true,
+            'data': {
+              'orders': [],
+              'status_counts': <String, int>{},
+              'summary': {
+                'total_orders': '0',
+                'total_completed': '0',
+                'total_processing': '0',
+                'total_pending': '0',
+                'total_canceled': '0',
+              },
+            },
+            'message': 'Merchant data not loaded yet',
+          },
+        );
       }
 
       final queryParams = {
@@ -131,10 +188,30 @@ class TransactionProvider {
 
   Future<dio.Response> getOrderSummary() async {
     try {
-      final merchantId =
-          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      final authService = Get.find<AuthService>();
+      final merchantId = authService.currentUser.value?.merchant?.id;
+      
       if (merchantId == null) {
-        throw Exception('Merchant ID not found');
+        print('Merchant ID not found in getOrderSummary!');
+        // Return empty summary instead of throwing
+        return dio.Response(
+          requestOptions:
+              dio.RequestOptions(path: '/merchants/$merchantId/order-summary'),
+          statusCode: 200,
+          data: {
+            'success': true,
+            'data': {
+              'status_counts': <String, int>{},
+              'summary': {
+                'total_orders': 0,
+                'total_completed': 0,
+                'total_processing': 0,
+                'total_pending': 0,
+                'total_canceled': 0,
+              },
+            },
+          },
+        );
       }
 
       return await _dio.get('/merchants/$merchantId/order-summary');
@@ -147,10 +224,21 @@ class TransactionProvider {
 
   Future<dio.Response> getPendingTransactions() async {
     try {
-      final merchantId =
-          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      final authService = Get.find<AuthService>();
+      final merchantId = authService.currentUser.value?.merchant?.id;
+      
       if (merchantId == null) {
-        throw Exception('Merchant ID not found');
+        print('Merchant ID not found in getPendingTransactions!');
+        // Return empty list instead of throwing
+        return dio.Response(
+          requestOptions:
+              dio.RequestOptions(path: '/merchants/$merchantId/orders'),
+          statusCode: 200,
+          data: {
+            'success': true,
+            'data': [],
+          },
+        );
       }
 
       return await _dio.get(
@@ -172,10 +260,11 @@ class TransactionProvider {
     dynamic orderId,
   ) async {
     try {
-      final merchantId =
-          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      final authService = Get.find<AuthService>();
+      final merchantId = authService.currentUser.value?.merchant?.id;
+      
       if (merchantId == null) {
-        throw Exception('Merchant ID not found');
+        throw Exception('Merchant ID not found. Please login again.');
       }
 
       return await _dio.put(
@@ -196,10 +285,11 @@ class TransactionProvider {
     String? reason,
   }) async {
     try {
-      final merchantId =
-          Get.find<AuthService>().currentUser.value?.merchant?.id;
+      final authService = Get.find<AuthService>();
+      final merchantId = authService.currentUser.value?.merchant?.id;
+      
       if (merchantId == null) {
-        throw Exception('Merchant ID not found');
+        throw Exception('Merchant ID not found. Please login again.');
       }
 
       return await _dio.put(
@@ -226,6 +316,31 @@ class TransactionProvider {
       );
     } catch (e, stackTrace) {
       print('Error in markOrderReady: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// Get single order by ID - optimized for notification handling
+  /// Used when notification arrives to fetch only the new order
+  Future<dio.Response> getOrderById(dynamic orderId) async {
+    try {
+      print('Fetching single order with ID: $orderId');
+      return await _dio.get('/orders/$orderId');
+    } catch (e, stackTrace) {
+      print('Error in getOrderById: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// Mark order as picked up by courier
+  Future<dio.Response> markOrderPickedUp(dynamic orderId) async {
+    try {
+      print('Marking order $orderId as picked up by courier');
+      return await _dio.post('/orders/$orderId/picked-up');
+    } catch (e, stackTrace) {
+      print('Error in markOrderPickedUp: $e');
       print('Stack trace: $stackTrace');
       rethrow;
     }

@@ -35,19 +35,17 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
       initialIndex: 1, // Set WAITING_APPROVAL as default
       child: Builder(builder: (context) {
         final tabController = DefaultTabController.of(context);
-        
+
         // Initial load
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (tabController != null) {
-            controller.filterOrders(statuses[tabController.index]);
-            
-            // Listen to tab changes
-            tabController.addListener(() {
-              if (!tabController.indexIsChanging) {
-                controller.filterOrders(statuses[tabController.index]);
-              }
-            });
-          }
+          controller.filterOrders(statuses[tabController.index]);
+
+          // Listen to tab changes
+          tabController.addListener(() {
+            if (!tabController.indexIsChanging) {
+              controller.filterOrders(statuses[tabController.index]);
+            }
+          });
         });
 
         return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -93,7 +91,8 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                           ),
                           decoration: BoxDecoration(
                             color: Colors.black12,
-                            borderRadius: BorderRadius.circular(Dimenssions.radius20),
+                            borderRadius:
+                                BorderRadius.circular(Dimenssions.radius20),
                           ),
                           child: Row(
                             children: [
@@ -112,7 +111,8 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                                           controller.toggleAutoApprove(),
                                       activeColor: logoColorSecondary,
                                       inactiveThumbColor: Colors.white,
-                                      inactiveTrackColor: Colors.white.withOpacity(0.5),
+                                      inactiveTrackColor:
+                                          Colors.white.withOpacity(0.5),
                                       materialTapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
                                     )),
@@ -140,20 +140,39 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                             fontSize: Dimenssions.font14,
                             fontWeight: medium,
                           ),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: Dimenssions.width8),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: Dimenssions.width8),
                           labelPadding: EdgeInsets.symmetric(
                             horizontal: Dimenssions.width12,
                             vertical: Dimenssions.height12,
                           ),
                           tabs: [
-                            _buildTab('Semua', controller.getOrderCount('ALL'), Icons.list),
-                            _buildTab('Menunggu Persetujuan', controller.getOrderCount('WAITING_APPROVAL'), Icons.pending_outlined),
-                            _buildTab('Diproses', controller.getOrderCount('PROCESSING'), Icons.sync),
-                            _buildTab('Siap Diambil', controller.getOrderCount('READY_FOR_PICKUP'), Icons.check_circle_outline),
-                            _buildTab('Dalam Pengantaran', controller.getOrderCount('PICKED_UP'), Icons.local_shipping_outlined),
-                            _buildTab('Selesai', controller.getOrderCount('COMPLETED'), Icons.done_all),
-                            _buildTab('Dibatalkan', controller.getOrderCount('CANCELED'), Icons.cancel_outlined),
+                            _buildTab('Semua', controller.getOrderCount('ALL'),
+                                Icons.list),
+                            _buildTab(
+                                'Menunggu Persetujuan',
+                                controller.getOrderCount('WAITING_APPROVAL'),
+                                Icons.pending_outlined),
+                            _buildTab(
+                                'Diproses',
+                                controller.getOrderCount('PROCESSING'),
+                                Icons.sync),
+                            _buildTab(
+                                'Siap Diambil',
+                                controller.getOrderCount('READY_FOR_PICKUP'),
+                                Icons.check_circle_outline),
+                            _buildTab(
+                                'Dalam Pengantaran',
+                                controller.getOrderCount('PICKED_UP'),
+                                Icons.local_shipping_outlined),
+                            _buildTab(
+                                'Selesai',
+                                controller.getOrderCount('COMPLETED'),
+                                Icons.done_all),
+                            _buildTab(
+                                'Dibatalkan',
+                                controller.getOrderCount('CANCELED'),
+                                Icons.cancel_outlined),
                           ],
                         )),
                   ),
@@ -163,7 +182,8 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                       color: backgroundColor1,
                       child: TabBarView(
                         physics: const BouncingScrollPhysics(),
-                        children: List.generate(7, (index) => _buildOrderList()),
+                        children:
+                            List.generate(7, (index) => _buildOrderList()),
                       ),
                     ),
                   ),
@@ -231,6 +251,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                 child: Padding(
                   padding: EdgeInsets.all(Dimenssions.height16),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(

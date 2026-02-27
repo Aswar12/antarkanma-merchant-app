@@ -100,8 +100,52 @@ class TransactionService {
         throw Exception('Response missing data field');
       }
 
-      final data = responseData['data'] as Map<String, dynamic>;
-      final ordersData = data['orders'] as Map<String, dynamic>;
+      final data = responseData['data'];
+
+      // Handle case where 'data' could be either Map or List
+      if (data is! Map<String, dynamic>) {
+        print('Warning: data is not a Map, it is ${data.runtimeType}');
+        return PaginatedOrderResponse(
+          orders: [],
+          stats: OrderStatsModel(statusCounts: {}),
+          summary: OrderSummaryModel(
+              statusCounts: {},
+              summary: OrderTotalSummaryModel(
+                  totalOrders: 0,
+                  totalCompleted: 0,
+                  totalProcessing: 0,
+                  totalPending: 0,
+                  totalCanceled: 0)),
+          hasMore: false,
+          currentPage: 1,
+          lastPage: 1,
+          total: 0,
+        );
+      }
+
+      final ordersData = data['orders'];
+
+      // Handle case where orders could be either Map or List
+      if (ordersData is! Map<String, dynamic>) {
+        print('Warning: orders is not a Map, it is ${ordersData.runtimeType}');
+        return PaginatedOrderResponse(
+          orders: [],
+          stats: OrderStatsModel(statusCounts: {}),
+          summary: OrderSummaryModel(
+              statusCounts: {},
+              summary: OrderTotalSummaryModel(
+                  totalOrders: 0,
+                  totalCompleted: 0,
+                  totalProcessing: 0,
+                  totalPending: 0,
+                  totalCanceled: 0)),
+          hasMore: false,
+          currentPage: 1,
+          lastPage: 1,
+          total: 0,
+        );
+      }
+      
       final List<OrderModel> ordersList = [];
 
       if (ordersData['data'] != null) {
@@ -184,5 +228,34 @@ class TransactionService {
 
   Future<void> saveAutoApprove(bool value) async {
     await _storage.write(_autoApproveKey, value);
+  }
+
+  /// Get single order by ID - optimized for notification handling
+  /// Used when notification arrives to fetch only the new order
+  Future<OrderModel?> getOrderById(dynamic orderId) async {
+    try {
+      final response = await _transactionProvider.getOrderById(orderId);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final responseData = response.data as Map<String, dynamic>;
+        if (responseData.containsKey('data')) {
+          final orderData = responseData['data'] as Map<String, dynamic>;
+          return OrderModel.fromJson(orderData);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error getting order by ID: $e');
+      return null;
+    }
+  }
+
+  Future<void> markOrderPickedUp(dynamic orderId) async {
+    try {
+      await _transactionProvider.markOrderPickedUp(orderId);
+    } catch (e) {
+      print('Error marking order as picked up: $e');
+      rethrow;
+    }
   }
 }

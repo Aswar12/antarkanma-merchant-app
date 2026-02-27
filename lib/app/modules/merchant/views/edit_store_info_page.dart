@@ -3,7 +3,6 @@ import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.
 import 'package:antarkanma_merchant/app/modules/merchant/views/map_picker_page.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
@@ -53,8 +52,8 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
                     radius: 60,
                     backgroundImage: FileImage(controller.newLogoFile.value!),
                   );
-                } else if (controller.merchantLogo != null && 
-                         controller.merchantLogo!.isNotEmpty) {
+                } else if (controller.merchantLogo != null &&
+                    controller.merchantLogo!.isNotEmpty) {
                   return CircleAvatar(
                     radius: 60,
                     backgroundImage: NetworkImage(controller.merchantLogo!),

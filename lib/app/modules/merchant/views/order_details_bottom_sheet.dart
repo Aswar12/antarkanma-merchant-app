@@ -1,3 +1,4 @@
+import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
 import 'package:antarkanma_merchant/app/data/models/order_model.dart';
 import 'package:antarkanma_merchant/app/services/receipt_service.dart';
@@ -23,8 +24,33 @@ class OrderDetailsBottomSheet extends StatefulWidget {
 
 class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
   final merchantController = Get.find<MerchantProfileController>();
+  late final MerchantOrderController orderController;
   bool _isPrinting = false;
   bool _isScanning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Try to get existing controller, if not found create new one temporarily for actions
+    if (Get.isRegistered<MerchantOrderController>()) {
+      orderController = Get.find<MerchantOrderController>();
+    }
+
+    // Listen for loading state changes on this specific order
+    ever(orderController.loadingOrders, (_) {
+      if (mounted) setState(() {});
+    });
+
+    // Also listen for orders list changes to refresh UI when order status changes
+    ever(orderController.orders, (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  bool get isLoadingAction =>
+      orderController.loadingOrders[widget.order.id.toString()] == true;
+
+  
 
   Future<void> _openBluetoothSettings() async {
     try {
@@ -652,6 +678,107 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
   }
 
   Widget _buildActionButtons() {
+    final orderStatus = widget.order.orderStatus;
+    final isWaitingApproval = orderStatus == OrderModel.STATUS_WAITING_APPROVAL;
+    final isProcessing = orderStatus == OrderModel.STATUS_PROCESSING;
+
+    // Jika order sedang dalam proses (loading action), tampilkan indicator
+    if (isLoadingAction) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            children: [
+              CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(logoColor),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Memproses...',
+                style: secondaryTextStyle,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Jika status WAITING_APPROVAL, tampilkan tombol Approve dan Reject
+    if (isWaitingApproval) {
+      return Column(
+        children: [
+          Row(
+            children: [
+              // Tombol Tolak
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Get.back();
+                    orderController.showRejectDialog(widget.order.id);
+                  },
+                  icon: const Icon(Icons.close, size: 20),
+                  label: const Text('Tolak'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Tombol Terima
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    orderController.approveTransaction(widget.order.id);
+                    Get.back();
+                  },
+                  icon: const Icon(Icons.check, size: 20),
+                  label: const Text('Terima'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    // Jika status PROCESSING, tampilkan tombol Tandai Siap Diambil
+    if (isProcessing) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            orderController.markOrderReady(widget.order.id);
+            Get.back();
+          },
+          icon: const Icon(Icons.check_circle_outline, size: 20),
+          label: const Text('Tandai Siap Diambil'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: logoColorSecondary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Default: Tombol Tutup dan Cetak Struk
     return Row(
       children: [
         Expanded(

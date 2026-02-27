@@ -288,18 +288,20 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 16,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: logoColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        color: logoColorSecondary.withValues(alpha: 0.1),
+                        border: Border.all(
+                            color: logoColorSecondary.withValues(alpha: 0.5)),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         widget.product.category?.name ?? 'No Category',
                         style: primaryTextStyle.copyWith(
-                          color: logoColor,
-                          fontWeight: medium,
+                          color: logoColorSecondary,
+                          fontWeight: semiBold,
                         ),
                       ),
                     ),
@@ -308,20 +310,24 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 16,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
                   color: widget.product.isActive
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : alertColor.withValues(alpha: 0.1),
+                  border: Border.all(
+                      color: widget.product.isActive
+                          ? Colors.green.withValues(alpha: 0.5)
+                          : alertColor.withValues(alpha: 0.5)),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   widget.product.isActive ? 'Aktif' : 'Nonaktif',
-                  style: TextStyle(
-                    color: widget.product.isActive ? Colors.green : Colors.red,
-                    fontWeight: medium,
+                  style: primaryTextStyle.copyWith(
+                    color: widget.product.isActive ? Colors.green : alertColor,
+                    fontWeight: semiBold,
                   ),
                 ),
               ),
@@ -399,14 +405,22 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                   runSpacing: 8,
                   children: entry.value.map((variant) {
                     return Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
                       ),
                       decoration: BoxDecoration(
                         color: backgroundColor1,
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: logoColor.withValues(alpha: 0.15)),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -415,16 +429,27 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                             variant.value,
                             style: primaryTextStyle.copyWith(
                               fontSize: 14,
+                              fontWeight: semiBold,
+                              color: logoColor,
                             ),
                           ),
                           if (variant.priceAdjustment > 0) ...[
-                            SizedBox(width: 4),
-                            Text(
-                              '+${NumberFormat('#,###', 'id_ID').format(variant.priceAdjustment)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: logoColor,
-                                fontWeight: medium,
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color:
+                                    logoColorSecondary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '+${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(variant.priceAdjustment)}',
+                                style: primaryTextStyle.copyWith(
+                                  fontSize: 12,
+                                  color: logoColorSecondary,
+                                  fontWeight: bold,
+                                ),
                               ),
                             ),
                           ],
@@ -628,15 +653,15 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
             icon,
             color: iconColor,
-            size: 24,
+            size: 28,
           ),
         ),
         SizedBox(height: 8),
@@ -676,52 +701,90 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
     };
 
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       decoration: BoxDecoration(
         color: backgroundColor1,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
             offset: const Offset(0, -5),
           ),
         ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Get.to(() => ProductFormPage(product: productData));
-                },
-                icon: Icon(Icons.edit),
-                label: Text('Edit'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: logoColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+      child: SafeArea(
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: ElevatedButton.icon(
+                  onPressed: _handleDelete,
+                  icon: const Icon(Icons.delete_outline, color: Colors.white),
+                  label: Text(
+                    'Hapus',
+                    style: primaryTextStyle.copyWith(
+                      color: Colors.white,
+                      fontWeight: bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: alertColor,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shadowColor: alertColor.withValues(alpha: 0.5),
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _handleDelete,
-                icon: Icon(Icons.delete),
-                label: Text('Hapus'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(
+                        colors: [logoColor, logoColorSecondary],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: logoColor.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ]),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Get.to(() => ProductFormPage(product: productData));
+                    },
+                    icon: const Icon(Icons.edit_rounded, color: Colors.white),
+                    label: Text(
+                      'Edit Produk',
+                      style: primaryTextStyle.copyWith(
+                        color: Colors.white,
+                        fontWeight: bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

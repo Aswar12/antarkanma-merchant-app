@@ -1,8 +1,10 @@
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:antarkanma_merchant/config.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class MerchantProvider {
-  final Dio _dio = Dio();
+  final dio.Dio _dio = dio.Dio();
   final String baseUrl = Config.baseUrl;
 
   MerchantProvider() {
@@ -11,7 +13,7 @@ class MerchantProvider {
   }
 
   void _setupBaseOptions() {
-    _dio.options = BaseOptions(
+    _dio.options = dio.BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
@@ -21,12 +23,15 @@ class MerchantProvider {
 
   void _setupInterceptors() {
     _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          print('Making request to: ${options.path}');
-          print('Request data: ${options.data}');
+      dio.InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          // Add auth token
+          final token = _getAuthToken();
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
 
-          if (options.data is! FormData) {
+          if (options.data is! dio.FormData) {
             options.headers.addAll({
               'Accept': 'application/json',
               'Content-Type': 'application/json',
@@ -38,12 +43,27 @@ class MerchantProvider {
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          print('Response received: ${response.data}');
+          // Handle 401
+          if (response.statusCode == 401) {
+            _clearAuthAndRedirect();
+            return handler.reject(
+              dio.DioException(
+                requestOptions: response.requestOptions,
+                response: response,
+                type: dio.DioExceptionType.unknown,
+                error: 'Unauthorized',
+              ),
+            );
+          }
+
           return handler.next(response);
         },
-        onError: (DioException error, handler) {
-          print('Error occurred: ${error.message}');
-          print('Error response: ${error.response?.data}');
+        onError: (dio.DioException error, handler) {
+          // Handle 401 on error too
+          if (error.response?.statusCode == 401) {
+            _clearAuthAndRedirect();
+          }
+
           _handleError(error);
           return handler.next(error);
         },
@@ -51,26 +71,46 @@ class MerchantProvider {
     );
   }
 
-  Future<Response> getMerchantsByOwnerId(String token, int ownerId) async {
+  String? _getAuthToken() {
     try {
-      print('Fetching merchant data for owner ID: $ownerId');
+      final storage = GetStorage();
+      return storage.read('token');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void _clearAuthAndRedirect() {
+    try {
+      final storage = GetStorage();
+      storage.remove('token');
+      storage.remove('user');
+      Future.delayed(Duration.zero, () {
+        Get.offAllNamed('/login');
+      });
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
+  Future<dio.Response<dynamic>> getMerchantsByOwnerId(
+      String token, int ownerId) async {
+    try {
       final response = await _dio.get(
         '/merchants/owner/$ownerId',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
       );
-      print('API Response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error fetching merchants: $e');
       throw Exception('Failed to load merchants: $e');
     }
   }
 
-  Future<Response> getMerchantProducts(
+  Future<dio.Response<dynamic>> getMerchantProducts(
     String token,
     int merchantId, {
     int page = 1,
@@ -78,9 +118,6 @@ class MerchantProvider {
     Map<String, dynamic>? queryParams,
   }) async {
     try {
-      print(
-          'Fetching products for merchant ID: $merchantId (page: $page, pageSize: $pageSize)');
-
       final Map<String, dynamic> params = {
         'page': page,
         'page_size': pageSize,
@@ -92,22 +129,20 @@ class MerchantProvider {
 
       final response = await _dio.get(
         '/merchants/$merchantId/products',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
         queryParameters: params,
       );
-      print('Products API Response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error fetching merchant products: $e');
       throw Exception('Failed to load merchant products: $e');
     }
   }
 
-  Future<Response> getMerchantOrders(
+  Future<dio.Response<dynamic>> getMerchantOrders(
     String token,
     int merchantId, {
     int page = 1,
@@ -117,8 +152,6 @@ class MerchantProvider {
     String? endDate,
   }) async {
     try {
-      print('Fetching orders for merchant ID: $merchantId');
-
       final Map<String, dynamic> queryParams = {
         'page': page,
         'limit': limit,
@@ -136,94 +169,80 @@ class MerchantProvider {
 
       final response = await _dio.get(
         '/merchants/$merchantId/orders',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
         queryParameters: queryParams,
       );
-      print('Orders API Response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error fetching merchant orders: $e');
       throw Exception('Failed to load merchant orders: $e');
     }
   }
 
-  Future<Response> getPendingTransactions(String token, int merchantId) async {
+  Future<dio.Response<dynamic>> getPendingTransactions(
+      String token, int merchantId) async {
     try {
-      print('Fetching pending transactions for merchant ID: $merchantId');
       final response = await _dio.get(
         '/merchants/$merchantId/transactions/pending',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
       );
-      print('Pending transactions API Response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error fetching pending transactions: $e');
       throw Exception('Failed to load pending transactions: $e');
     }
   }
 
-  Future<Response> approveTransaction(
+  Future<dio.Response<dynamic>> approveTransaction(
       String token, int merchantId, dynamic transactionId) async {
     try {
-      print(
-          'Approving transaction $transactionId for merchant ID: $merchantId');
       final response = await _dio.put(
         '/merchants/$merchantId/transactions/$transactionId/approve',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
       );
-      print('Approve transaction response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error approving transaction: $e');
       throw Exception('Failed to approve transaction: $e');
     }
   }
 
-  Future<Response> rejectTransaction(
+  Future<dio.Response<dynamic>> rejectTransaction(
       String token, int merchantId, dynamic transactionId) async {
     try {
-      print(
-          'Rejecting transaction $transactionId for merchant ID: $merchantId');
       final response = await _dio.put(
         '/merchants/$merchantId/transactions/$transactionId/reject',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
       );
-      print('Reject transaction response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error rejecting transaction: $e');
       throw Exception('Failed to reject transaction: $e');
     }
   }
 
-  Future<Response> updateOrderStatus(
+  Future<dio.Response<dynamic>> updateOrderStatus(
     String token,
     int merchantId,
     int orderId,
     String status,
   ) async {
     try {
-      print(
-          'Updating order status: Merchant ID: $merchantId, Order ID: $orderId, New Status: $status');
       final response = await _dio.put(
         '/merchants/$merchantId/orders/$orderId/status',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
@@ -232,19 +251,15 @@ class MerchantProvider {
           'status': status,
         },
       );
-      print('Update order status response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error updating order status: $e');
       throw Exception('Failed to update order status: $e');
     }
   }
 
-  Future<Response> updateMerchant(
+  Future<dio.Response<dynamic>> updateMerchant(
       String token, int merchantId, Map<String, dynamic> data) async {
     try {
-      print('Updating merchant $merchantId with data: $data');
-      
       // Convert operating days to lowercase if present
       if (data['operating_days'] != null) {
         data['operating_days'] = data['operating_days']
@@ -254,7 +269,7 @@ class MerchantProvider {
 
       final response = await _dio.put(
         '/merchant/$merchantId',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -263,70 +278,60 @@ class MerchantProvider {
         ),
         data: data,
       );
-      print('Update response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error updating merchant: $e');
       throw Exception('Failed to update merchant: $e');
     }
   }
 
-  Future<Response> createProduct(
+  Future<dio.Response<dynamic>> createProduct(
       String token, int merchantId, Map<String, dynamic> data) async {
     try {
-      print('Creating product for merchant ID: $merchantId');
       data['merchant_id'] = merchantId;
 
       final response = await _dio.post(
         '/products',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
         data: data,
       );
-      print('Product creation response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error creating product: $e');
       throw Exception('Failed to create product: $e');
     }
   }
 
-  Future<Response> updateProduct(
+  Future<dio.Response<dynamic>> updateProduct(
       String token, int productId, Map<String, dynamic> data) async {
     try {
-      print('Updating product ID: $productId with data: $data');
       final response = await _dio.put(
         '/products/$productId',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
         data: data,
       );
-      print('Product update response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error updating product: $e');
       throw Exception('Failed to update product: $e');
     }
   }
 
-  Future<Response> uploadProductGallery(
+  Future<dio.Response<dynamic>> uploadProductGallery(
       String token, int productId, List<String> imagePaths) async {
     try {
-      print('Uploading gallery for product ID: $productId');
-
-      final formData = FormData();
+      final formData = dio.FormData();
 
       for (var i = 0; i < imagePaths.length; i++) {
         formData.files.add(
           MapEntry(
             'gallery[]',
-            await MultipartFile.fromFile(
+            await dio.MultipartFile.fromFile(
               imagePaths[i],
               filename: 'image_$i.jpg',
             ),
@@ -334,11 +339,9 @@ class MerchantProvider {
         );
       }
 
-      print('Uploading files with FormData: ${formData.files}');
-
       final response = await _dio.post(
         '/products/$productId/gallery',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -346,24 +349,20 @@ class MerchantProvider {
         ),
         data: formData,
       );
-      print('Gallery upload response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error uploading gallery: $e');
       throw Exception('Failed to upload gallery: $e');
     }
   }
 
-  Future<Response> updateProductGallery(
+  Future<dio.Response<dynamic>> updateProductGallery(
       String token, int productId, int galleryId, String imagePath) async {
     try {
-      print('Updating gallery image $galleryId for product ID: $productId');
-
-      final formData = FormData();
+      final formData = dio.FormData();
       formData.files.add(
         MapEntry(
           'gallery',
-          await MultipartFile.fromFile(
+          await dio.MultipartFile.fromFile(
             imagePath,
             filename: 'updated_image.jpg',
           ),
@@ -372,7 +371,7 @@ class MerchantProvider {
 
       final response = await _dio.put(
         '/products/$productId/gallery/$galleryId',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -380,57 +379,48 @@ class MerchantProvider {
         ),
         data: formData,
       );
-      print('Gallery update response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error updating gallery image: $e');
       throw Exception('Failed to update gallery image: $e');
     }
   }
 
-  Future<Response> deleteProductGallery(
+  Future<dio.Response<dynamic>> deleteProductGallery(
       String token, int productId, int galleryId) async {
     try {
-      print('Deleting gallery image $galleryId from product ID: $productId');
       final response = await _dio.delete(
         '/products/$productId/gallery/$galleryId',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
       );
-      print('Gallery delete response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error deleting gallery image: $e');
       throw Exception('Failed to delete gallery image: $e');
     }
   }
 
-  Future<Response> deleteProduct(String token, int productId) async {
+  Future<dio.Response<dynamic>> deleteProduct(
+      String token, int productId) async {
     try {
-      print('Deleting product ID: $productId');
       final response = await _dio.delete(
         '/products/$productId',
-        options: Options(
+        options: dio.Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
         ),
       );
-      print('Delete product response: ${response.data}');
       return response;
     } catch (e) {
-      print('Error deleting product: $e');
       throw Exception('Failed to delete product: $e');
     }
   }
 
-  void _handleError(DioException error) {
+  void _handleError(dio.DioException error) {
     String message;
-    print('Error status code: ${error.response?.statusCode}');
-    print('Error response data: ${error.response?.data}');
 
     if (error.response?.data != null && error.response?.data['meta'] != null) {
       message = error.response?.data['meta']['message'] ?? 'An error occurred';

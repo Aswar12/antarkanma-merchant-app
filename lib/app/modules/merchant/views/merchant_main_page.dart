@@ -11,6 +11,7 @@ import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+
 class MerchantMainPage extends StatefulWidget {
   const MerchantMainPage({super.key});
 
@@ -51,7 +52,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
       if (pendingNotification != null) {
         final type = pendingNotification['type'];
         final status = pendingNotification['status'];
-        
+
         if (type == 'transaction_approved' && status == 'WAITING_APPROVAL') {
           // Navigate to orders page and set filter
           homeController.changePage(1); // Orders tab
@@ -74,7 +75,8 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
       return GetX<MerchantController>(
         builder: (_) {
           // Check if merchant data exists
-          if (!controller.isLoading.value && controller.merchant.value == null) {
+          if (!controller.isLoading.value &&
+              controller.merchant.value == null) {
             // Redirect to login page
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Get.offAllNamed(Routes.login);
@@ -90,14 +92,36 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
       );
     }
 
-    BottomNavigationBarItem createNavItem(IconData icon, String label, int index) {
+    BottomNavigationBarItem createNavItem(
+        IconData icon, String label, int index) {
+      bool isSelected = homeController.currentPage.value == index;
       return BottomNavigationBarItem(
         icon: Container(
-          margin: EdgeInsets.only(top: Dimenssions.height5),
-          child: Icon(
-            icon,
-            size: Dimenssions.height22,
-            color: homeController.currentPage.value == index ? logoColor : Colors.grey,
+          margin: const EdgeInsets.only(top: 4, bottom: 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: Dimenssions.height24,
+                color: isSelected ? dashPrimary : Colors.grey.shade400,
+              ),
+              const SizedBox(height: 2),
+            ],
+          ),
+        ),
+        activeIcon: Container(
+          margin: const EdgeInsets.only(top: 4, bottom: 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: Dimenssions.height24,
+                color: dashPrimary,
+              ),
+              const SizedBox(height: 2),
+            ],
           ),
         ),
         label: label,
@@ -107,41 +131,45 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
     Widget customBottomNav() {
       return Container(
         decoration: BoxDecoration(
-          color: backgroundColor1,
-          boxShadow: homeController.currentPage.value == 1
-              ? []
-              : [
-                  BoxShadow(
-                    color: backgroundColor6.withOpacity(0.15),
-                    offset: const Offset(0, -1),
-                    blurRadius: 10,
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: backgroundColor6.withOpacity(0.3),
-                    offset: const Offset(0, -0.5),
-                    blurRadius: 4,
-                    spreadRadius: 0,
-                  ),
-                ],
+          color: dashCardLight,
+          border: Border(
+            top: BorderSide(
+              color: dashBorderLight,
+              width: 1,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, -4),
+              blurRadius: 20,
+              spreadRadius: 0,
+            ),
+          ],
         ),
-        child: ClipRRect(
-          child: Obx(() => BottomNavigationBar(
-            selectedItemColor: logoColor,
-            unselectedItemColor: Colors.grey,
-            currentIndex: homeController.currentPage.value,
-            onTap: (index) => homeController.changePage(index),
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: backgroundColor1,
-            elevation: 0,
-            items: [
-              createNavItem(Icons.home, 'Home', 0),
-              createNavItem(Icons.list, 'Orders', 1),
-              createNavItem(Icons.inventory, 'Products', 2),
-              createNavItem(Icons.person, 'Profile', 3),
-            ],
-          )),
-        ),
+        child: Obx(() => BottomNavigationBar(
+              selectedItemColor: dashPrimary,
+              unselectedItemColor: Colors.grey.shade400,
+              selectedLabelStyle: primaryTextStyle.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              unselectedLabelStyle: primaryTextStyle.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+              currentIndex: homeController.currentPage.value,
+              onTap: (index) => homeController.changePage(index),
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent, // Transparent to avoid double background
+              elevation: 0, // Remove elevation since we have custom shadow
+              items: [
+                createNavItem(Icons.grid_view, 'Beranda', 0),
+                createNavItem(Icons.receipt_long, 'Pesanan', 1),
+                createNavItem(Icons.restaurant_menu, 'Menu', 2),
+                createNavItem(Icons.person_outline, 'Profil', 3),
+              ],
+            )),
       );
     }
 
@@ -153,18 +181,21 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
           homeController.changePage(0);
         },
         child: Scaffold(
-          backgroundColor: Colors.white,
-          bottomNavigationBar: controller.merchant.value != null ? customBottomNav() : null,
+          backgroundColor: dashBackgroundLight,
+          extendBody: true, // Allow content to flow under the bottom nav
+          bottomNavigationBar:
+              controller.merchant.value != null ? customBottomNav() : null,
           body: controller.isLoading.value
               ? Center(
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(color: logoColor),
+                      CircularProgressIndicator(color: dashPrimary),
                       const SizedBox(height: 16),
                       Text(
                         'Memuat data...',
-                        style: primaryTextStyle.copyWith(color: Colors.grey),
+                        style: primaryTextStyle.copyWith(color: Colors.grey.shade500),
                       ),
                     ],
                   ),

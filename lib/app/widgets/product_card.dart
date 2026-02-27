@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:antarkanma_merchant/app/data/models/product_model.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:get/get.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -57,7 +56,8 @@ class ProductCard extends StatelessWidget {
                                 color: backgroundColor3,
                                 child: Center(
                                   child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(logoColor),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        logoColor),
                                     strokeWidth: 2,
                                   ),
                                 ),
@@ -113,42 +113,53 @@ class ProductCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Dimenssions.width8,
-                            vertical: Dimenssions.height4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: product.isActive
-                                ? Colors.green.withOpacity(0.9)
-                                : alertColor.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(Dimenssions.radius20),
-                          ),
-                          child: Text(
-                            product.isActive ? 'Aktif' : 'Nonaktif',
-                            style: primaryTextStyle.copyWith(
-                              fontSize: Dimenssions.font12,
-                              color: Colors.white,
-                              fontWeight: medium,
-                            ),
-                          ),
-                        ),
-                        if (product.category != null)
-                          Container(
+                        Flexible(
+                          child: Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: Dimenssions.width8,
                               vertical: Dimenssions.height4,
                             ),
                             decoration: BoxDecoration(
-                              color: logoColorSecondary.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(Dimenssions.radius20),
+                              color: product.isActive
+                                  ? Colors.green.withOpacity(0.9)
+                                  : alertColor.withOpacity(0.9),
+                              borderRadius:
+                                  BorderRadius.circular(Dimenssions.radius20),
                             ),
                             child: Text(
-                              product.category!.name,
+                              product.isActive ? 'Aktif' : 'Nonaktif',
                               style: primaryTextStyle.copyWith(
                                 fontSize: Dimenssions.font12,
                                 color: Colors.white,
                                 fontWeight: medium,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: Dimenssions.width4),
+                        if (product.category != null)
+                          Flexible(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Dimenssions.width8,
+                                vertical: Dimenssions.height4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: logoColorSecondary.withOpacity(0.9),
+                                borderRadius:
+                                    BorderRadius.circular(Dimenssions.radius20),
+                              ),
+                              child: Text(
+                                product.category!.name,
+                                style: primaryTextStyle.copyWith(
+                                  fontSize: Dimenssions.font12,
+                                  color: Colors.white,
+                                  fontWeight: medium,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
@@ -191,39 +202,50 @@ class ProductCard extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Dimenssions.width8,
-                                vertical: Dimenssions.height4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(Dimenssions.radius12),
-                              ),
-                              child: Text(
-                                product.formattedPrice,
-                                style: primaryTextStyle.copyWith(
-                                  fontSize: Dimenssions.font14,
-                                  color: Colors.white,
-                                  fontWeight: semiBold,
+                            Flexible(
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Dimenssions.width8,
+                                  vertical: Dimenssions.height4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(
+                                      Dimenssions.radius12),
+                                ),
+                                child: Text(
+                                  product.formattedPrice,
+                                  style: primaryTextStyle.copyWith(
+                                    fontSize: Dimenssions.font14,
+                                    color: Colors.white,
+                                    fontWeight: semiBold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Dimenssions.width8,
-                                vertical: Dimenssions.height4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: logoColorSecondary.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(Dimenssions.radius12),
-                              ),
-                              child: Text(
-                                '${product.variants.length} Varian',
-                                style: secondaryTextStyle.copyWith(
-                                  fontSize: Dimenssions.font12,
-                                  color: Colors.white,
-                                  fontWeight: medium,
+                            SizedBox(width: Dimenssions.width4),
+                            Flexible(
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Dimenssions.width8,
+                                  vertical: Dimenssions.height4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: logoColorSecondary.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(
+                                      Dimenssions.radius12),
+                                ),
+                                child: Text(
+                                  '${product.variants.length} Varian',
+                                  style: secondaryTextStyle.copyWith(
+                                    fontSize: Dimenssions.font12,
+                                    color: Colors.white,
+                                    fontWeight: medium,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ),

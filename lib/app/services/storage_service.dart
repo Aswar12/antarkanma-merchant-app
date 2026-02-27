@@ -202,10 +202,14 @@ class StorageService {
     required bool rememberMe,
   }) async {
     try {
+      print(
+          'Setting up auto-login: rememberMe=$rememberMe, identifier=$identifier');
       if (rememberMe) {
         await saveRememberMe(true);
         await saveCredentials(identifier, password);
+        print('Auto-login setup completed successfully');
       } else {
+        print('Remember me is false, clearing auto-login data');
         await clearAutoLogin();
       }
     } catch (e) {
@@ -216,10 +220,26 @@ class StorageService {
 
   bool canAutoLogin() {
     final rememberMe = getRememberMe();
-    final hasCredentials = getSavedCredentials() != null;
-    print(
-        'Can auto login: RememberMe=$rememberMe, HasCredentials=$hasCredentials');
-    return rememberMe && hasCredentials;
+    final credentials = getSavedCredentials();
+    final hasCredentials = credentials != null;
+    final hasToken = getToken() != null;
+    final hasUser = getUser() != null;
+
+    print('=== Auto-Login Check ===');
+    print('RememberMe: $rememberMe');
+    print('HasSavedCredentials: $hasCredentials');
+    print('HasToken: $hasToken');
+    print('HasUser: $hasUser');
+
+    if (credentials != null) {
+      print('Saved identifier: ${credentials['identifier']}');
+    }
+
+    final canLogin = rememberMe && hasCredentials;
+    print('CanAutoLogin: $canLogin');
+    print('=======================');
+
+    return canLogin;
   }
 
   Future<void> clearAutoLogin() async {

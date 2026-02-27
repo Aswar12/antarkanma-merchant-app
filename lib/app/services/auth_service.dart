@@ -128,9 +128,20 @@ class AuthService extends GetxService {
       isLoggedIn.value = true;
 
       if (rememberMe) {
+        print('Saving remember me and credentials...');
         await _storageService.saveRememberMe(true);
         await _storageService.saveCredentials(identifier, password);
+
+        // Verify credentials were saved
+        final savedCreds = _storageService.getSavedCredentials();
+        if (savedCreds != null) {
+          print(
+              '✓ Credentials saved successfully for: ${savedCreds['identifier']}');
+        } else {
+          print('✗ Failed to save credentials!');
+        }
       } else {
+        print('Remember me is false, clearing credentials');
         await _storageService.clearCredentials();
       }
 
@@ -160,7 +171,14 @@ class AuthService extends GetxService {
   Future<bool> verifyToken(String token) async {
     try {
       final response = await _authProvider.refreshToken(token);
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        final newToken = response.data['data']['access_token'];
+        if (newToken != null) {
+          await _storageService.saveToken(newToken);
+          return true;
+        }
+      }
+      return false;
     } catch (e) {
       print('Error verifying token: $e');
       return false;

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../../../config.dart';
 
@@ -30,15 +31,29 @@ class ApiProvider {
   }
 
   Exception _handleError(DioException e) {
+    debugPrint(
+        '🔴 API Error: ${e.type} | Path: ${e.requestOptions.path} | Message: ${e.message}');
+
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
-        return Exception('Connection timeout');
+        return Exception(
+            'Koneksi timeout. Pastikan server aktif atau cek "adb reverse".');
       case DioExceptionType.receiveTimeout:
-        return Exception('Receive timeout');
+        return Exception('Server lambat merespon (Receive timeout).');
+      case DioExceptionType.sendTimeout:
+        return Exception('Gagal mengirim data (Send timeout).');
+      case DioExceptionType.connectionError:
+        return Exception(
+            'Tidak dapat terhubung ke server. Pastikan backend aktif.');
       case DioExceptionType.badResponse:
-        return Exception('Bad response: ${e.response?.statusCode}');
+        final statusCode = e.response?.statusCode;
+        final message =
+            e.response?.data?['message'] ?? 'Kesalahan Server ($statusCode)';
+        return Exception(message);
+      case DioExceptionType.cancel:
+        return Exception('Permintaan dibatalkan.');
       default:
-        return Exception('Something went wrong');
+        return Exception('Terjadi kesalahan koneksi. Silakan coba lagi.');
     }
   }
 }

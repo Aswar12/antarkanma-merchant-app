@@ -8,6 +8,7 @@ import 'package:get/get.dart' hide FormData, MultipartFile;
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../services/auth_service.dart';
+import '../services/fcm_token_service.dart';
 import 'package:antarkanma_merchant/app/utils/validators.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -31,7 +32,7 @@ class AuthController extends GetxController {
   late TextEditingController descriptionController;
   late TextEditingController latitudeController;
   late TextEditingController longitudeController;
-  
+
   // Observable values for text fields
   final RxString identifier = ''.obs;
   final RxString password = ''.obs;
@@ -50,7 +51,7 @@ class AuthController extends GetxController {
   // Observable values for merchant registration
   final RxList<String> operatingDays = <String>[].obs;
   final Rx<File?> logoFile = Rx<File?>(null);
-  
+
   final RxBool isLoading = false.obs;
   final RxBool isPasswordHidden = true.obs;
   final RxBool isConfirmPasswordHidden = true.obs;
@@ -61,9 +62,8 @@ class AuthController extends GetxController {
   AuthController({
     required AuthService authService,
     required StorageService storageService,
-  }) : 
-    _authService = authService,
-    _storageService = storageService;
+  })  : _authService = authService,
+        _storageService = storageService;
 
   @override
   void onInit() {
@@ -92,19 +92,29 @@ class AuthController extends GetxController {
     longitudeController = TextEditingController();
 
     // Add listeners
-    identifierController.addListener(() => identifier.value = identifierController.text);
-    passwordController.addListener(() => password.value = passwordController.text);
-    confirmPasswordController.addListener(() => confirmPassword.value = confirmPasswordController.text);
+    identifierController
+        .addListener(() => identifier.value = identifierController.text);
+    passwordController
+        .addListener(() => password.value = passwordController.text);
+    confirmPasswordController.addListener(
+        () => confirmPassword.value = confirmPasswordController.text);
     nameController.addListener(() => name.value = nameController.text);
     emailController.addListener(() => email.value = emailController.text);
-    phoneNumberController.addListener(() => phone.value = phoneNumberController.text);
-    merchantNameController.addListener(() => merchantName.value = merchantNameController.text);
+    phoneNumberController
+        .addListener(() => phone.value = phoneNumberController.text);
+    merchantNameController
+        .addListener(() => merchantName.value = merchantNameController.text);
     addressController.addListener(() => address.value = addressController.text);
-    openingTimeController.addListener(() => openingTime.value = openingTimeController.text);
-    closingTimeController.addListener(() => closingTime.value = closingTimeController.text);
-    descriptionController.addListener(() => description.value = descriptionController.text);
-    latitudeController.addListener(() => latitude.value = latitudeController.text);
-    longitudeController.addListener(() => longitude.value = longitudeController.text);
+    openingTimeController
+        .addListener(() => openingTime.value = openingTimeController.text);
+    closingTimeController
+        .addListener(() => closingTime.value = closingTimeController.text);
+    descriptionController
+        .addListener(() => description.value = descriptionController.text);
+    latitudeController
+        .addListener(() => latitude.value = latitudeController.text);
+    longitudeController
+        .addListener(() => longitude.value = longitudeController.text);
   }
 
   void resetControllers() {
@@ -152,29 +162,40 @@ class AuthController extends GetxController {
   Future<void> pickLogo() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       logoFile.value = File(image.path);
     }
   }
 
   Future<bool> login({bool isAutoLogin = false}) async {
-    if (_isLoginInProgress || _isAutoLoginInProgress) return false;
-    
+    print('=== AuthController.login() called ===');
+    print('isAutoLogin: $isAutoLogin');
+    print('identifier: ${identifierController.text}');
+
+    if (_isLoginInProgress || _isAutoLoginInProgress) {
+      print('Login already in progress, returning false');
+      return false;
+    }
+
     if (isAutoLogin) {
       _isAutoLoginInProgress = true;
+      print('Auto-login started');
     } else {
       _isLoginInProgress = true;
+      print('Manual login started');
     }
-    
+
     isLoading.value = true;
 
     try {
+      print('Calling _authService.login with rememberMe=true...');
       final success = await _authService.login(
         identifierController.text,
         passwordController.text,
         rememberMe: true, // Always true
       );
+      print('AuthService.login returned: $success');
 
       if (!success) {
         if (!isAutoLogin) {
@@ -206,6 +227,8 @@ class AuthController extends GetxController {
         rememberMe: true,
       );
 
+      // Only show success message and navigate for manual login
+      // Auto-login navigation is handled by SplashController
       if (!isAutoLogin) {
         Get.offAllNamed(Routes.merchantMainPage);
         showCustomSnackbar(
@@ -213,33 +236,41 @@ class AuthController extends GetxController {
           message: 'Selamat datang kembali!',
         );
       }
+
+      // Handle FCM Token registration
+      Get.find<FCMTokenService>().handleLogin();
+
       return true;
     } catch (e) {
       print('Login error: $e');
       if (!isAutoLogin) {
         String errorMessage = 'Terjadi kesalahan';
-        
+
         if (e is DioException) {
           switch (e.type) {
             case DioExceptionType.connectionTimeout:
             case DioExceptionType.sendTimeout:
             case DioExceptionType.receiveTimeout:
-              errorMessage = 'Server sedang tidak merespon. Silakan coba lagi nanti.';
+              errorMessage =
+                  'Server sedang tidak merespon. Silakan coba lagi nanti.';
               break;
             case DioExceptionType.connectionError:
-              errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
+              errorMessage =
+                  'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
               break;
             default:
               if (e.response?.statusCode == 503) {
-                errorMessage = 'Server sedang dalam pemeliharaan. Silakan coba lagi nanti.';
+                errorMessage =
+                    'Server sedang dalam pemeliharaan. Silakan coba lagi nanti.';
               } else if (e.response?.statusCode == 401) {
                 errorMessage = 'Email/nomor telepon atau password salah.';
               } else {
-                errorMessage = 'Server sedang bermasalah. Silakan coba lagi nanti.';
+                errorMessage =
+                    'Server sedang bermasalah. Silakan coba lagi nanti.';
               }
           }
         }
-        
+
         showCustomSnackbar(
           title: 'Login Gagal',
           message: errorMessage,
@@ -356,18 +387,21 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      // Unregister FCM Token
+      await Get.find<FCMTokenService>().handleLogout();
+
       // Clear all local storage data
       await _storageService.clearAll();
-      
+
       // Clear auth service state
       await _authService.logout();
-      
+
       // Reset all controllers
       resetControllers();
-      
+
       // Navigate to login page
       Get.offAllNamed(Routes.login);
-      
+
       showCustomSnackbar(
         title: 'Logout Berhasil',
         message: 'Anda telah berhasil keluar dari akun.',

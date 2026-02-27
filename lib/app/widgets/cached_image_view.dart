@@ -85,6 +85,7 @@ class CachedImageView extends StatelessWidget {
       child: placeholder == null || placeholder!.isEmpty
           ? Center(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
@@ -93,11 +94,16 @@ class CachedImageView extends StatelessWidget {
                     size: 24,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'No Image',
-                    style: TextStyle(
-                      color: secondaryTextColor,
-                      fontSize: 12,
+                  Flexible(
+                    child: Text(
+                      'No Image',
+                      style: TextStyle(
+                        color: secondaryTextColor,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

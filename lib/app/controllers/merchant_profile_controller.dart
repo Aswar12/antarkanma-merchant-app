@@ -68,8 +68,12 @@ class MerchantProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchMerchantData();
+    // Only fetch merchant data if user is logged in
+    if (authService.isLoggedIn.value || authService.getToken() != null) {
+      fetchMerchantData();
+    }
   }
+
 
   @override
   void onClose() {

@@ -1,5 +1,5 @@
-import 'package:antarkanma_merchant/app/modules/auth/views/sign_in_page.dart';
-import 'package:antarkanma_merchant/app/modules/auth/views/sign_up_page.dart';
+import 'package:antarkanma_merchant/app/modules/auth/views/login_view.dart';
+import 'package:antarkanma_merchant/app/modules/auth/views/register_view.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_main_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_order_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_profile_page.dart';
@@ -41,13 +41,13 @@ class AppPages {
     ),
     GetPage(
       name: Routes.login,
-      page: () => SignInPage(),
+      page: () => LoginView(),
       binding: AppBinding(),
       preventDuplicates: true,
     ),
     GetPage(
       name: Routes.register,
-      page: () => SignUpPage(),
+      page: () => RegisterView(),
       binding: AppBinding(),
       preventDuplicates: true,
     ),

@@ -34,7 +34,8 @@ class ReceiptService {
     return '$label${' ' * spaces}$amount';
   }
 
-  static Future<void> printReceipt(OrderModel order, MerchantModel merchant, Map<String, dynamic> printer) async {
+  static Future<void> printReceipt(OrderModel order, MerchantModel merchant,
+      Map<String, dynamic> printer) async {
     if (_isPrinting) {
       debugPrint('Already printing, please wait...');
       return;
@@ -44,24 +45,29 @@ class ReceiptService {
       _isPrinting = true;
       debugPrint('Connecting to printer: ${printer['name']}');
 
-      final isConnected = await PrintBluetoothThermal.connect(macPrinterAddress: printer['address']);
+      final isConnected = await PrintBluetoothThermal.connect(
+          macPrinterAddress: printer['address']);
       if (!isConnected) {
         throw Exception('Failed to connect to printer');
       }
 
       // Initialize printer for 58mm paper
       await PrintBluetoothThermal.writeBytes([
-        0x1B, 0x40,      // Initialize printer
+        0x1B, 0x40, // Initialize printer
         0x1B, 0x74, 0x00, // Select character code table
         0x1D, 0x4C, 0x00, 0x00, // Set left margin
         0x1B, 0x33, 0x00, // Set minimum line spacing
-        0x1D, 0x57, 0x40, 0x01  // Set print area width for 58mm
+        0x1D, 0x57, 0x40, 0x01 // Set print area width for 58mm
       ]);
-      
+
       // Print merchant header (compact)
-      await _printWithStyle(merchant.name.toUpperCase(), size: 1, bold: true, align: 1);
-      await _printWithStyle(_truncateText(merchant.address, _charsPerLine), align: 1);
-      await _printWithStyle(_truncateText('Telp: ${merchant.phoneNumber}', _charsPerLine), align: 1);
+      await _printWithStyle(merchant.name.toUpperCase(),
+          size: 1, bold: true, align: 1);
+      await _printWithStyle(_truncateText(merchant.address, _charsPerLine),
+          align: 1);
+      await _printWithStyle(
+          _truncateText('Telp: ${merchant.phoneNumber}', _charsPerLine),
+          align: 1);
       await _printWithStyle(_shortSeparator);
 
       // Print order info (compact)
@@ -72,8 +78,8 @@ class ReceiptService {
       await _printWithStyle(_shortSeparator);
 
       // Print customer info (compact)
-      await _printWithStyle('${order.customerName}');
-      await _printWithStyle('${order.customerPhone}');
+      await _printWithStyle(order.customerName);
+      await _printWithStyle(order.customerPhone);
 
       // Print delivery info if available (very compact)
       if (order.customer.deliveryAddress != null) {
@@ -82,7 +88,8 @@ class ReceiptService {
         await _printWithStyle(_truncateText(address.address, _charsPerLine));
         await _printWithStyle('${address.district}, ${address.city}');
         if (address.notes?.isNotEmpty ?? false) {
-          await _printWithStyle('Note: ${_truncateText(address.notes!, _charsPerLine)}');
+          await _printWithStyle(
+              'Note: ${_truncateText(address.notes!, _charsPerLine)}');
         }
       }
       await _printWithStyle(_shortSeparator);
@@ -90,44 +97,53 @@ class ReceiptService {
       // Print items (compact)
       for (var item in order.items) {
         // Print item name and quantity
-        await _printWithStyle('${item.quantity}x ${_truncateText(item.product.name, _charsPerLine - 3)}');
-        
+        await _printWithStyle(
+            '${item.quantity}x ${_truncateText(item.product.name, _charsPerLine - 3)}');
+
         // Print variant and notes (if any) with indent
         if (item.variant != null) {
           await _printWithStyle(' +${item.variant!.name}');
         }
         if (item.customerNote?.isNotEmpty ?? false) {
-          await _printWithStyle(' *${_truncateText(item.customerNote!, _charsPerLine - 2)}');
+          await _printWithStyle(
+              ' *${_truncateText(item.customerNote!, _charsPerLine - 2)}');
         }
-        
+
         // Print price right-aligned with padding
         await _printWithStyle(_padPrice('', _formatPrice(item.formattedPrice)));
       }
       await _printWithStyle(_shortSeparator);
 
       // Print payment details (compact, right-aligned with padding)
-      await _printWithStyle(_padPrice('Subtotal', _formatPrice(order.formattedSubtotal)));
-      await _printWithStyle(_padPrice('Ongkir', _formatPrice(order.formattedShippingCost)));
+      await _printWithStyle(
+          _padPrice('Subtotal', _formatPrice(order.formattedSubtotal)));
+      await _printWithStyle(
+          _padPrice('Ongkir', _formatPrice(order.formattedShippingCost)));
       if (order.discount != null && order.discount! > 0) {
-        await _printWithStyle(_padPrice('Diskon', '-${_formatPrice(order.formattedDiscount)}'));
+        await _printWithStyle(
+            _padPrice('Diskon', '-${_formatPrice(order.formattedDiscount)}'));
       }
       await _printWithStyle(_shortSeparator);
-      
+
       // Print total and payment method in one line
-      await _printWithStyle(_padPrice('TOTAL', _formatPrice(order.formattedTotal)), bold: true);
+      await _printWithStyle(
+          _padPrice('TOTAL', _formatPrice(order.formattedTotal)),
+          bold: true);
       await _printWithStyle(order.paymentMethod, align: 1);
 
       // Print footer
       await _printWithStyle(_separator);
       if (merchant.description?.isNotEmpty ?? false) {
-        await _printWithStyle(_truncateText(merchant.description!, _charsPerLine), align: 1);
+        await _printWithStyle(
+            _truncateText(merchant.description!, _charsPerLine),
+            align: 1);
       }
       await _printWithStyle('Terima kasih', align: 1);
-      
+
       // Feed and cut paper
       await PrintBluetoothThermal.writeBytes([
-        0x1B, 0x64, 0x02,  // Feed 2 lines
-        0x1D, 0x56, 0x41, 0x10  // Partial cut
+        0x1B, 0x64, 0x02, // Feed 2 lines
+        0x1D, 0x56, 0x41, 0x10 // Partial cut
       ]);
 
       Get.snackbar(
@@ -137,7 +153,6 @@ class ReceiptService {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-
     } catch (e) {
       debugPrint('Error printing receipt: $e');
       Get.snackbar(
@@ -163,40 +178,41 @@ class ReceiptService {
     }
   }
 
-  static Future<void> _printWithStyle(String text, {
+  static Future<void> _printWithStyle(
+    String text, {
     int size = 1,
     bool bold = false,
     int align = 0,
   }) async {
     try {
       final bytes = <int>[];
-      
+
       // Set alignment
       bytes.addAll([0x1B, 0x61, align]);
-      
+
       // Set text size
       if (size > 1) {
         bytes.addAll([0x1D, 0x21, (size - 1) << 4 | (size - 1)]);
       }
-      
+
       // Set bold
       if (bold) {
         bytes.addAll([0x1B, 0x45, 0x01]);
       }
-      
+
       // Write bytes
       await PrintBluetoothThermal.writeBytes(bytes);
-      
+
       // Write text
       await PrintBluetoothThermal.writeString(
         printText: PrintTextSize(size: 1, text: '$text\n'),
       );
-      
+
       // Reset formatting
       if (size > 1 || bold) {
         await PrintBluetoothThermal.writeBytes([
-          0x1D, 0x21, 0x00,  // Reset size
-          0x1B, 0x45, 0x00   // Reset bold
+          0x1D, 0x21, 0x00, // Reset size
+          0x1B, 0x45, 0x00 // Reset bold
         ]);
       }
     } catch (e) {
@@ -206,7 +222,8 @@ class ReceiptService {
   }
 
   // Rest of the code remains unchanged...
-  static Future<void> shareReceipt(OrderModel order, MerchantModel merchant) async {
+  static Future<void> shareReceipt(
+      OrderModel order, MerchantModel merchant) async {
     try {
       final receiptText = await _generateReceiptText(order, merchant);
       final file = await _createTempFile(receiptText);
@@ -233,7 +250,8 @@ class ReceiptService {
     }
   }
 
-  static Future<String> _generateReceiptText(OrderModel order, MerchantModel merchant) async {
+  static Future<String> _generateReceiptText(
+      OrderModel order, MerchantModel merchant) async {
     final buffer = StringBuffer();
     final dateFormat = DateFormat('dd/MM/yy HH:mm');
 
@@ -242,17 +260,17 @@ class ReceiptService {
     buffer.writeln(merchant.address);
     buffer.writeln('Telp: ${merchant.phoneNumber}');
     buffer.writeln(_shortSeparator);
-    
+
     // Order Info
     buffer.writeln('#${order.orderNumber}');
     buffer.writeln(dateFormat.format(order.createdAt));
     buffer.writeln('Status: ${order.statusDisplay}');
     buffer.writeln(_shortSeparator);
-    
+
     // Customer Info
     buffer.writeln(order.customerName);
     buffer.writeln(order.customerPhone);
-    
+
     // Delivery Info
     if (order.customer.deliveryAddress != null) {
       final address = order.customer.deliveryAddress!;
@@ -279,10 +297,13 @@ class ReceiptService {
     buffer.writeln(_shortSeparator);
 
     // Payment Details
-    buffer.writeln(_padPrice('Subtotal', _formatPrice(order.formattedSubtotal)));
-    buffer.writeln(_padPrice('Ongkir', _formatPrice(order.formattedShippingCost)));
+    buffer
+        .writeln(_padPrice('Subtotal', _formatPrice(order.formattedSubtotal)));
+    buffer.writeln(
+        _padPrice('Ongkir', _formatPrice(order.formattedShippingCost)));
     if (order.discount != null && order.discount! > 0) {
-      buffer.writeln(_padPrice('Diskon', '-${_formatPrice(order.formattedDiscount)}'));
+      buffer.writeln(
+          _padPrice('Diskon', '-${_formatPrice(order.formattedDiscount)}'));
     }
     buffer.writeln(_shortSeparator);
     buffer.writeln(_padPrice('TOTAL', _formatPrice(order.formattedTotal)));

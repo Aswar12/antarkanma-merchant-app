@@ -1,7 +1,6 @@
 import 'package:antarkanma_merchant/app/data/providers/profile_provider.dart';
 import 'package:antarkanma_merchant/app/services/auth_service.dart';
 import 'package:get/get.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:dio/dio.dart';
 
 class ProfileService extends GetxService {
@@ -26,7 +25,8 @@ class ProfileService extends GetxService {
         if (name != null && name.isNotEmpty) 'name': name,
         if (description != null) 'description': description,
         if (address != null && address.isNotEmpty) 'address': address,
-        if (phoneNumber != null && phoneNumber.isNotEmpty) 'phone_number': phoneNumber,
+        if (phoneNumber != null && phoneNumber.isNotEmpty)
+          'phone_number': phoneNumber,
       };
 
       if (data.isEmpty) return false;
@@ -44,7 +44,7 @@ class ProfileService extends GetxService {
       );
 
       return response.statusCode == 200 &&
-             response.data?['meta']?['status'] == 'success';
+          response.data?['meta']?['status'] == 'success';
     } catch (e) {
       print('Error updating merchant profile: $e');
       return false;
@@ -73,7 +73,7 @@ class ProfileService extends GetxService {
       );
 
       return response.statusCode == 200 &&
-             response.data?['meta']?['status'] == 'success';
+          response.data?['meta']?['status'] == 'success';
     } catch (e) {
       print('Error updating merchant location: $e');
       return false;
@@ -137,7 +137,7 @@ class ProfileService extends GetxService {
       print('Response data: ${response.data}'); // Debug log
 
       final success = response.statusCode == 200 &&
-                     response.data?['meta']?['status'] == 'success';
+          response.data?['meta']?['status'] == 'success';
 
       if (success) {
         print('Successfully updated operating hours');
@@ -145,7 +145,7 @@ class ProfileService extends GetxService {
         print('Failed to update operating hours:');
         print('Status code: ${response.statusCode}');
         print('Response data: ${response.data}');
-        
+
         if (response.statusCode != null && response.statusCode! >= 500) {
           throw 'Server error occurred. Please try again later.';
         }

@@ -3,7 +3,6 @@ import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/app/widgets/custom_snackbar.dart';
-import 'package:flutter/services.dart';
 
 class AddOperationalHoursBottomSheet extends StatefulWidget {
   const AddOperationalHoursBottomSheet({super.key});
@@ -15,7 +14,8 @@ class AddOperationalHoursBottomSheet extends StatefulWidget {
 
 class _AddOperationalHoursBottomSheetState
     extends State<AddOperationalHoursBottomSheet> {
-  final MerchantProfileController profileController = Get.find<MerchantProfileController>();
+  final MerchantProfileController profileController =
+      Get.find<MerchantProfileController>();
   final TextEditingController openingTimeController = TextEditingController();
   final TextEditingController closingTimeController = TextEditingController();
 
@@ -29,7 +29,8 @@ class _AddOperationalHoursBottomSheetState
     'Minggu'
   ];
 
-  final RxSet<String> selectedDays = <String>{}.obs; // Changed to Set to prevent duplicates
+  final RxSet<String> selectedDays =
+      <String>{}.obs; // Changed to Set to prevent duplicates
   final RxBool isLoading = false.obs;
 
   @override
@@ -94,7 +95,7 @@ class _AddOperationalHoursBottomSheetState
       setState(() {
         controller.text = formattedTime;
       });
-      
+
       // Update controller values
       if (controller == openingTimeController) {
         profileController.openingTimeController.text = formattedTime;
@@ -105,7 +106,8 @@ class _AddOperationalHoursBottomSheetState
   }
 
   Future<void> _saveOperationalHours() async {
-    if (openingTimeController.text.isEmpty || closingTimeController.text.isEmpty) {
+    if (openingTimeController.text.isEmpty ||
+        closingTimeController.text.isEmpty) {
       showCustomSnackbar(
         title: 'Error',
         message: 'Mohon isi jam buka dan jam tutup',
@@ -129,14 +131,14 @@ class _AddOperationalHoursBottomSheetState
       // Update controller values
       profileController.openingTimeController.text = openingTimeController.text;
       profileController.closingTimeController.text = closingTimeController.text;
-      profileController.operatingDays.value = selectedDays.toList(); // Convert Set to List
+      profileController.operatingDays.value =
+          selectedDays.toList(); // Convert Set to List
 
       // Call the update method
       await profileController.updateOperatingHours();
-      
+
       // Force refresh the profile page
       profileController.update(['merchant_profile']);
-      
     } catch (e) {
       showCustomSnackbar(
         title: 'Error',
@@ -160,7 +162,7 @@ class _AddOperationalHoursBottomSheetState
           );
           return;
         }
-        
+
         // Add the day if we haven't reached the maximum
         if (selectedDays.length >= 7) {
           showCustomSnackbar(
@@ -174,7 +176,7 @@ class _AddOperationalHoursBottomSheetState
       } else {
         selectedDays.remove(day);
       }
-      
+
       // Update controller immediately
       profileController.operatingDays.value = selectedDays.toList();
       profileController.update(['merchant_profile']);
@@ -269,7 +271,8 @@ class _AddOperationalHoursBottomSheetState
                     selectedColor: logoColor.withOpacity(0.2),
                     checkmarkColor: logoColor,
                     labelStyle: TextStyle(
-                      color: selectedDays.contains(day) ? logoColor : Colors.black,
+                      color:
+                          selectedDays.contains(day) ? logoColor : Colors.black,
                     ),
                   );
                 }).toList(),

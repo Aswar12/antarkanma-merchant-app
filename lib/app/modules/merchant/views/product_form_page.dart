@@ -57,7 +57,7 @@ class DashedBorderPainter extends CustomPainter {
 class ProductFormPage extends GetView<MerchantProductFormController> {
   final Map<String, dynamic>? product;
 
-  const ProductFormPage({Key? key, this.product}) : super(key: key);
+  const ProductFormPage({super.key, this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -194,35 +194,58 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
           ],
         ),
         bottomNavigationBar: Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: backgroundColor1,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: Offset(0, -2),
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
               ),
             ],
           ),
-          child: ElevatedButton(
-            onPressed: () {
-              if (controller.formKey.currentState!.validate()) {
-                controller.saveProduct();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: logoColor,
-              padding: EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          child: SafeArea(
+            child: Container(
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  colors: [logoColor, logoColorSecondary],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: logoColor.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-            ),
-            child: Text(
-              'Simpan',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (controller.formKey.currentState!.validate()) {
+                    controller.saveProduct();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  'Simpan Produk',
+                  style: primaryTextStyle.copyWith(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: bold,
+                  ),
+                ),
               ),
             ),
           ),
@@ -263,24 +286,30 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
           style: TextStyle(color: logoColor),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: logoColor),
+            hintStyle: TextStyle(color: logoColor.withValues(alpha: 0.4)),
             prefixText: prefixText,
             prefixStyle: TextStyle(color: logoColor),
+            filled: true,
+            fillColor: logoColor.withValues(alpha: 0.05),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: logoColor),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: logoColor),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: logoColor, width: 1.5),
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: logoColor),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: alertColor, width: 1),
             ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: alertColor, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
             ),
           ),
         ),
@@ -316,11 +345,12 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
             icon: Icon(Icons.add_photo_alternate),
             label: Text('Tambah Foto'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: logoColor,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              backgroundColor: logoColorSecondary.withValues(alpha: 0.1),
+              foregroundColor: logoColorSecondary,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
@@ -350,6 +380,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
           ),
           Center(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_photo_alternate, size: 48, color: Colors.grey),
@@ -377,7 +408,8 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
           ),
-          itemCount: controller.existingImages.length + controller.images.length,
+          itemCount:
+              controller.existingImages.length + controller.images.length,
           itemBuilder: (context, index) {
             bool isExisting = index < controller.existingImages.length;
             return Stack(
@@ -393,7 +425,8 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               color: Colors.grey.shade200,
-                              child: Icon(Icons.error_outline, color: Colors.red),
+                              child:
+                                  Icon(Icons.error_outline, color: Colors.red),
                             );
                           },
                         )
@@ -407,7 +440,8 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               color: Colors.grey.shade200,
-                              child: Icon(Icons.error_outline, color: Colors.red),
+                              child:
+                                  Icon(Icons.error_outline, color: Colors.red),
                             );
                           },
                         ),
@@ -468,8 +502,8 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
               items: controller.categories
                   .map((category) => DropdownMenuItem(
                         value: category.name,
-                        child:
-                            Text(category.name, style: TextStyle(color: logoColor)),
+                        child: Text(category.name,
+                            style: TextStyle(color: logoColor)),
                       ))
                   .toList(),
               onChanged: (value) {
@@ -483,21 +517,27 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
               icon: Icon(Icons.arrow_drop_down, color: logoColor),
               decoration: InputDecoration(
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: logoColor, width: 1.5),
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: alertColor),
                 ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: alertColor, width: 1.5),
                 ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                filled: true,
+                fillColor: logoColor.withValues(alpha: 0.05),
               ),
               dropdownColor: backgroundColor1,
             );
@@ -588,14 +628,24 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                               runSpacing: 8,
                               children: entry.value.map((variant) {
                                 return Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
                                     color: backgroundColor1,
-                                    border: Border.all(color: logoColor),
-                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                        color:
+                                            logoColor.withValues(alpha: 0.15)),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.03),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -603,22 +653,31 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                                       Text(
                                         '${variant.value} (+${NumberFormat.currency(
                                           locale: 'id_ID',
-                                          symbol: 'Rp ',
+                                          symbol: 'Rp',
                                           decimalDigits: 0,
                                         ).format(variant.priceAdjustment)})',
-                                        style: TextStyle(
+                                        style: primaryTextStyle.copyWith(
                                           color: logoColor,
-                                          fontSize: 12,
+                                          fontSize: 13,
+                                          fontWeight: semiBold,
                                         ),
                                       ),
-                                      SizedBox(width: 4),
+                                      const SizedBox(width: 8),
                                       GestureDetector(
                                         onTap: () =>
                                             controller.removeVariant(variant),
-                                        child: Icon(
-                                          Icons.close,
-                                          size: 16,
-                                          color: logoColor,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: alertColor.withValues(
+                                                alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.close_rounded,
+                                            size: 14,
+                                            color: alertColor,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -702,47 +761,47 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
               style: TextStyle(color: logoColor),
               decoration: InputDecoration(
                 labelText: 'Nama Varian',
-                labelStyle: TextStyle(color: logoColor),
+                labelStyle: TextStyle(color: logoColor.withValues(alpha: 0.7)),
                 hintText: 'Contoh: Ukuran, Warna',
-                hintStyle: TextStyle(color: logoColor.withOpacity(0.5)),
+                hintStyle: TextStyle(color: logoColor.withValues(alpha: 0.4)),
                 filled: true,
-                fillColor: backgroundColor1,
+                fillColor: logoColor.withValues(alpha: 0.05),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: logoColor, width: 1.5),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: valueController,
               style: TextStyle(color: logoColor),
               decoration: InputDecoration(
                 labelText: 'Nilai Varian',
-                labelStyle: TextStyle(color: logoColor),
+                labelStyle: TextStyle(color: logoColor.withValues(alpha: 0.7)),
                 hintText: 'Contoh: XL, Merah',
-                hintStyle: TextStyle(color: logoColor.withOpacity(0.5)),
+                hintStyle: TextStyle(color: logoColor.withValues(alpha: 0.4)),
                 filled: true,
-                fillColor: backgroundColor1,
+                fillColor: logoColor.withValues(alpha: 0.05),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: logoColor, width: 1.5),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
               ),
             ),
@@ -757,24 +816,24 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
               ],
               decoration: InputDecoration(
                 labelText: 'Tambahan Harga',
-                labelStyle: TextStyle(color: logoColor),
+                labelStyle: TextStyle(color: logoColor.withValues(alpha: 0.7)),
                 hintText: 'Masukkan tambahan harga',
-                hintStyle: TextStyle(color: logoColor.withOpacity(0.5)),
+                hintStyle: TextStyle(color: logoColor.withValues(alpha: 0.4)),
                 prefixText: 'Rp ',
                 prefixStyle: TextStyle(color: logoColor),
                 filled: true,
-                fillColor: backgroundColor1,
+                fillColor: logoColor.withValues(alpha: 0.05),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: logoColor, width: 1.5),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: logoColor),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
               ),
             ),
