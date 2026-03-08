@@ -19,7 +19,8 @@ class OrderDetailsBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<OrderDetailsBottomSheet> createState() => _OrderDetailsBottomSheetState();
+  State<OrderDetailsBottomSheet> createState() =>
+      _OrderDetailsBottomSheetState();
 }
 
 class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
@@ -49,8 +50,6 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
 
   bool get isLoadingAction =>
       orderController.loadingOrders[widget.order.id.toString()] == true;
-
-  
 
   Future<void> _openBluetoothSettings() async {
     try {
@@ -447,14 +446,16 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
         _buildInfoRow(
           'Nama',
           Text(
-            widget.order.customerName, // Using the getter instead of direct access
+            widget.order
+                .customerName, // Using the getter instead of direct access
             style: primaryTextStyle,
           ),
         ),
         _buildInfoRow(
           'Telepon',
           Text(
-            widget.order.customerPhone, // Using the getter instead of direct access
+            widget.order
+                .customerPhone, // Using the getter instead of direct access
             style: primaryTextStyle,
           ),
         ),
@@ -779,53 +780,34 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
     }
 
     // Default: Tombol Tutup dan Cetak Struk
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () => Get.back(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[200],
-              foregroundColor: Colors.black87,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Tutup'),
+    return Expanded(
+      child: ElevatedButton.icon(
+        onPressed: _isPrinting ? null : _handlePrintReceipt,
+        icon: _isPrinting
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.receipt_long),
+        label: Text(_isPrinting
+            ? _isScanning
+                ? 'Mencari Printer...'
+                : 'Mencetak...'
+            : 'Cetak Struk'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: logoColor,
+          disabledBackgroundColor: Color.fromARGB(
+              153, logoColor.red, logoColor.green, logoColor.blue),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _isPrinting ? null : _handlePrintReceipt,
-            icon: _isPrinting
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : const Icon(Icons.receipt_long),
-            label: Text(_isPrinting
-                ? _isScanning
-                    ? 'Mencari Printer...'
-                    : 'Mencetak...'
-                : 'Cetak Struk'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: logoColor,
-              disabledBackgroundColor: Color.fromARGB(
-                  153, logoColor.red, logoColor.green, logoColor.blue),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 

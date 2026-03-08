@@ -229,7 +229,7 @@ class ReceiptService {
       final file = await _createTempFile(receiptText);
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Struk Pesanan #${order.orderNumber}',
+        text: 'Struk Pesanan #ANTAR-${order.orderNumber}',
       );
       Get.snackbar(
         'Sukses',

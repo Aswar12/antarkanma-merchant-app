@@ -9,6 +9,9 @@ import '../../firebase_options.dart';
 import 'transaction_service.dart';
 import '../controllers/merchant_home_controller.dart';
 import '../controllers/merchant_order_controller.dart';
+import '../controllers/notification_controller.dart';
+import '../modules/chat/controllers/chat_list_controller.dart';
+import '../modules/chat/controllers/chat_controller.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -78,6 +81,15 @@ class NotificationService extends GetxService {
         _notificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
 
+    // Handle initial message if app was terminated
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      Get.log('Initial app opened from terminated state via notification');
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _handleMessageOpenedApp(initialMessage);
+      });
+    }
+
     if (androidPlugin != null) {
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
@@ -130,10 +142,27 @@ class NotificationService extends GetxService {
     switch (message.data['type']) {
       case 'new_order':
       case 'order_ready':
-        // Refresh orders in the merchant order controller
+        // Refresh orders
         if (Get.isRegistered<MerchantOrderController>()) {
           final orderController = Get.find<MerchantOrderController>();
           await orderController.refreshOrders();
+        }
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().fetchNotifications();
+          Get.find<NotificationController>().fetchUnreadCount();
+        }
+        break;
+
+      case 'chat_message':
+      case 'CHAT_MESSAGE':
+        if (Get.isRegistered<ChatController>()) {
+          Get.find<ChatController>().refreshMessages();
+        }
+        if (Get.isRegistered<ChatListController>()) {
+          Get.find<ChatListController>().fetchChats();
+        }
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().fetchUnreadCount();
         }
         break;
 
@@ -159,6 +188,31 @@ class NotificationService extends GetxService {
   }
 
   void _handleNotificationNavigation(Map<String, dynamic> data) {
+    if (data['type'] == 'CHAT_MESSAGE' || data.containsKey('chatId')) {
+      try {
+        String? chatId = data['chatId']?.toString();
+        // Fallback if the raw message has it in another format
+        if (chatId == null && data.containsKey('chat_id')) {
+          chatId = data['chat_id']?.toString();
+        }
+
+        if (chatId != null) {
+          // Send to main merchant page first
+          Get.toNamed(Routes.merchantMainPage);
+
+          Future.delayed(const Duration(milliseconds: 300), () {
+            Get.toNamed('/chat/$chatId', arguments: {
+              'chatId': int.tryParse(chatId!),
+            });
+          });
+        }
+      } catch (e) {
+        Get.log('Error handling chat notification tap: $e');
+        Get.toNamed(Routes.merchantMainPage);
+      }
+      return;
+    }
+
     switch (data['type']) {
       case 'new_order':
       case 'order_ready':

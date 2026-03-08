@@ -4,6 +4,7 @@ import '../../../controllers/merchant_order_controller.dart';
 import '../../../services/print_service.dart';
 import '../../../../theme.dart';
 import '../../../data/models/order_model.dart';
+import '../views/order_detail_page.dart';
 
 /// QueueCard - Card untuk antrian pesanan dengan nomor antrian besar
 /// Designed for easy visibility by kitchen/barista staff
@@ -70,7 +71,8 @@ class QueueCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _buildHeader(isWaitingApproval, isProcessing, isReadyForPickup, isUrgent),
+            _buildHeader(
+                isWaitingApproval, isProcessing, isReadyForPickup, isUrgent),
             _buildContent(),
             _buildActions(),
           ],
@@ -79,7 +81,8 @@ class QueueCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(bool isWaitingApproval, bool isProcessing, bool isReadyForPickup, bool isUrgent) {
+  Widget _buildHeader(bool isWaitingApproval, bool isProcessing,
+      bool isReadyForPickup, bool isUrgent) {
     return Container(
       padding: EdgeInsets.all(Dimenssions.height12),
       decoration: BoxDecoration(
@@ -106,7 +109,8 @@ class QueueCard extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (isUrgent ? Colors.red : _getStatusColor()).withOpacity(0.3),
+                  color: (isUrgent ? Colors.red : _getStatusColor())
+                      .withOpacity(0.3),
                   blurRadius: 8,
                   spreadRadius: 2,
                 ),
@@ -137,7 +141,7 @@ class QueueCard extends StatelessWidget {
                     ),
                     SizedBox(width: 4),
                     Text(
-                      'Order #${order.id}',
+                      '#ANTAR-${order.id}',
                       style: primaryTextStyle.copyWith(
                         fontSize: Dimenssions.font14,
                         fontWeight: semiBold,
@@ -165,7 +169,8 @@ class QueueCard extends StatelessWidget {
                     if (isUrgent) ...[
                       SizedBox(width: 4),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.red,
                           borderRadius: BorderRadius.circular(4),
@@ -218,57 +223,58 @@ class QueueCard extends StatelessWidget {
           SizedBox(height: Dimenssions.height8),
           // Order Items
           ...order.orderItems.take(3).map((item) => Padding(
-            padding: EdgeInsets.only(bottom: Dimenssions.height4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: logoColorSecondary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '${item.quantity}x',
-                    style: primaryTextStyle.copyWith(
-                      fontSize: Dimenssions.font12,
-                      fontWeight: semiBold,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.product.name,
+                padding: EdgeInsets.only(bottom: Dimenssions.height4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: logoColorSecondary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${item.quantity}x',
                         style: primaryTextStyle.copyWith(
-                          fontSize: Dimenssions.font10,
-                          fontWeight: medium,
+                          fontSize: Dimenssions.font12,
+                          fontWeight: semiBold,
                         ),
                       ),
-                      if (item.customerNote != null && item.customerNote!.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: 2),
-                          child: Text(
-                            'Note: ${item.customerNote}',
-                            style: secondaryTextStyle.copyWith(
-                              fontSize: Dimenssions.font11,
-                              color: Colors.orange.shade700,
-                              fontStyle: FontStyle.italic,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.product.name,
+                            style: primaryTextStyle.copyWith(
+                              fontSize: Dimenssions.font10,
+                              fontWeight: medium,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
+                          if (item.customerNote != null &&
+                              item.customerNote!.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(top: 2),
+                              child: Text(
+                                'Note: ${item.customerNote}',
+                                style: secondaryTextStyle.copyWith(
+                                  fontSize: Dimenssions.font11,
+                                  color: Colors.orange.shade700,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
           if (order.orderItems.length > 3)
             Padding(
               padding: EdgeInsets.only(top: Dimenssions.height4),
@@ -432,36 +438,38 @@ class QueueCard extends StatelessWidget {
 
   Future<bool> _showMarkReadyDialog() async {
     return await Get.dialog<bool>(
-      AlertDialog(
-        title: Text('Tandai Pesanan?'),
-        content: Text(
-          order.isWaitingApproval
-              ? 'Terima pesanan ini dan mulai memproses?'
-              : 'Tandai pesanan sudah siap diambil?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Get.back(result: true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _getStatusColor(),
-              foregroundColor: Colors.white,
+          AlertDialog(
+            title: Text('Tandai Pesanan?'),
+            content: Text(
+              order.isWaitingApproval
+                  ? 'Terima pesanan ini dan mulai memproses?'
+                  : 'Tandai pesanan sudah siap diambil?',
             ),
-            child: Text('Ya'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Get.back(result: true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _getStatusColor(),
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Ya'),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   Future<void> _showCompleteDialog() async {
     final confirm = await Get.dialog<bool>(
       AlertDialog(
         title: Text('Pesanan Diambil?'),
-        content: Text('Konfirmasi bahwa pesanan telah diambil oleh kurir/customer?'),
+        content:
+            Text('Konfirmasi bahwa pesanan telah diambil oleh kurir/customer?'),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
@@ -493,6 +501,6 @@ class QueueCard extends StatelessWidget {
   }
 
   void _viewDetails() {
-    Get.toNamed('/order-details', arguments: {'order': order});
+    Get.to(() => OrderDetailPage(order: order));
   }
 }

@@ -1,6 +1,6 @@
 import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:antarkanma_merchant/app/data/models/order_model.dart';
-import 'package:antarkanma_merchant/app/modules/merchant/views/order_details_bottom_sheet.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/views/order_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../theme.dart';
@@ -24,11 +24,7 @@ class TransactionCard extends StatelessWidget {
   });
 
   void _showOrderDetails(BuildContext context) {
-    Get.bottomSheet(
-      OrderDetailsBottomSheet(order: order),
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-    );
+    Get.to(() => OrderDetailPage(order: order));
   }
 
   int _getTotalItems() {

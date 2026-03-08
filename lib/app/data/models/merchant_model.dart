@@ -8,6 +8,7 @@ class MerchantModel {
   final String? description;
   final String? logo;
   final String? logoUrl;
+  final String? qrisUrl;
   final String? openingTime;
   final String? closingTime;
   final List<String>? operatingDays;
@@ -31,6 +32,7 @@ class MerchantModel {
     this.description,
     this.logo,
     this.logoUrl,
+    this.qrisUrl,
     this.openingTime,
     this.closingTime,
     this.operatingDays,
@@ -123,6 +125,7 @@ class MerchantModel {
         description: json['description']?.toString(),
         logo: json['logo']?.toString(),
         logoUrl: json['logo_url']?.toString(),
+        qrisUrl: json['qris_url']?.toString(),
         openingTime: json['opening_time']?.toString(),
         closingTime: json['closing_time']?.toString(),
         operatingDays: parseOperatingDays(json['operating_days']),

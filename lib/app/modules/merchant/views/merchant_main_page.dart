@@ -2,15 +2,18 @@ import 'package:antarkanma_merchant/app/controllers/merchant_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_home_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
+import 'package:antarkanma_merchant/app/controllers/notification_controller.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_home_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_order_page.dart';
-import 'package:antarkanma_merchant/app/modules/merchant/views/product_management_page.dart';
+import 'package:antarkanma_merchant/app/modules/pos/views/pos_main_page.dart';
+import 'package:antarkanma_merchant/app/modules/pos/controllers/pos_controller.dart';
+import 'package:antarkanma_merchant/app/modules/pos/controllers/pos_cart_controller.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_profile_page.dart';
 import 'package:antarkanma_merchant/app/routes/app_pages.dart';
+import 'package:antarkanma_merchant/app/modules/chat/views/chat_list_page.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 
 class MerchantMainPage extends StatefulWidget {
   const MerchantMainPage({super.key});
@@ -24,6 +27,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
   late final MerchantProfileController profileController;
   late final MerchantHomeController homeController;
   late final MerchantOrderController orderController;
+  late final NotificationController notificationController;
   bool _isInitialized = false;
 
   @override
@@ -41,6 +45,11 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
     profileController = Get.find<MerchantProfileController>();
     homeController = Get.find<MerchantHomeController>();
     orderController = Get.find<MerchantOrderController>();
+    notificationController = Get.put(NotificationController());
+
+    // Initialize POS controllers
+    Get.put(PosCartController());
+    Get.put(PosController());
 
     // Load data in merchant controller
     controller.fetchMerchantData();
@@ -54,8 +63,8 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
         final status = pendingNotification['status'];
 
         if (type == 'transaction_approved' && status == 'WAITING_APPROVAL') {
-          // Navigate to orders page and set filter
-          homeController.changePage(1); // Orders tab
+          // Navigate to online orders page
+          homeController.changePage(2); // Online orders tab
           orderController.filterOrders('WAITING_APPROVAL');
         }
       }
@@ -64,10 +73,12 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // New nav: Beranda | Kasir | Online | Chat | Profil
     final List<Widget> pages = [
       const MerchantHomePage(),
+      const PosMainPage(),
       const MerchantOrderPage(),
-      const ProductManagementPage(),
+      const ChatListPage(),
       MerchantProfilePage(),
     ];
 
@@ -161,13 +172,15 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
               currentIndex: homeController.currentPage.value,
               onTap: (index) => homeController.changePage(index),
               type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.transparent, // Transparent to avoid double background
+              backgroundColor:
+                  Colors.transparent, // Transparent to avoid double background
               elevation: 0, // Remove elevation since we have custom shadow
               items: [
                 createNavItem(Icons.grid_view, 'Beranda', 0),
-                createNavItem(Icons.receipt_long, 'Pesanan', 1),
-                createNavItem(Icons.restaurant_menu, 'Menu', 2),
-                createNavItem(Icons.person_outline, 'Profil', 3),
+                createNavItem(Icons.point_of_sale, 'Kasir', 1),
+                createNavItem(Icons.delivery_dining, 'Online', 2),
+                createNavItem(Icons.chat_bubble_outline, 'Chat', 3),
+                createNavItem(Icons.person_outline, 'Profil', 4),
               ],
             )),
       );
@@ -195,7 +208,8 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
                       const SizedBox(height: 16),
                       Text(
                         'Memuat data...',
-                        style: primaryTextStyle.copyWith(color: Colors.grey.shade500),
+                        style: primaryTextStyle.copyWith(
+                            color: Colors.grey.shade500),
                       ),
                     ],
                   ),

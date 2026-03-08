@@ -20,7 +20,7 @@ dependencies:
   http_parser: any
   encrypt: any
   share_plus: any
-  url_launcher: ^6.0.0
+  url_launcher: ^6.3.2
   carousel_slider: ^5.0.0
   photo_view: ^0.14.0
   flutter_map: ^5.0.0

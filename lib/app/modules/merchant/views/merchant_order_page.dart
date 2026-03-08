@@ -56,13 +56,13 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
             systemNavigationBarIconBrightness: Brightness.dark,
           ),
           child: Scaffold(
-            backgroundColor: logoColor,
+            backgroundColor: dashNavyDeep,
             body: SafeArea(
               child: Column(
                 children: [
                   // Custom AppBar
                   Container(
-                    color: logoColor,
+                    color: dashNavyDeep,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -109,7 +109,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                                       value: controller.autoApprove.value,
                                       onChanged: (value) =>
                                           controller.toggleAutoApprove(),
-                                      activeColor: logoColorSecondary,
+                                      activeColor: dashPrimary,
                                       inactiveThumbColor: Colors.white,
                                       inactiveTrackColor:
                                           Colors.white.withOpacity(0.5),
@@ -125,13 +125,13 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                   ),
                   // TabBar
                   Container(
-                    color: logoColor,
+                    color: dashNavyDeep,
                     child: Obx(() => TabBar(
                           isScrollable: true,
-                          indicatorColor: Colors.white,
+                          indicatorColor: dashPrimary,
                           indicatorWeight: 3,
-                          labelColor: Colors.white,
-                          unselectedLabelColor: Colors.white.withOpacity(0.7),
+                          labelColor: dashPrimary,
+                          unselectedLabelColor: Colors.white.withOpacity(0.5),
                           labelStyle: TextStyle(
                             fontSize: Dimenssions.font14,
                             fontWeight: semiBold,
@@ -232,7 +232,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
   Widget _buildOrderList() {
     return RefreshIndicator(
       onRefresh: () => controller.refreshOrders(),
-      color: logoColor,
+      color: dashPrimary,
       backgroundColor: backgroundColor1,
       strokeWidth: 3,
       displacement: 40,
@@ -271,7 +271,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                         icon: const Icon(Icons.refresh),
                         label: const Text('Coba Lagi'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: logoColor,
+                          backgroundColor: dashPrimary,
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(
                             horizontal: Dimenssions.width16,
@@ -335,7 +335,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(logoColor),
+                        valueColor: AlwaysStoppedAnimation<Color>(dashPrimary),
                       ),
                     ),
                   ),

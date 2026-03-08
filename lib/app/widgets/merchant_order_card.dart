@@ -51,7 +51,7 @@ class MerchantOrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Order #$orderId',
+                        '#ANTAR-$orderId',
                         style: primaryTextStyle.copyWith(
                           fontSize: Dimenssions.font14,
                           fontWeight: semiBold,
@@ -139,15 +139,14 @@ class MerchantOrderCard extends StatelessWidget {
               child: Image.network(
                 item.product.firstImageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(
-                      color: backgroundColor3.withOpacity(0.26),
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        color: secondaryTextColor,
-                        size: Dimenssions.font20,
-                      ),
-                    ),
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: backgroundColor3.withOpacity(0.26),
+                  child: Icon(
+                    Icons.image_not_supported_outlined,
+                    color: secondaryTextColor,
+                    size: Dimenssions.font20,
+                  ),
+                ),
               ),
             ),
           ),
@@ -178,7 +177,8 @@ class MerchantOrderCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: logoColorSecondary.withOpacity(0.26),
-                            borderRadius: BorderRadius.circular(Dimenssions.radius6),
+                            borderRadius:
+                                BorderRadius.circular(Dimenssions.radius6),
                           ),
                           child: Text(
                             '${item.quantity} item',
@@ -258,11 +258,12 @@ class MerchantOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = transaction.items.isNotEmpty 
-        ? transaction.items 
+    final items = transaction.items.isNotEmpty
+        ? transaction.items
         : (transaction.order?.orderItems ?? []);
-    
-    final orderId = (transaction.orderId ?? transaction.id)?.toString() ?? 'Unknown';
+
+    final orderId =
+        (transaction.orderId ?? transaction.id)?.toString() ?? 'Unknown';
     final status = transaction.order?.orderStatus ?? transaction.status;
     final date = transaction.createdAt != null
         ? DateFormat('dd MMM yyyy HH:mm').format(transaction.createdAt!)

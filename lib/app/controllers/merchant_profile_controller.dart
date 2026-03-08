@@ -36,7 +36,9 @@ class MerchantProfileController extends GetxController {
   final errorMessage = ''.obs;
   final isLoading = false.obs;
   final isUploadingLogo = false.obs;
+  final isUploadingQris = false.obs;
   final newLogoFile = Rxn<File>();
+  final newQrisFile = Rxn<File>();
   final location = Rxn<LatLng>();
   final operatingDays = <String>[].obs;
 
@@ -57,6 +59,7 @@ class MerchantProfileController extends GetxController {
   String? get merchantAddress => merchantData.value?.address;
   String? get merchantPhone => merchantData.value?.phoneNumber;
   String? get merchantLogo => merchantData.value?.logoUrl;
+  String? get qrisUrl => merchantData.value?.qrisUrl;
   MerchantModel? get merchant => merchantData.value;
 
   MerchantProfileController({
@@ -358,7 +361,7 @@ class MerchantProfileController extends GetxController {
 
   void toggleOperatingDay(String day) {
     final currentDays = operatingDays.toSet(); // Convert to Set for uniqueness check
-    
+
     if (currentDays.contains(day)) {
       currentDays.remove(day);
     } else {
@@ -374,9 +377,58 @@ class MerchantProfileController extends GetxController {
       }
       currentDays.add(day);
     }
-    
+
     operatingDays.value = currentDays.toList();
     operatingDays.refresh();
     update(); // Force UI update
+  }
+
+  Future<void> uploadQris() async {
+    try {
+      // Pick image
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: _maxImageDimension,
+        maxHeight: _maxImageDimension,
+        imageQuality: _imageQuality,
+      );
+
+      if (pickedFile == null) return;
+
+      final file = File(pickedFile.path);
+
+      // Validate file
+      await _validateImageFile(file);
+
+      // Upload QRIS
+      isUploadingQris(true);
+      
+      // TODO: Implement QRIS upload API call
+      // For now, just simulate upload
+      await Future.delayed(Duration(seconds: 2));
+      
+      isUploadingQris(false);
+      Get.back(); // Close dialog
+      Get.snackbar(
+        'Sukses',
+        'QRIS berhasil diupload',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      
+      // Refresh merchant data
+      await fetchMerchantData();
+      
+    } catch (e) {
+      isUploadingQris(false);
+      Get.snackbar(
+        'Error',
+        'Gagal upload QRIS: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 }

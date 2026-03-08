@@ -7,10 +7,14 @@ import 'package:antarkanma_merchant/app/modules/merchant/views/product_managemen
 import 'package:antarkanma_merchant/app/modules/merchant/views/product_form_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_home_page.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/edit_store_info_page.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_analytics_page.dart';
+import 'package:antarkanma_merchant/app/modules/merchant/views/notification_inbox_page.dart';
 import 'package:antarkanma_merchant/app/modules/splash/views/splash_page.dart';
 import 'package:antarkanma_merchant/app/bindings/app_binding.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/app/middleware/auth_middleware.dart';
+import 'package:antarkanma_merchant/app/modules/chat/views/chat_view.dart';
+import 'package:antarkanma_merchant/app/modules/chat/bindings/chat_binding.dart';
 
 abstract class Routes {
   // Common routes
@@ -27,6 +31,8 @@ abstract class Routes {
   static const merchantAddProduct = '/merchantmain/add-product';
   static const merchantEditProduct = '/merchantmain/edit-product/:id';
   static const merchantEditInfo = '/merchantmain/edit-store-info';
+  static const merchantAnalytics = '/merchantmain/analytics';
+  static const notificationInbox = '/notifications/inbox';
 }
 
 class AppPages {
@@ -95,7 +101,34 @@ class AppPages {
           page: () => const EditStoreInfoPage(),
           preventDuplicates: true,
         ),
+        GetPage(
+          name: '/analytics',
+          page: () => const MerchantAnalyticsPage(),
+          preventDuplicates: true,
+        ),
       ],
+    ),
+    // Notification Inbox route
+    GetPage(
+      name: Routes.notificationInbox,
+      page: () => const NotificationInboxPage(),
+      middlewares: [
+        AuthMiddleware(),
+      ],
+    ),
+    // Chat route (without chatId - for new chats from orders)
+    GetPage(
+      name: '/chat',
+      page: () => const ChatView(),
+      binding: ChatBinding(),
+      middlewares: [AuthMiddleware()],
+    ),
+    // Chat route (with chatId - for existing chats from chat list)
+    GetPage(
+      name: '/chat/:chatId',
+      page: () => const ChatView(),
+      binding: ChatBinding(),
+      middlewares: [AuthMiddleware()],
     ),
   ];
 }

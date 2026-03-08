@@ -13,14 +13,13 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Profil Toko',
-          style: primaryTextStyle.copyWith(color: logoColor),
+      backgroundColor: backgroundColor3,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(0),
+        child: AppBar(
+          backgroundColor: logoColor,
+          elevation: 0,
         ),
-        backgroundColor: transparentColor,
-        elevation: 0,
       ),
       body: Obx(() {
         if (controller.merchantData.value == null) {
@@ -57,16 +56,27 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
 
         return RefreshIndicator(
           onRefresh: () => controller.fetchMerchantData(),
-          child: ListView(
-            physics: AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.all(Dimenssions.width16),
-            children: [
-              _buildHeader(),
-              _buildStoreInfoCard(),
-              _buildOperationalHoursCard(),
-              _buildPaymentMethodsCard(),
-              _buildMenuSection(),
-              SizedBox(height: Dimenssions.height10),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              _buildSliverAppBar(context),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: Dimenssions.width16),
+                  child: Column(
+                    children: [
+                      _buildStoreInfoCard(),
+                      _buildOperationalHoursCard(),
+                      _buildPaymentMethodsCard(),
+                      _buildMenuSection(),
+                      SizedBox(height: Dimenssions.height80), // Extra space
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -74,72 +84,128 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      height: Dimenssions.height200,
-      margin: EdgeInsets.only(bottom: Dimenssions.height16),
-      child: Stack(
-        children: [
-          _buildHeaderBackground(),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Column(
-                children: [
-                  _buildLogoSection(),
-                  SizedBox(height: Dimenssions.height8),
-                  Obx(() => Text(
-                        controller.merchantName ?? 'Nama belum ditambahkan',
-                        style: primaryTextStyle.copyWith(
-                          fontSize: Dimenssions.font18,
-                          fontWeight: semiBold,
-                          color: (controller.merchantName?.isNotEmpty ?? false)
-                              ? null
-                              : Colors.grey,
-                        ),
-                      )),
-                  Obx(() => Text(
-                        controller.merchantDescription ??
-                            'Deskripsi belum ditambahkan',
-                        style: secondaryTextStyle.copyWith(
-                          fontSize: Dimenssions.font14,
-                          color: controller.merchantDescription?.isNotEmpty ??
-                                  false
-                              ? null
-                              : Colors.grey,
-                        ),
-                      )),
-                ],
+  Widget _buildSliverAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: Dimenssions.height250,
+      pinned: true,
+      stretch: true,
+      backgroundColor: logoColor,
+      elevation: 0,
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [
+          StretchMode.zoomBackground,
+          StretchMode.blurBackground,
+        ],
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Modern Gradient Background
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    logoColor,
+                    logoColor.withOpacity(0.8),
+                    logoColorSecondary.withOpacity(0.9),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            // Decorative Abstract Circles
+            Positioned(
+              right: -50,
+              top: -50,
+              child: Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            Positioned(
+              left: -30,
+              bottom: 20,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            // Profile Content Information
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: Dimenssions.height20,
+                  bottom: Dimenssions.height10,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildLogoSection(),
+                    SizedBox(height: Dimenssions.height12),
+                    Obx(() => Text(
+                          controller.merchantName ?? 'Nama belum ditambahkan',
+                          style: primaryTextStyle.copyWith(
+                            fontSize: Dimenssions.font20,
+                            fontWeight: bold,
+                            color: Colors.white,
+                          ),
+                        )),
+                    SizedBox(height: Dimenssions.height8),
+                    // Glassmorphism Badge for Description
+                    Obx(() {
+                      final desc = controller.merchantDescription ?? '';
+                      if (desc.isEmpty) return const SizedBox.shrink();
 
-  Widget _buildHeaderBackground() {
-    return Container(
-      height: Dimenssions.height150,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            logoColor.withOpacity(0.8),
-            logoColor,
+                      return Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Dimenssions.width16,
+                          vertical: Dimenssions.height6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          desc,
+                          style: primaryTextStyle.copyWith(
+                            fontSize: Dimenssions.font12,
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: medium,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(Dimenssions.radius15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 5),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(20),
+        child: Container(
+          height: 20,
+          decoration: BoxDecoration(
+            color: backgroundColor3,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(30),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -164,24 +230,27 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
             child: Hero(
               tag: 'merchant_logo',
               child: CircleAvatar(
-                radius: Dimenssions.height50,
+                radius: Dimenssions.height60,
                 backgroundColor: Colors.white,
-                child: Obx(() => controller.isUploadingLogo.value
-                    ? CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(logoColor),
-                      )
-                    : _buildLogoImage()),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Obx(() => controller.isUploadingLogo.value
+                      ? CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(logoColor),
+                        )
+                      : _buildLogoImage()),
+                ),
               ),
             ),
           ),
         ),
         Positioned(
-          bottom: 0,
-          right: 0,
+          bottom: 5,
+          right: 5,
           child: Container(
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.all(Dimenssions.height8),
             decoration: BoxDecoration(
-              color: logoColor,
+              color: logoColorSecondary,
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
@@ -274,11 +343,18 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
   }
 
   Widget _buildStoreInfoCard() {
-    return Card(
-      color: backgroundColor1,
+    return Container(
       margin: EdgeInsets.only(bottom: Dimenssions.height16),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: backgroundColor1,
         borderRadius: BorderRadius.circular(Dimenssions.radius15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(Dimenssions.width16),
@@ -330,13 +406,18 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
   Widget _buildOperationalHoursCard() {
     final merchant = controller.merchantData.value;
 
-    return Card(
-      elevation: 1,
-      color: backgroundColor1,
+    return Container(
       margin: EdgeInsets.only(bottom: Dimenssions.height16),
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: logoColor),
+      decoration: BoxDecoration(
+        color: backgroundColor1,
         borderRadius: BorderRadius.circular(Dimenssions.radius15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(Dimenssions.width16),
@@ -443,11 +524,18 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
   }
 
   Widget _buildPaymentMethodsCard() {
-    return Card(
-      color: backgroundColor1,
+    return Container(
       margin: EdgeInsets.only(bottom: Dimenssions.height16),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: backgroundColor1,
         borderRadius: BorderRadius.circular(Dimenssions.radius15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(Dimenssions.width16),
@@ -468,23 +556,254 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
               ],
             ),
             Divider(height: Dimenssions.height24),
+            // QRIS Section
+            Obx(() {
+              final qrisUrl = controller.qrisUrl;
+              return Container(
+                padding: EdgeInsets.all(Dimenssions.width12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(Dimenssions.radius12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.qr_code_2, color: dashPrimary, size: 20),
+                        SizedBox(width: Dimenssions.width8),
+                        Text(
+                          'QRIS',
+                          style: primaryTextStyle.copyWith(
+                            fontSize: Dimenssions.font14,
+                            fontWeight: semiBold,
+                          ),
+                        ),
+                        Spacer(),
+                        if (qrisUrl != null && qrisUrl.isNotEmpty)
+                          Text(
+                            '✓ Aktif',
+                            style: TextStyle(
+                              color: dashPrimary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: Dimenssions.height12),
+                    if (qrisUrl != null && qrisUrl.isNotEmpty) ...[
+                      // Show QRIS preview
+                      ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(Dimenssions.radius8),
+                        child: Image.network(
+                          qrisUrl,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              color: Colors.grey.shade100,
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.broken_image,
+                                        size: 48, color: Colors.grey.shade400),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'QRIS tidak dapat dimuat',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade500,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: Dimenssions.height12),
+                    ] else ...[
+                      // Show placeholder if no QRIS
+                      Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius:
+                              BorderRadius.circular(Dimenssions.radius8),
+                          border: Border.all(
+                            color: dashPrimary.withOpacity(0.3),
+                            width: 2,
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.qr_code_2,
+                                  size: 48,
+                                  color: dashPrimary.withOpacity(0.5)),
+                              SizedBox(height: 8),
+                              Text(
+                                'Belum ada QRIS',
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: Dimenssions.height12),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showUploadQrisDialog(),
+                        icon: Icon(
+                          qrisUrl != null && qrisUrl.isNotEmpty
+                              ? Icons.edit
+                              : Icons.add_a_photo,
+                          size: Dimenssions.height18,
+                        ),
+                        label: Text(
+                          qrisUrl != null && qrisUrl.isNotEmpty
+                              ? 'Ubah QRIS'
+                              : 'Upload QRIS',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: dashPrimary,
+                          side: BorderSide(color: dashPrimary),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            SizedBox(height: Dimenssions.height16),
             _buildPaymentMethodRow('Transfer Bank', false),
             _buildPaymentMethodRow('E-Wallet', false),
-            _buildPaymentMethodRow('COD', true),
-            SizedBox(height: Dimenssions.height16),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => {},
-                icon: Icon(Icons.edit, size: Dimenssions.height18),
-                label: Text('Atur Pembayaran'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: logoColor,
-                  side: BorderSide(color: logoColor),
+            _buildPaymentMethodRow('COD (Bayar di Tempat)', true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showUploadQrisDialog() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Dimenssions.radius20),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(Dimenssions.width20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Upload QRIS',
+                style: primaryTextStyle.copyWith(
+                  fontSize: Dimenssions.font18,
+                  fontWeight: semiBold,
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: Dimenssions.height8),
+              Text(
+                'Upload QRIS code untuk pembayaran customer. Format: JPG, PNG. Max size: 2MB.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+              SizedBox(height: Dimenssions.height20),
+              GestureDetector(
+                onTap: () => controller.uploadQris(),
+                child: Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: dashPrimary.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(Dimenssions.radius12),
+                    border: Border.all(
+                      color: dashPrimary.withOpacity(0.3),
+                      width: 2,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Center(
+                    child: Obx(() {
+                      if (controller.isUploadingQris.value) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                color: dashPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              'Mengupload...',
+                              style: TextStyle(
+                                color: dashPrimary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 48,
+                            color: dashPrimary,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Tap untuk upload QRIS',
+                            style: TextStyle(
+                              color: dashPrimary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
+                ),
+              ),
+              SizedBox(height: Dimenssions.height20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Get.back(),
+                      child: Text(
+                        'Batal',
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -510,11 +829,18 @@ class MerchantProfilePage extends GetView<MerchantProfileController> {
   }
 
   Widget _buildMenuSection() {
-    return Card(
-      color: backgroundColor1,
+    return Container(
       margin: EdgeInsets.only(bottom: Dimenssions.height16),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: backgroundColor1,
         borderRadius: BorderRadius.circular(Dimenssions.radius15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(Dimenssions.width16),

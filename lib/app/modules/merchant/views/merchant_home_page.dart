@@ -3,9 +3,10 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/merchant_controller.dart';
 import '../../../controllers/merchant_home_controller.dart';
-import '../../../data/models/order_model.dart';
+import '../../../controllers/notification_controller.dart';
 import '../../../../theme.dart';
-import 'order_details_bottom_sheet.dart';
+import '../../../routes/app_pages.dart';
+import 'order_detail_page.dart';
 import '../../../widgets/custom_snackbar.dart';
 
 class MerchantHomePage extends GetView<MerchantHomeController> {
@@ -29,9 +30,35 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
           key: const PageStorageKey<String>('merchant_home'),
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Custom Header matching the design
-            SliverToBoxAdapter(
-              child: _buildHeader(merchantController),
+            // Sticky Header with SafeArea for notch - Match POS design
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _SliverAppBarDelegate(
+                minHeight: 75 + MediaQuery.of(context).padding.top,
+                maxHeight: 75 + MediaQuery.of(context).padding.top,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: dashNavyDeep,
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(32),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: dashNavyDeep.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: _buildHeader(merchantController),
+                    ),
+                  ),
+                ),
+              ),
             ),
 
             // Stats Section (Ringkasan Hari Ini)
@@ -60,70 +87,117 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
   }
 
   Widget _buildHeader(MerchantController merchantController) {
-    return Container(
-      decoration: BoxDecoration(
-        color: dashNavyDeep,
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(Dimenssions.radius20),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: dashNavyDeep.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.fromLTRB(
-          Dimenssions.width20,
-          Dimenssions.height60, // Padding for status bar
-          Dimenssions.width20,
-          Dimenssions.height30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: Dimenssions.width20, vertical: Dimenssions.height12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Top Row: Info and Toggle
+          // Store Name (left)
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'MERCHANT',
+                  style: primaryTextStyle.copyWith(
+                    color: dashPrimary.withOpacity(0.8),
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Obx(() {
+                  final name =
+                      merchantController.merchant.value?.name ?? 'Nama Toko';
+                  return Text(
+                    name,
+                    style: primaryTextStyle.copyWith(
+                      color: Colors.white,
+                      fontSize: Dimenssions.font16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }),
+              ],
+            ),
+          ),
+          // Right section: Notification + Toggle Button
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'MERCHANT DASHBOARD',
-                      style: primaryTextStyle.copyWith(
-                        color: dashPrimary.withOpacity(0.8),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
+              // Notification Bell Icon
+              Stack(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Get.toNamed(Routes.notificationInbox);
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(Dimenssions.width8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius:
+                            BorderRadius.circular(Dimenssions.radius12),
+                      ),
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                        size: 22,
                       ),
                     ),
-                    SizedBox(height: Dimenssions.height4),
-                    Obx(() {
-                      final name = merchantController.merchant.value?.name ??
-                          'Nama Toko';
-                      return Text(
-                        name,
-                        style: primaryTextStyle.copyWith(
-                          color: Colors.white,
-                          fontSize: Dimenssions.font20,
-                          fontWeight: FontWeight.bold,
+                  ),
+                  // Unread badge - Larger and more visible
+                  Obx(() {
+                    final notificationController =
+                        Get.find<NotificationController>();
+                    if (notificationController.unreadCount.value > 0) {
+                      return Positioned(
+                        right: 2,
+                        top: 2,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: dashPrimary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: dashNavyDeep,
+                              width: 2.5,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            notificationController.unreadCount.value > 9
+                                ? '9+'
+                                : notificationController.unreadCount.value
+                                    .toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       );
-                    }),
-                  ],
-                ),
+                    }
+                    return SizedBox.shrink();
+                  }),
+                ],
               ),
+              SizedBox(width: Dimenssions.width10),
               // Open/Close Toggle Button
               Obx(() => GestureDetector(
                     onTap: () => controller.toggleMerchantStatus(),
                     child: Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: Dimenssions.width16,
+                          horizontal: Dimenssions.width15,
                           vertical: Dimenssions.height8),
                       decoration: BoxDecoration(
                         color: controller.isOpen.value
@@ -133,13 +207,14 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                             BorderRadius.circular(Dimenssions.radius30),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           if (controller.isOpen.value)
                             Container(
                               width: 8,
                               height: 8,
                               margin:
-                                  EdgeInsets.only(right: Dimenssions.width8),
+                                  EdgeInsets.only(right: Dimenssions.width6),
                               decoration: const BoxDecoration(
                                 color: Colors.white,
                                 shape: BoxShape.circle,
@@ -159,141 +234,6 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                   )),
             ],
           ),
-          SizedBox(height: Dimenssions.height24),
-          // Store Operations Badge
-          Container(
-            padding: EdgeInsets.all(Dimenssions.height12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(Dimenssions.radius12),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
-            ),
-            child: IntrinsicHeight(
-              child: Row(
-                children: [
-                  // Operating Hours
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: dashPrimary.withOpacity(0.2),
-                            borderRadius:
-                                BorderRadius.circular(Dimenssions.radius8),
-                          ),
-                          child: Icon(Icons.access_time,
-                              color: dashPrimary, size: 20),
-                        ),
-                        SizedBox(width: Dimenssions.width12),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'JAM OPERASIONAL',
-                                style: primaryTextStyle.copyWith(
-                                  color: Colors.white.withOpacity(0.6),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Obx(() {
-                                final merchant =
-                                    merchantController.merchant.value;
-                                String formatTime(String? time) {
-                                  if (time == null || time.isEmpty)
-                                    return '--:--';
-                                  final p = time.split(':');
-                                  return p.length >= 2
-                                      ? '${p[0]}:${p[1]}'
-                                      : time;
-                                }
-
-                                final open = formatTime(merchant?.openingTime);
-                                final close = formatTime(merchant?.closingTime);
-                                return Text(
-                                  '$open - $close',
-                                  style: primaryTextStyle.copyWith(
-                                    color: Colors.white,
-                                    fontSize: Dimenssions.font12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                );
-                              }),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  VerticalDivider(
-                    color: Colors.white.withOpacity(0.2),
-                    thickness: 1,
-                    width: 24,
-                  ),
-                  // Total Orders
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: dashPrimary.withOpacity(0.2),
-                            borderRadius:
-                                BorderRadius.circular(Dimenssions.radius8),
-                          ),
-                          child: Icon(Icons.shopping_bag_outlined,
-                              color: dashPrimary, size: 20),
-                        ),
-                        SizedBox(width: Dimenssions.width12),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'TOTAL PESANAN',
-                                style: primaryTextStyle.copyWith(
-                                  color: Colors.white.withOpacity(0.6),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Obx(() {
-                                final count = merchantController
-                                        .merchant.value?.orderCount ??
-                                    0;
-                                return Text(
-                                  '$count Pesanan',
-                                  style: primaryTextStyle.copyWith(
-                                    color: Colors.white,
-                                    fontSize: Dimenssions.font12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                );
-                              }),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -301,8 +241,11 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
 
   Widget _buildSummarySection() {
     return Container(
-      transform: Matrix4.translationValues(0.0, -20.0, 0.0),
-      margin: EdgeInsets.symmetric(horizontal: Dimenssions.width20),
+      margin: EdgeInsets.only(
+        top: Dimenssions.height10,
+        left: Dimenssions.width20,
+        right: Dimenssions.width20,
+      ),
       padding: EdgeInsets.all(Dimenssions.height16),
       decoration: BoxDecoration(
         color: dashCardLight,
@@ -446,19 +389,23 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Row(
-                children: [
-                  Icon(Icons.trending_up, color: dashPrimary, size: 16),
-                  SizedBox(width: 4),
-                  Text(
-                    'Hari Ini',
-                    style: primaryTextStyle.copyWith(
-                      color: dashPrimary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+              GestureDetector(
+                onTap: () => Get.toNamed(Routes.merchantAnalytics),
+                child: Row(
+                  children: [
+                    Icon(Icons.bar_chart, color: dashPrimary, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'Lihat Detail',
+                      style: primaryTextStyle.copyWith(
+                        color: dashPrimary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                    Icon(Icons.chevron_right, color: dashPrimary, size: 14),
+                  ],
+                ),
               ),
             ],
           ),
@@ -634,7 +581,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     required String createdAt,
   }) {
     debugPrint('🔵 [_buildOrderCard] Order #$orderId - Status: "$status"');
-    
+
     return GestureDetector(
       onTap: () => _viewOrderDetail(orderId),
       child: Container(
@@ -653,203 +600,204 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
           ],
         ),
         child: Stack(
-        children: [
-          if (isNew)
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: dashPrimary,
-                  borderRadius: BorderRadius.horizontal(
-                    left: Radius.circular(Dimenssions.radius12),
+          children: [
+            if (isNew)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: dashPrimary,
+                    borderRadius: BorderRadius.horizontal(
+                      left: Radius.circular(Dimenssions.radius12),
+                    ),
                   ),
                 ),
               ),
-            ),
-          Padding(
-            padding: EdgeInsets.only(left: isNew ? 8 : 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          orderNumber,
-                          style: primaryTextStyle.copyWith(
-                            color: Colors.grey.shade400,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          customerName,
-                          style: primaryTextStyle.copyWith(
-                            color: dashTextDark,
-                            fontSize: Dimenssions.font14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          createdAt,
-                          style: primaryTextStyle.copyWith(
-                            color: Colors.grey.shade400,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(status).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            _getStatusText(status),
+            Padding(
+              padding: EdgeInsets.only(left: isNew ? 8 : 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            orderNumber,
                             style: primaryTextStyle.copyWith(
-                              color: _getStatusColor(status),
+                              color: Colors.grey.shade400,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          price,
-                          style: primaryTextStyle.copyWith(
-                            color: dashPrimary,
-                            fontSize: Dimenssions.font14,
-                            fontWeight: FontWeight.bold,
+                          SizedBox(height: 2),
+                          Text(
+                            customerName,
+                            style: primaryTextStyle.copyWith(
+                              color: dashTextDark,
+                              fontSize: Dimenssions.font14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Text(
-                          paymentMethod,
-                          style: primaryTextStyle.copyWith(
-                            color: Colors.grey.shade400,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: Dimenssions.height12),
-                ...items.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.restaurant,
-                              size: 14, color: Colors.grey.shade600),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              item,
-                              style: primaryTextStyle.copyWith(
-                                color: Colors.grey.shade600,
-                                fontSize: 12,
-                              ),
+                          SizedBox(height: 2),
+                          Text(
+                            createdAt,
+                            style: primaryTextStyle.copyWith(
+                              color: Colors.grey.shade400,
+                              fontSize: 10,
                             ),
                           ),
                         ],
                       ),
-                    )),
-                SizedBox(height: Dimenssions.height16),
-                Row(
-                  children: [
-                    if (status == 'PENDING' || status == 'WAITING_APPROVAL')
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _acceptOrder(orderId),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: dashPrimary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(Dimenssions.radius8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(status).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _getStatusText(status),
+                              style: primaryTextStyle.copyWith(
+                                color: _getStatusColor(status),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            'TERIMA',
+                          SizedBox(height: 8),
+                          Text(
+                            price,
                             style: primaryTextStyle.copyWith(
-                              fontSize: 12,
+                              color: dashPrimary,
+                              fontSize: Dimenssions.font14,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 1.0,
                             ),
                           ),
-                        ),
-                      ),
-                    if (status == 'PROCESSING')
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _markAsReady(orderId),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: dashPrimary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(Dimenssions.radius8),
-                            ),
-                          ),
-                          child: Text(
-                            'SIAP DIAMBIL',
+                          Text(
+                            paymentMethod,
                             style: primaryTextStyle.copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.0,
+                              color: Colors.grey.shade400,
+                              fontSize: 10,
                             ),
                           ),
-                        ),
-                      ),
-                    if (status == 'PENDING' || status == 'WAITING_APPROVAL') ...[
-                      SizedBox(width: Dimenssions.width12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _rejectOrder(orderId),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: BorderSide(color: Colors.red.shade200),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(Dimenssions.radius8),
-                            ),
-                          ),
-                          child: Text(
-                            'TOLAK',
-                            style: primaryTextStyle.copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                        ),
+                        ],
                       ),
                     ],
-                  ],
-                )
-              ],
+                  ),
+                  SizedBox(height: Dimenssions.height12),
+                  ...items.map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.restaurant,
+                                size: 14, color: Colors.grey.shade600),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                item,
+                                style: primaryTextStyle.copyWith(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                  SizedBox(height: Dimenssions.height16),
+                  Row(
+                    children: [
+                      if (status == 'PENDING' || status == 'WAITING_APPROVAL')
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _acceptOrder(orderId),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: dashPrimary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(Dimenssions.radius8),
+                              ),
+                            ),
+                            child: Text(
+                              'TERIMA',
+                              style: primaryTextStyle.copyWith(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (status == 'PROCESSING')
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _markAsReady(orderId),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: dashPrimary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(Dimenssions.radius8),
+                              ),
+                            ),
+                            child: Text(
+                              'SIAP DIAMBIL',
+                              style: primaryTextStyle.copyWith(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (status == 'PENDING' ||
+                          status == 'WAITING_APPROVAL') ...[
+                        SizedBox(width: Dimenssions.width12),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _rejectOrder(orderId),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: BorderSide(color: Colors.red.shade200),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(Dimenssions.radius8),
+                              ),
+                            ),
+                            child: Text(
+                              'TOLAK',
+                              style: primaryTextStyle.copyWith(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  )
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -887,7 +835,8 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
   }
 
   void _acceptOrder(int orderId) {
-    debugPrint('🔵 [MerchantHomePage] Accept order button pressed - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomePage] Accept order button pressed - Order ID: $orderId');
     try {
       controller.approveOrder(orderId);
     } catch (e) {
@@ -900,7 +849,8 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
   }
 
   void _rejectOrder(int orderId) {
-    debugPrint('🔵 [MerchantHomePage] Reject order button pressed - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomePage] Reject order button pressed - Order ID: $orderId');
     try {
       controller.showRejectDialog(orderId);
     } catch (e) {
@@ -913,7 +863,8 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
   }
 
   void _markAsReady(int orderId) {
-    debugPrint('🔵 [MerchantHomePage] Mark as ready button pressed - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomePage] Mark as ready button pressed - Order ID: $orderId');
     try {
       controller.markOrderReady(orderId);
     } catch (e) {
@@ -926,23 +877,22 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
   }
 
   void _viewOrderDetail(int orderId) {
-    debugPrint('🔵 [MerchantHomePage] View order detail button pressed - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomePage] View order detail button pressed - Order ID: $orderId');
     try {
       // Find the order from active orders list
       final order = controller.activeOrders.firstWhere(
         (o) => o.id == orderId,
         orElse: () {
-          debugPrint('🔴 [MerchantHomePage] Order #$orderId not found in active orders');
+          debugPrint(
+              '🔴 [MerchantHomePage] Order #$orderId not found in active orders');
           throw Exception('Order not found');
         },
       );
 
-      debugPrint('🔵 [MerchantHomePage] Opening order detail bottom sheet for order #$orderId');
-      Get.bottomSheet(
-        OrderDetailsBottomSheet(order: order),
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-      );
+      debugPrint(
+          '🔵 [MerchantHomePage] Opening order detail page for order #$orderId');
+      Get.to(() => OrderDetailPage(order: order));
     } catch (e) {
       debugPrint('🔴 [MerchantHomePage] Error showing order detail: $e');
       CustomSnackbarX.showError(
@@ -1122,6 +1072,38 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
         ],
       ),
     );
+  }
+}
+
+// Delegate for SliverPersistentHeader to make sticky header
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox.expand(child: child);
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
   }
 }
 

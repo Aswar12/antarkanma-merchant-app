@@ -31,13 +31,15 @@ class LoginView extends GetView<AuthController> {
                 padding: EdgeInsets.all(Dimenssions.height20),
                 child: Column(
                   children: [
-                    header(),
-                    SizedBox(height: Dimenssions.height30),
-                    loginForm(),
                     SizedBox(height: Dimenssions.height20),
-                    signButton(),
+                    header(),
+                    SizedBox(height: Dimenssions.height40),
+                    loginForm(),
                     SizedBox(height: Dimenssions.height30),
+                    signButton(),
+                    SizedBox(height: Dimenssions.height40),
                     footer(),
+                    SizedBox(height: Dimenssions.height20),
                   ],
                 ),
               ),
@@ -56,7 +58,7 @@ class LoginView extends GetView<AuthController> {
           height: Dimenssions.height80,
           fit: BoxFit.contain,
         ),
-        SizedBox(height: Dimenssions.height20),
+        SizedBox(height: Dimenssions.height30),
         Text(
           'Selamat Datang Kembali!',
           style: primaryTextStyle.copyWith(
@@ -79,17 +81,20 @@ class LoginView extends GetView<AuthController> {
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor2,
-        borderRadius: BorderRadius.circular(Dimenssions.radius15),
+        borderRadius: BorderRadius.circular(Dimenssions.radius20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            color: Colors.grey.withValues(alpha: 0.08),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: EdgeInsets.all(Dimenssions.height20),
+      padding: EdgeInsets.symmetric(
+        horizontal: Dimenssions.width20,
+        vertical: Dimenssions.height30,
+      ),
       child: Column(
         children: [
           CustomInputField(
@@ -99,7 +104,7 @@ class LoginView extends GetView<AuthController> {
             validator: controller.validateIdentifier,
             icon: 'assets/icon_email.png',
           ),
-          SizedBox(height: Dimenssions.height15),
+          SizedBox(height: Dimenssions.height20),
           CustomInputField(
             label: 'Password',
             hintText: 'Masukkan Password Kamu',
@@ -112,30 +117,30 @@ class LoginView extends GetView<AuthController> {
           SizedBox(height: Dimenssions.height15),
           // Remember Me Checkbox
           Obx(() => Row(
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Checkbox(
-                  value: controller.rememberMe.value,
-                  onChanged: (value) {
-                    // Remember me is always true
-                  },
-                  activeColor: logoColorSecondary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                children: [
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: controller.rememberMe.value,
+                      onChanged: (value) {
+                        // Remember me is always true
+                      },
+                      activeColor: logoColorSecondary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(width: Dimenssions.width8),
-              Text(
-                'Ingat Saya',
-                style: subtitleTextStyle.copyWith(
-                  fontSize: Dimenssions.font14,
-                ),
-              ),
-            ],
-          )),
+                  SizedBox(width: Dimenssions.width8),
+                  Text(
+                    'Ingat Saya',
+                    style: subtitleTextStyle.copyWith(
+                      fontSize: Dimenssions.font14,
+                    ),
+                  ),
+                ],
+              )),
         ],
       ),
     );

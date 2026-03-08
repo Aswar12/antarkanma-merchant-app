@@ -73,42 +73,23 @@ class MerchantHomeController extends GetxController {
       isLoadingActiveOrders.value = true;
       print('=== Fetching Active Orders from Backend ===');
 
-      // Get waiting approval orders
-      final waitingResult = await transactionService.getOrders(
-        status: 'WAITING_APPROVAL',
+      // Get all active orders (backend defaults to excluding COMPLETED/CANCELED)
+      final result = await transactionService.getOrders(
         sortBy: 'created_at',
         sortOrder: 'desc',
       );
 
-      // Get processing orders
-      final processingResult = await transactionService.getOrders(
-        status: 'PROCESSING',
-        sortBy: 'created_at',
-        sortOrder: 'desc',
-      );
+      final rawOrders = result.orders;
 
-      // Get ready for pickup orders
-      final readyResult = await transactionService.getOrders(
-        status: 'READY_FOR_PICKUP',
-        sortBy: 'created_at',
-        sortOrder: 'desc',
-      );
+      // Ensure no duplicates by ID (extra safeguard)
+      final Map<int, OrderModel> uniqueOrders = {};
+      for (var order in rawOrders) {
+        uniqueOrders[order.id] = order;
+      }
 
-      // Combine all active orders
-      final allActiveOrders = <OrderModel>[];
-      allActiveOrders.addAll(waitingResult.orders);
-      allActiveOrders.addAll(processingResult.orders);
-      allActiveOrders.addAll(readyResult.orders);
-
-      // Sort by created date (newest first)
-      allActiveOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-      activeOrders.assignAll(allActiveOrders);
+      activeOrders.assignAll(uniqueOrders.values.toList());
 
       print('=== Active Orders Loaded ===');
-      print('Waiting: ${waitingResult.orders.length}');
-      print('Processing: ${processingResult.orders.length}');
-      print('Ready: ${readyResult.orders.length}');
       print('Total Active: ${activeOrders.length}');
     } catch (e) {
       print('Error fetching active orders: $e');
@@ -331,7 +312,8 @@ class MerchantHomeController extends GetxController {
 
   // Order Actions - Delegate to TransactionService directly
   Future<void> approveOrder(int orderId) async {
-    debugPrint('🔵 [MerchantHomeController] Approving order - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomeController] Approving order - Order ID: $orderId');
     try {
       Get.snackbar(
         'Memproses',
@@ -342,7 +324,8 @@ class MerchantHomeController extends GetxController {
         duration: const Duration(seconds: 1),
       );
 
-      debugPrint('🔵 [MerchantHomeController] Calling transactionService.approveOrder($orderId)');
+      debugPrint(
+          '🔵 [MerchantHomeController] Calling transactionService.approveOrder($orderId)');
       await transactionService.approveOrder(orderId);
       debugPrint('✅ [MerchantHomeController] Order approved successfully');
 
@@ -371,7 +354,8 @@ class MerchantHomeController extends GetxController {
   }
 
   Future<void> markOrderReady(int orderId) async {
-    debugPrint('🔵 [MerchantHomeController] Marking order as ready - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomeController] Marking order as ready - Order ID: $orderId');
     try {
       Get.snackbar(
         'Memproses',
@@ -382,7 +366,8 @@ class MerchantHomeController extends GetxController {
         duration: const Duration(seconds: 1),
       );
 
-      debugPrint('🔵 [MerchantHomeController] Calling transactionService.markOrderReady($orderId)');
+      debugPrint(
+          '🔵 [MerchantHomeController] Calling transactionService.markOrderReady($orderId)');
       await transactionService.markOrderReady(orderId);
       debugPrint('✅ [MerchantHomeController] Order marked as ready');
 
@@ -399,7 +384,8 @@ class MerchantHomeController extends GetxController {
         colorText: Colors.white,
       );
     } catch (e) {
-      debugPrint('🔴 [MerchantHomeController] Error marking order as ready: $e');
+      debugPrint(
+          '🔴 [MerchantHomeController] Error marking order as ready: $e');
       Get.snackbar(
         'Gagal',
         'Tidak dapat memperbarui pesanan: ${e.toString()}',
@@ -411,9 +397,10 @@ class MerchantHomeController extends GetxController {
   }
 
   void showRejectDialog(int orderId) {
-    debugPrint('🔵 [MerchantHomeController] Showing reject dialog for order - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomeController] Showing reject dialog for order - Order ID: $orderId');
     final reasonController = TextEditingController();
-    
+
     Get.dialog(
       AlertDialog(
         title: Text('Tolak Pesanan'),
@@ -463,7 +450,8 @@ class MerchantHomeController extends GetxController {
                 );
                 return;
               }
-              debugPrint('🔵 [MerchantHomeController] User confirmed reject for order $orderId with reason: $reason');
+              debugPrint(
+                  '🔵 [MerchantHomeController] User confirmed reject for order $orderId with reason: $reason');
               Get.back();
               rejectOrder(orderId, reason: reason);
             },
@@ -479,10 +467,12 @@ class MerchantHomeController extends GetxController {
   }
 
   Future<void> rejectOrder(int orderId, {String? reason}) async {
-    debugPrint('🔵 [MerchantHomeController] Rejecting order - Order ID: $orderId');
+    debugPrint(
+        '🔵 [MerchantHomeController] Rejecting order - Order ID: $orderId');
     debugPrint('🔵 [MerchantHomeController] Reason: ${reason ?? "N/A"}');
     try {
-      debugPrint('🔵 [MerchantHomeController] Calling transactionService.rejectOrder($orderId, reason: $reason)');
+      debugPrint(
+          '🔵 [MerchantHomeController] Calling transactionService.rejectOrder($orderId, reason: $reason)');
       await transactionService.rejectOrder(orderId, reason: reason);
       debugPrint('✅ [MerchantHomeController] Order rejected successfully');
 

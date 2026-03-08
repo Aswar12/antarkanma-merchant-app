@@ -32,11 +32,13 @@ class RegisterView extends GetView<AuthController> {
                 key: _signUpFormKey,
                 child: Column(
                   children: [
+                    SizedBox(height: Dimenssions.height20),
                     header(),
-                    SizedBox(height: Dimenssions.height30),
+                    SizedBox(height: Dimenssions.height40),
                     registrationForm(),
                     signButton(),
                     footer(),
+                    SizedBox(height: Dimenssions.height20),
                   ],
                 ),
               ),
@@ -52,10 +54,10 @@ class RegisterView extends GetView<AuthController> {
       children: [
         Image.asset(
           'assets/merchant_nobg.png',
-          height: Dimenssions.height65,
+          height: Dimenssions.height80,
           fit: BoxFit.contain,
         ),
-        SizedBox(height: Dimenssions.height20),
+        SizedBox(height: Dimenssions.height30),
         Text(
           'Buat Akun Merchant',
           style: primaryTextStyle.copyWith(
