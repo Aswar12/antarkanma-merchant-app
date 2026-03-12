@@ -174,3 +174,22 @@ class ChatMessage {
     return 'https://www.google.com/maps?q=$latitude,$longitude';
   }
 }
+
+/// Paginated response for chat messages
+class PaginatedMessages {
+  final List<ChatMessage> messages;
+  final int currentPage;
+  final int lastPage;
+  final int total;
+  final int perPage;
+  final bool hasMorePages;
+
+  PaginatedMessages({
+    required this.messages,
+    required this.currentPage,
+    required this.lastPage,
+    required this.total,
+    required this.perPage,
+    required this.hasMorePages,
+  });
+}

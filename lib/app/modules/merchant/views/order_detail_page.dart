@@ -5,6 +5,7 @@ import 'package:antarkanma_merchant/app/services/receipt_service.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
@@ -80,13 +81,44 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Order ID - More prominent
+                // Order ID - More prominent with copy-to-clipboard
                 Expanded(
-                  child: Text('#${widget.order.orderNumber}',
-                      style: primaryTextStyle.copyWith(
-                          fontSize: 16, fontWeight: bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
+                  child: InkWell(
+                    onTap: () {
+                      // Copy order ID to clipboard
+                      Clipboard.setData(ClipboardData(text: widget.order.orderNumber));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Order ID ${widget.order.orderNumber} disalin!'),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: logoColor,
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.all(16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Expanded(
+                          child: Text('#${widget.order.orderNumber}',
+                              style: primaryTextStyle.copyWith(
+                                  fontSize: 16, fontWeight: bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.copy,
+                          size: 14,
+                          color: secondaryTextColor.withOpacity(0.6),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 // Status Badge

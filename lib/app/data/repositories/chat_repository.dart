@@ -331,13 +331,26 @@ class ChatRepository {
     }
   }
 
-  Future<List<ChatMessage>?> getMessages(int chatId) async {
+  Future<PaginatedMessages?> getMessages(
+    int chatId, {
+    int page = 1,
+    int perPage = 50,
+  }) async {
     try {
       final token = await _authService.getToken();
       if (token == null) return null;
 
+      final uri = Uri.parse('$baseUrl/chat/$chatId/messages').replace(
+        queryParameters: {
+          'page': page.toString(),
+          'per_page': perPage.toString(),
+        },
+      );
+
+      debugPrint('getMessages: Fetching page $page with $perPage per page');
+
       final response = await http.get(
-        Uri.parse('$baseUrl/chat/$chatId/messages'),
+        uri,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -350,12 +363,24 @@ class ChatRepository {
             data['data'] != null &&
             data['data']['messages'] != null) {
           final messagesList = data['data']['messages'] as List;
-          return messagesList.map((m) => ChatMessage.fromJson(m)).toList();
+          final messages = messagesList.map((m) => ChatMessage.fromJson(m)).toList();
+
+          debugPrint(
+              'getMessages: Fetched ${messages.length} messages (page $page)');
+
+          return PaginatedMessages(
+            messages: messages,
+            currentPage: data['data']['current_page'] ?? 1,
+            lastPage: data['data']['last_page'] ?? 1,
+            total: data['data']['total'] ?? 0,
+            perPage: data['data']['per_page'] ?? perPage,
+            hasMorePages: data['data']['current_page'] < data['data']['last_page'],
+          );
         }
       }
       return null;
     } catch (e) {
-      print('Error fetching messages: $e');
+      debugPrint('Error fetching messages: $e');
       return null;
     }
   }

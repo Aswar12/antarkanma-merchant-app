@@ -206,4 +206,53 @@ class ProfileService extends GetxService {
       throw e.toString();
     }
   }
+
+  Future<bool> updateMerchantQris(int merchantId, String imagePath) async {
+    try {
+      final token = _authService.getToken();
+      if (token == null) {
+        print('Error: No auth token available');
+        return false;
+      }
+
+      print('Attempting to upload QRIS for merchant $merchantId');
+      print('Image path: $imagePath');
+
+      final response = await _profileProvider.updateMerchantQris(
+        token,
+        merchantId,
+        imagePath,
+      );
+
+      // Log response details
+      print('QRIS upload response status: ${response.statusCode}');
+      print('QRIS upload response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        if (response.data?['meta']?['status'] == 'success') {
+          print('QRIS upload successful');
+          return true;
+        } else {
+          print('QRIS upload failed: ${response.data?['meta']?['message']}');
+          throw response.data?['meta']?['message'] ?? 'Unknown error occurred';
+        }
+      } else {
+        print('QRIS upload failed with status ${response.statusCode}');
+        if (response.data is Map) {
+          print('Error details: ${response.data}');
+        }
+        throw 'Server returned status code ${response.statusCode}';
+      }
+    } on DioException catch (e) {
+      print('DioError during QRIS upload:');
+      print('- Type: ${e.type}');
+      print('- Message: ${e.message}');
+      print('- Response: ${e.response?.data}');
+      print('- Status code: ${e.response?.statusCode}');
+      throw e.message ?? 'Network error occurred';
+    } catch (e) {
+      print('Unexpected error during QRIS upload: $e');
+      throw e.toString();
+    }
+  }
 }

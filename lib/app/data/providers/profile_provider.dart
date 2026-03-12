@@ -117,4 +117,56 @@ class ProfileProvider {
       throw Exception('Failed to update merchant logo: $e');
     }
   }
+
+  Future<Response> updateMerchantQris(
+    String token,
+    int merchantId,
+    String imagePath,
+  ) async {
+    try {
+      // Create FormData with the qris file
+      final formData = FormData();
+      formData.files.add(
+        MapEntry(
+          'qris',
+          await MultipartFile.fromFile(
+            imagePath,
+            filename: 'qris.png',
+          ),
+        ),
+      );
+
+      // Make the request with proper headers and form data
+      final response = await _dio.post(
+        '/merchant/$merchantId/qris',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+          validateStatus: (status) {
+            // Log the status code for debugging
+            print('Response status code: $status');
+            return status! < 500;
+          },
+        ),
+        data: formData,
+      );
+
+      // Log response for debugging
+      print('Response data: ${response.data}');
+      print('Response headers: ${response.headers}');
+
+      return response;
+    } catch (e) {
+      print('Error details: $e');
+      if (e is DioException) {
+        print('DioError type: ${e.type}');
+        print('DioError message: ${e.message}');
+        print('DioError response: ${e.response?.data}');
+      }
+      throw Exception('Failed to update merchant QRIS: $e');
+    }
+  }
 }

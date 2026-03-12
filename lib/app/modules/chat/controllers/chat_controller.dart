@@ -16,6 +16,14 @@ class ChatController extends GetxController with WidgetsBindingObserver {
   final messages = <ChatMessage>[].obs;
   final isLoading = false.obs;
   final isSending = false.obs;
+  final isLoadingMore = false.obs; // For pagination
+
+  // Pagination state
+  int currentPage = 1;
+  int lastPage = 1;
+  bool hasMorePages = false;
+  bool isLoadingAllMessages = false;
+  static const int perPage = 50;
 
   // Recipient info
   final RxString recipientName = 'Chat'.obs;
@@ -170,31 +178,78 @@ class ChatController extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _fetchMessages({bool initial = false}) async {
+  Future<void> _fetchMessages({bool initial = false, bool loadMore = false}) async {
     if (chatId == null) return;
 
-    if (initial) isLoading.value = true;
-
-    final newMessages = await _repository.getMessages(chatId!);
-    if (newMessages != null) {
-      // Backend returns messages in ascending order: [oldest, ..., newest]
-      // ListView with reverse: true displays:
-      //   - First item (oldest) at bottom
-      //   - Last item (newest) at top
-      // So we need to reverse the list to get correct display order:
-      //   - After reverse: [newest, ..., oldest]
-      //   - With reverse: true → newest at bottom, oldest at top ✓
-      messages.assignAll(newMessages.reversed.toList());
-
-      // Scroll to show newest messages at bottom
-      scrollToBottom();
+    if (initial) {
+      isLoading.value = true;
+      currentPage = 1;
+      messages.clear();
     }
 
-    if (initial) isLoading.value = false;
+    if (loadMore) {
+      if (!hasMorePages || isLoadingMore.value) return;
+      isLoadingMore.value = true;
+      currentPage++;
+    }
+
+    try {
+      final paginatedMessages = await _repository.getMessages(
+        chatId!,
+        page: currentPage,
+        perPage: perPage,
+      );
+
+      if (paginatedMessages != null) {
+        final newMessages = paginatedMessages.messages;
+
+        if (initial || !loadMore) {
+          // Backend returns messages in ascending order: [oldest, ..., newest]
+          // ListView with reverse: true displays:
+          //   - First item (oldest) at bottom
+          //   - Last item (newest) at top
+          // So we need to reverse the list to get correct display order:
+          //   - After reverse: [newest, ..., oldest]
+          //   - With reverse: true → newest at bottom, oldest at top ✓
+          messages.assignAll(newMessages.reversed.toList());
+        } else if (loadMore) {
+          // Insert older messages at the end (bottom of reversed list)
+          // These are older messages, so they go after the current messages
+          final olderMessages = newMessages.reversed.toList();
+          messages.addAll(olderMessages);
+        }
+
+        // Update pagination state
+        currentPage = paginatedMessages.currentPage;
+        lastPage = paginatedMessages.lastPage;
+        hasMorePages = paginatedMessages.hasMorePages;
+
+        debugPrint(
+            '_fetchMessages: Loaded page $currentPage of $lastPage, hasMore: $hasMorePages');
+
+        // Scroll to show newest messages at bottom
+        if (initial || !loadMore) {
+          scrollToBottom();
+        }
+      }
+    } catch (e) {
+      debugPrint('_fetchMessages error: $e');
+    } finally {
+      if (initial) isLoading.value = false;
+      if (loadMore) isLoadingMore.value = false;
+    }
   }
 
   Future<void> refreshMessages() async {
-    await _fetchMessages();
+    // Reset pagination and fetch first page
+    currentPage = 1;
+    hasMorePages = true;
+    await _fetchMessages(initial: true);
+  }
+
+  /// Load older messages (pagination)
+  Future<void> loadMoreMessages() async {
+    await _fetchMessages(loadMore: true);
   }
 
   @override

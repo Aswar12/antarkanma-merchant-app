@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/merchant_table_model.dart';
 import '../models/pos_transaction_model.dart';
 import '../models/product_model.dart';
 import '../providers/pos_provider.dart';
@@ -37,7 +38,6 @@ class PosRepository {
           response.data['meta']['status'] == 'success') {
         return PosTransactionModel.fromJson(response.data['data']);
       }
-      // Extract and log validation / error message from backend
       final errorMsg = response.data?['meta']?['message'] ??
           response.data?['message'] ??
           'Unknown error (${response.statusCode})';
@@ -118,6 +118,103 @@ class PosRepository {
       return null;
     } catch (e) {
       debugPrint('Error getting daily summary: $e');
+      return null;
+    }
+  }
+
+  // ─── Table Management ────────────────────────
+
+  /// Get all tables
+  Future<List<MerchantTableModel>?> getTables() async {
+    try {
+      final response = await _provider.getTables();
+      if (response.statusCode == 200 &&
+          response.data['meta']['status'] == 'success') {
+        final data = response.data['data'] as List;
+        return data.map((json) => MerchantTableModel.fromJson(json)).toList();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting tables: $e');
+      return null;
+    }
+  }
+
+  /// Create a new table
+  Future<MerchantTableModel?> createTable(Map<String, dynamic> data) async {
+    try {
+      final response = await _provider.createTable(data);
+      if (response.statusCode == 200 &&
+          response.data['meta']['status'] == 'success') {
+        return MerchantTableModel.fromJson(response.data['data']);
+      }
+      final errorMsg =
+          response.data?['meta']?['message'] ?? 'Gagal membuat meja';
+      throw Exception(errorMsg);
+    } catch (e) {
+      debugPrint('Error creating table: $e');
+      rethrow;
+    }
+  }
+
+  /// Update a table
+  Future<MerchantTableModel?> updateTable(
+      int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _provider.updateTable(id, data);
+      if (response.statusCode == 200 &&
+          response.data['meta']['status'] == 'success') {
+        return MerchantTableModel.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error updating table: $e');
+      return null;
+    }
+  }
+
+  /// Delete a table
+  Future<bool> deleteTable(int id) async {
+    try {
+      final response = await _provider.deleteTable(id);
+      return response.statusCode == 200 &&
+          response.data['meta']['status'] == 'success';
+    } catch (e) {
+      debugPrint('Error deleting table: $e');
+      return false;
+    }
+  }
+
+  // ─── Queue Management ────────────────────────
+
+  /// Get active queue
+  Future<List<PosTransactionModel>?> getActiveQueue() async {
+    try {
+      final response = await _provider.getActiveQueue();
+      if (response.statusCode == 200 &&
+          response.data['meta']['status'] == 'success') {
+        final data = response.data['data'] as List;
+        return data.map((json) => PosTransactionModel.fromJson(json)).toList();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting active queue: $e');
+      return null;
+    }
+  }
+
+  /// Update transaction status
+  Future<PosTransactionModel?> updateTransactionStatus(
+      int id, String status) async {
+    try {
+      final response = await _provider.updateTransactionStatus(id, status);
+      if (response.statusCode == 200 &&
+          response.data['meta']['status'] == 'success') {
+        return PosTransactionModel.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error updating transaction status: $e');
       return null;
     }
   }

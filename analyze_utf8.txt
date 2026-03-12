@@ -1,0 +1,569 @@
+﻿Analyzing merchant...                                           
+
+warning - The value of the local variable 'flutterLocalNotificationsPlugin' isn't used - lib\app\bindings\app_binding.dart:37:13 - unused_local_variable
+warning - The value of the local variable 'dimensionsService' isn't used - lib\app\bindings\app_binding.dart:39:13 - unused_local_variable
+warning - The value of the local variable 'notificationProvider' isn't used - lib\app\bindings\app_binding.dart:46:13 - unused_local_variable
+warning - The value of the local variable 'merchantOrderService' isn't used - lib\app\bindings\app_binding.dart:55:13 - unused_local_variable
+warning - The value of the local variable 'fcmTokenService' isn't used - lib\app\bindings\app_binding.dart:69:13 - unused_local_variable
+   info - Don't invoke 'print' in production code - lib\app\bindings\app_binding.dart:160:7 - avoid_print
+   info - The constant name 'CATEGORIES_STORAGE_KEY' isn't a lowerCamelCase identifier - lib\app\controllers\category_controller.dart:12:23 - constant_identifier_names
+   info - Don't invoke 'print' in production code - lib\app\controllers\category_controller.dart:54:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_controller.dart:30:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_controller.dart:44:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_controller.dart:58:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_controller.dart:96:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_controller.dart:102:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_controller.dart:112:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_home_controller.dart:56:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_home_controller.dart:57:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_home_controller.dart:74:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_home_controller.dart:92:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_home_controller.dart:93:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_home_controller.dart:95:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_home_controller.dart:145:7 - avoid_print
+   info - Unnecessary braces in a string interpolation - lib\app\controllers\merchant_home_controller.dart:339:19 - unnecessary_brace_in_string_interps
+   info - Unnecessary braces in a string interpolation - lib\app\controllers\merchant_home_controller.dart:381:19 - unnecessary_brace_in_string_interps
+   info - Unnecessary braces in a string interpolation - lib\app\controllers\merchant_home_controller.dart:411:60 - unnecessary_brace_in_string_interps
+   info - Unnecessary braces in a string interpolation - lib\app\controllers\merchant_home_controller.dart:486:19 - unnecessary_brace_in_string_interps
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:170:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:177:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:181:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:188:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:192:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:203:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:205:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_order_controller.dart:220:7 - avoid_print
+warning - The left operand can't be null, so the right operand is never executed - lib\app\controllers\merchant_product_controller.dart:197:45 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\controllers\merchant_product_controller.dart:197:69 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\controllers\merchant_product_controller.dart:200:45 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\controllers\merchant_product_controller.dart:200:69 - dead_null_aware_expression
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_product_form_controller.dart:67:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_product_form_controller.dart:140:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_product_form_controller.dart:174:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_product_form_controller.dart:205:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_product_form_controller.dart:244:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\controllers\merchant_profile_controller.dart:164:7 - avoid_print
+warning - The left operand can't be null, so the right operand is never executed - lib\app\controllers\merchant_profile_controller.dart:289:48 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\controllers\merchant_profile_controller.dart:291:54 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\controllers\merchant_profile_controller.dart:292:56 - dead_null_aware_expression
+   info - The member 'onClose' overrides an inherited member but isn't annotated with '@override' - lib\app\controllers\notification_controller.dart:22:8 - annotate_overrides
+   info - Unnecessary override - lib\app\controllers\notification_controller.dart:22:8 - unnecessary_overrides
+   info - The member 'refresh' overrides an inherited member but isn't annotated with '@override' - lib\app\controllers\notification_controller.dart:132:16 - annotate_overrides
+   info - Don't invoke 'print' in production code - lib\app\data\models\merchant_model.dart:65:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\merchant_model.dart:81:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\merchant_model.dart:147:7 - avoid_print
+   info - The constant name 'STATUS_PENDING' isn't a lowerCamelCase identifier - lib\app\data\models\order_model.dart:5:23 - constant_identifier_names
+   info - The constant name 'STATUS_WAITING_APPROVAL' isn't a lowerCamelCase identifier - lib\app\data\models\order_model.dart:6:23 - constant_identifier_names
+   info - The constant name 'STATUS_PROCESSING' isn't a lowerCamelCase identifier - lib\app\data\models\order_model.dart:7:23 - constant_identifier_names
+   info - The constant name 'STATUS_READY_FOR_PICKUP' isn't a lowerCamelCase identifier - lib\app\data\models\order_model.dart:8:23 - constant_identifier_names
+   info - The constant name 'STATUS_COMPLETED' isn't a lowerCamelCase identifier - lib\app\data\models\order_model.dart:9:23 - constant_identifier_names
+   info - The constant name 'STATUS_CANCELED' isn't a lowerCamelCase identifier - lib\app\data\models\order_model.dart:10:23 - constant_identifier_names
+   info - The constant name 'STATUS_PICKED_UP' isn't a lowerCamelCase identifier - lib\app\data\models\order_model.dart:11:23 - constant_identifier_names
+   info - Don't invoke 'print' in production code - lib\app\data\models\paginated_order_response.dart:60:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\paginated_order_response.dart:61:7 - avoid_print
+warning - The left operand can't be null, so the right operand is never executed - lib\app\data\models\product_model.dart:180:73 - dead_null_aware_expression
+   info - Don't invoke 'print' in production code - lib\app\data\models\product_review_model.dart:32:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\product_review_model.dart:33:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\product_review_model.dart:44:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\product_review_model.dart:60:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\product_review_model.dart:61:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\models\review_response_model.dart:22:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\auth_provider.dart:74:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\auth_provider.dart:77:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\notification_provider.dart:55:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\notification_provider.dart:58:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\notification_provider.dart:79:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\notification_provider.dart:82:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\notification_provider.dart:101:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\notification_provider.dart:104:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:26:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:34:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:35:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:39:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:40:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:58:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:74:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:92:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:110:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\product_category_provider.dart:126:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\profile_provider.dart:98:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\profile_provider.dart:106:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\profile_provider.dart:107:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\profile_provider.dart:111:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\profile_provider.dart:113:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\profile_provider.dart:114:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\profile_provider.dart:115:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:34:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:35:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:36:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:41:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:42:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:46:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:62:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:63:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:64:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:65:11 - avoid_print
+warning - Unnecessary type check; the result is always 'true' - lib\app\data\providers\transaction_provider.dart:69:15 - unnecessary_type_check
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:93:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:117:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:118:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:119:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:158:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:176:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:177:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:178:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:179:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:180:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:183:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:184:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:195:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:219:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:220:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:231:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:253:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:254:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:277:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:278:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:303:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:304:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:313:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:318:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:319:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:328:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:331:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:332:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:340:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:343:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\transaction_provider.dart:344:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\providers\user_provider.dart:149:5 - avoid_print
+   info - The imported package 'http' isn't a dependency of the importing package - lib\app\data\repositories\chat_repository.dart:5:8 - depend_on_referenced_packages
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:17:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:87:21 - await_only_futures
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\chat_repository.dart:121:7 - avoid_print
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:128:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:188:21 - await_only_futures
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\chat_repository.dart:213:7 - avoid_print
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:221:21 - await_only_futures
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\chat_repository.dart:284:7 - avoid_print
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:299:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:340:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:390:21 - await_only_futures
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\chat_repository.dart:401:7 - avoid_print
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\chat_repository.dart:407:21 - await_only_futures
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\chat_repository.dart:431:7 - avoid_print
+   info - The imported package 'http' isn't a dependency of the importing package - lib\app\data\repositories\notification_repository.dart:5:8 - depend_on_referenced_packages
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\notification_repository.dart:18:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\notification_repository.dart:91:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\notification_repository.dart:116:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\notification_repository.dart:141:21 - await_only_futures
+   info - Uses 'await' on an instance of 'String?', which is not a subtype of 'Future' - lib\app\data\repositories\notification_repository.dart:166:21 - await_only_futures
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:14:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:22:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:25:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:37:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:42:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:47:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:51:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:63:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:64:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:68:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\data\repositories\review_repository.dart:71:7 - avoid_print
+   info - 'onPopInvoked' is deprecated and shouldn't be used. Use onPopInvokedWithResult instead. This feature was deprecated after v3.22.0-12.0.pre - lib\app\modules\auth\views\login_view.dart:18:7 - deprecated_member_use
+   info - 'onPopInvoked' is deprecated and shouldn't be used. Use onPopInvokedWithResult instead. This feature was deprecated after v3.22.0-12.0.pre - lib\app\modules\auth\views\register_view.dart:20:7 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\controllers\chat_controller.dart:82:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\controllers\chat_controller.dart:95:37 - deprecated_member_use
+warning - The '!' will have no effect because the receiver can't be null - lib\app\modules\chat\controllers\chat_controller.dart:109:27 - unnecessary_non_null_assertion
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\controllers\chat_controller.dart:120:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\controllers\chat_controller.dart:132:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\controllers\chat_controller.dart:543:28 - deprecated_member_use
+   info - Unnecessary override - lib\app\modules\chat\controllers\chat_list_controller.dart:24:8 - unnecessary_overrides
+   info - Parameter 'key' could be a super parameter - lib\app\modules\chat\views\chat_list_page.dart:8:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_list_page.dart:92:39 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\app\modules\chat\views\chat_view.dart:11:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:43:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:156:29 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:280:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:282:62 - deprecated_member_use
+   info - Unnecessary braces in a string interpolation - lib\app\modules\chat\views\chat_view.dart:400:61 - unnecessary_brace_in_string_interps
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:432:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:538:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:571:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:581:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:745:35 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\app\modules\chat\views\widgets\chat_list_tile.dart:12:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\widgets\chat_list_tile.dart:32:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\widgets\chat_list_tile.dart:56:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\widgets\chat_list_tile.dart:159:35 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\app\modules\merchant\services\merchant_order_service.dart:106:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\merchant\services\merchant_order_service.dart:132:7 - avoid_print
+warning - The member 'value' can only be used within instance members of subclasses of 'package:get/get_rx/src/rx_types/rx_iterables/rx_set.dart' - lib\app\modules\merchant\views\add_operational_hours_bottom_sheet.dart:55:22 - invalid_use_of_protected_member
+   info - Don't invoke 'print' in production code - lib\app\modules\merchant\views\add_operational_hours_bottom_sheet.dart:73:9 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\add_operational_hours_bottom_sheet.dart:271:46 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\app\modules\merchant\views\edit_store_info_page.dart:61:23 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\merchant\views\edit_store_info_page.dart:334:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\merchant\views\map_picker_page.dart:46:7 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\map_picker_page.dart:298:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_analytics_page.dart:131:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_analytics_page.dart:145:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_analytics_page.dart:184:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_analytics_page.dart:258:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_analytics_page.dart:259:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_analytics_page.dart:281:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_analytics_page.dart:417:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:47:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:107:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:145:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:256:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:424:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:425:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:487:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:596:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:665:62 - deprecated_member_use
+warning - The declaration '_buildMockOrderCard' isn't referenced - lib\app\modules\merchant\views\merchant_home_page.dart:905:10 - unused_element
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_home_page.dart:922:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_main_page.dart:154:35 - deprecated_member_use
+   info - 'onPopInvoked' is deprecated and shouldn't be used. Use onPopInvokedWithResult instead. This feature was deprecated after v3.22.0-12.0.pre - lib\app\modules\merchant\views\merchant_main_page.dart:192:9 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_order_page.dart:115:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_order_page.dart:134:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_product_detail_page.dart:157:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_product_detail_page.dart:208:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_product_detail_page.dart:593:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:110:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:111:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:125:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:137:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:173:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:176:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:184:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:222:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:298:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:353:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:416:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:477:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:534:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:641:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:652:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:735:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:738:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:839:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_profile_page.dart:876:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_reviews_page.dart:310:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\merchant_reviews_page.dart:322:52 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\app\modules\merchant\views\notification_inbox_page.dart:9:9 - use_super_parameters
+warning - The declaration '_buildSmallActionButton' isn't referenced - lib\app\modules\merchant\views\order_detail_page.dart:123:10 - unused_element
+   info - The 'child' argument should be last in widget constructor invocations - lib\app\modules\merchant\views\order_detail_page.dart:127:9 - sort_child_properties_last
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\order_detail_page.dart:345:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\order_detail_page.dart:354:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\order_detail_page.dart:367:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\order_detail_page.dart:427:32 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\app\modules\merchant\views\order_detail_page.dart:507:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\app\modules\merchant\views\order_detail_page.dart:522:7 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\order_detail_page.dart:565:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\order_detail_page.dart:583:35 - deprecated_member_use
+warning - The declaration '_getStatusIcon' isn't referenced - lib\app\modules\merchant\views\order_detail_page.dart:643:12 - unused_element
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_detail_page.dart:713:60 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_detail_page.dart:714:68 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_detail_page.dart:716:62 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_detail_page.dart:717:70 - dead_null_aware_expression
+   info - Statements in an if should be enclosed in a block - lib\app\modules\merchant\views\order_detail_page.dart:750:9 - curly_braces_in_flow_control_structures
+   info - Don't use 'BuildContext's across async gaps - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:150:42 - use_build_context_synchronously
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:163:55 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:164:63 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:166:53 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:167:61 - dead_null_aware_expression
+   info - 'red' is deprecated and shouldn't be used. Use (*.r * 255.0).round() & 0xff - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:804:30 - deprecated_member_use
+   info - 'green' is deprecated and shouldn't be used. Use (*.g * 255.0).round() & 0xff - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:804:45 - deprecated_member_use
+   info - 'blue' is deprecated and shouldn't be used. Use (*.b * 255.0).round() & 0xff - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:804:62 - deprecated_member_use
+   info - 'red' is deprecated and shouldn't be used. Use (*.r * 255.0).round() & 0xff - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:867:41 - deprecated_member_use
+   info - 'green' is deprecated and shouldn't be used. Use (*.g * 255.0).round() & 0xff - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:867:52 - deprecated_member_use
+   info - 'blue' is deprecated and shouldn't be used. Use (*.b * 255.0).round() & 0xff - lib\app\modules\merchant\views\order_details_bottom_sheet.dart:867:65 - deprecated_member_use
+   info - 'WillPopScope' is deprecated and shouldn't be used. Use PopScope instead. The Android predictive back feature will not work with WillPopScope. This feature was deprecated after v3.12.0-1.0.pre - lib\app\modules\merchant\views\product_form_page.dart:66:12 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\product_form_page.dart:172:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\product_form_page.dart:464:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\product_form_page.dart:625:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\product_form_page.dart:753:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\product_form_page.dart:860:36 - deprecated_member_use
+warning - The declaration '_buildCompactDropdown' isn't referenced - lib\app\modules\merchant\views\product_management_page.dart:304:10 - unused_element
+   info - Parameter 'key' could be a super parameter - lib\app\modules\merchant\views\widgets\empty_inbox_state.dart:5:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\widgets\empty_inbox_state.dart:16:39 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\app\modules\merchant\views\widgets\notification_list_tile.dart:13:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\widgets\notification_list_tile.dart:34:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\views\widgets\notification_list_tile.dart:53:38 - deprecated_member_use
+warning - Unused import: 'package:antarkanma_merchant/app/data/models/product_model.dart' - lib\app\modules\merchant\views\widgets\product_readiness_sheet.dart:5:8 - unused_import
+warning - The left operand can't be null, so the right operand is never executed - lib\app\modules\merchant\views\widgets\product_readiness_sheet.dart:72:41 - dead_null_aware_expression
+warning - The receiver can't be null, so the null-aware operator '?.' is unnecessary - lib\app\modules\merchant\views\widgets\product_readiness_sheet.dart:89:50 - invalid_null_aware_operator
+warning - The '!' will have no effect because the receiver can't be null - lib\app\modules\merchant\views\widgets\product_readiness_sheet.dart:90:56 - unnecessary_non_null_assertion
+warning - The '!' will have no effect because the receiver can't be null - lib\app\modules\merchant\views\widgets\product_readiness_sheet.dart:90:67 - unnecessary_non_null_assertion
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\empty_state.dart:17:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\header_section.dart:71:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\queue_card.dart:61:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\queue_card.dart:66:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\queue_card.dart:89:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\queue_card.dart:113:24 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\queue_card.dart:236:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\queue_card.dart:381:28 - deprecated_member_use
+warning - The operand can't be 'null', so the condition is always 'true' - lib\app\modules\merchant\widgets\queue_card.dart:490:37 - unnecessary_null_comparison
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\quick_action_button.dart:27:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\shimmer_loading.dart:26:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\shimmer_loading.dart:69:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\transaction_card.dart:98:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\merchant\widgets\transaction_card.dart:101:35 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\app\modules\pos\views\pos_cashier_page.dart:19:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:86:39 - deprecated_member_use
+   info - Unnecessary use of string interpolation - lib\app\modules\pos\views\pos_cashier_page.dart:203:15 - unnecessary_string_interpolations
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:204:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:223:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:224:36 - deprecated_member_use
+   info - Unnecessary use of string interpolation - lib\app\modules\pos\views\pos_cashier_page.dart:291:31 - unnecessary_string_interpolations
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:292:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:304:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:397:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:426:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:448:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:499:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:818:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:854:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:912:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:1281:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_cashier_page.dart:1283:45 - deprecated_member_use
+warning - The declaration '_orderTypeChip' isn't referenced - lib\app\modules\pos\views\pos_cashier_page.dart:1304:10 - unused_element
+   info - Parameter 'key' could be a super parameter - lib\app\modules\pos\views\pos_finance_page.dart:9:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:90:30 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:125:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:132:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:144:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:215:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:229:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:263:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:278:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:371:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:612:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:709:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:714:28 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:798:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_finance_page.dart:914:38 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\app\modules\pos\views\pos_history_page.dart:10:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_history_page.dart:138:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_history_page.dart:423:50 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\app\modules\pos\views\pos_main_page.dart:11:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_main_page.dart:50:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\pos\views\pos_main_page.dart:67:35 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:30:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:34:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:40:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:46:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:52:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:53:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:56:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:62:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:69:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:74:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:78:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:82:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:86:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:93:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:99:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:101:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:103:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:107:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:110:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:117:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:120:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:130:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:133:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:136:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:137:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:140:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:145:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:148:17 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:158:17 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:162:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:166:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:170:17 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:177:17 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:182:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:187:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:188:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:192:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:195:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:199:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:203:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:204:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:209:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:214:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\modules\splash\controllers\splash_controller.dart:234:9 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_page.dart:40:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_page.dart:119:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_page.dart:187:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_page.dart:193:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_page.dart:240:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_selection_page.dart:25:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_selection_page.dart:51:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_selection_page.dart:127:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_selection_page.dart:201:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_selection_page.dart:207:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_selection_page.dart:239:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\user\views\address_selection_page.dart:278:59 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:84:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:115:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:124:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:125:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:128:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:140:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:143:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:147:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:148:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:152:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:157:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:158:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:161:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:166:9 - avoid_print
+   info - An uninitialized variable should have an explicit type annotation - lib\app\services\merchant_service.dart:171:11 - prefer_typing_uninitialized_variables
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:175:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:181:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:188:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:194:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:197:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:198:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:202:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:216:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:219:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:237:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:279:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:337:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:384:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:480:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:487:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:492:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:508:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:511:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:516:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:529:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:541:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:551:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:554:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:559:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:594:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:615:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:630:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:661:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:680:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\merchant_service.dart:701:7 - avoid_print
+warning - The value of the local variable 'transactionService' isn't used - lib\app\services\notification_service.dart:37:11 - unused_local_variable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\services\print_service.dart:534:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\services\print_service.dart:535:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\services\print_service.dart:597:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\services\print_service.dart:602:48 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:36:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:49:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:62:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:78:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:92:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:98:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:105:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:116:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:117:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:118:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:119:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:128:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:136:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:137:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:143:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:145:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:146:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:147:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:156:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:165:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:169:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:170:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:179:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:180:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:184:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:187:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:191:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:193:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:198:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:199:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:200:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:201:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:202:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\profile_service.dart:205:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:40:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:55:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:81:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:82:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:83:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:84:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:107:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:130:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:179:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:180:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:189:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:198:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:207:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:220:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:248:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\transaction_service.dart:257:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\user_location_service.dart:43:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\user_location_service.dart:46:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\user_location_service.dart:50:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\user_location_service.dart:56:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\user_location_service.dart:96:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\app\services\user_location_service.dart:104:9 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\cached_image_view.dart:61:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\cached_image_view.dart:76:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\category_widget.dart:59:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\category_widget.dart:65:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\category_widget.dart:92:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\custom_input_field.dart:163:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\custom_input_field.dart:169:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\custom_snackbar.dart:22:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\custom_snackbar.dart:40:16 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\custom_snackbar.dart:49:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_info_section.dart:47:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_info_section.dart:74:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_info_section.dart:106:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_info_section.dart:107:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_info_section.dart:147:39 - deprecated_member_use
+   info - 'canLaunch' is deprecated and shouldn't be used. Use canLaunchUrl instead - lib\app\widgets\merchant_info_section.dart:246:46 - deprecated_member_use
+   info - 'launch' is deprecated and shouldn't be used. Use launchUrl instead - lib\app\widgets\merchant_info_section.dart:247:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_order_card.dart:24:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_order_card.dart:39:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_order_card.dart:111:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_order_card.dart:133:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_order_card.dart:143:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_order_card.dart:179:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\merchant_order_card.dart:281:35 - deprecated_member_use
+warning - The value of the local variable 'controller' isn't used - lib\app\widgets\order_card.dart:54:21 - unused_local_variable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:231:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:255:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:284:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:298:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:340:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:378:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:423:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:479:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:566:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_details_bottom_sheet.dart:618:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_status_badge.dart:22:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\order_status_badge.dart:25:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:30:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:70:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:81:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:95:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:96:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:124:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:125:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:150:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:194:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:212:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\product_card.dart:236:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\search_input_field.dart:60:23 - deprecated_member_use
+warning - Unused import: 'package:get/get.dart' - lib\app\widgets\variant_selector_section.dart:5:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\variant_selector_section.dart:42:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\variant_selector_section.dart:63:37 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\main.dart:52:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:54:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:65:5 - avoid_print
+   info - Don't invoke 'print' in production code - replace_fonts.dart:22:7 - avoid_print
+

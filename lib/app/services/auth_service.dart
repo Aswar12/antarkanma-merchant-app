@@ -150,22 +150,71 @@ class AuthService extends GetxService {
         final fcmService = Get.find<FCMTokenService>();
         await fcmService.handleLogin();
       } catch (e) {
+        // Silent fail for FCM - don't block login
         print('Error handling FCM token during login: $e');
       }
 
       return true;
     } catch (e) {
-      print('Login error: $e');
+      // Don't show error message for auto-login failures
       if (!isAutoLogin) {
+        // Extract user-friendly error message
+        String errorMessage = _getUserFriendlyErrorMessage(e);
         showCustomSnackbar(
-            title: 'Error',
-            message: 'Gagal login: ${e.toString()}',
+            title: 'Login Gagal',
+            message: errorMessage,
             isError: true);
       }
       return false;
     } finally {
       _isLoginInProgress = false;
     }
+  }
+
+  /// Get user-friendly error message based on error type
+  String _getUserFriendlyErrorMessage(dynamic error) {
+    // Handle DioException for HTTP errors
+    if (error is DioException) {
+      // Check response status code
+      final statusCode = error.response?.statusCode;
+      
+      if (statusCode == 401 || statusCode == 400) {
+        return 'Email/nomor telepon atau password yang Anda masukkan salah.';
+      } else if (statusCode == 403) {
+        return 'Akun Anda belum terverifikasi. Silakan hubungi admin.';
+      } else if (statusCode == 404) {
+        return 'Akun tidak ditemukan.';
+      } else if (statusCode == 500 || statusCode == 502 || statusCode == 503) {
+        return 'Server sedang mengalami gangguan. Silakan coba lagi nanti.';
+      }
+      
+      // Check Dio exception type
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'Koneksi ke server terlalu lama. Periksa internet Anda.';
+        case DioExceptionType.connectionError:
+          return 'Tidak dapat terhubung ke server. Periksa koneksi internet.';
+        case DioExceptionType.cancel:
+          return 'Permintaan dibatalkan.';
+        default:
+          return 'Terjadi kesalahan. Silakan coba lagi nanti.';
+      }
+    }
+    
+    // Handle SocketException (no internet)
+    if (error is SocketException) {
+      return 'Tidak ada koneksi internet. Periksa koneksi Anda.';
+    }
+    
+    // Handle FormatException (parsing errors)
+    if (error is FormatException) {
+      return 'Format data tidak valid. Silakan coba lagi.';
+    }
+    
+    // Default error message
+    return 'Terjadi kesalahan. Silakan coba lagi nanti.';
   }
 
   Future<bool> verifyToken(String token) async {
@@ -208,7 +257,9 @@ class AuthService extends GetxService {
     try {
       if ([name, email, phoneNumber, password].any((field) => field.isEmpty)) {
         showCustomSnackbar(
-            title: 'Error', message: 'Semua field harus diisi.', isError: true);
+            title: 'Validasi Gagal', 
+            message: 'Semua field harus diisi.', 
+            isError: true);
         return false;
       }
 
@@ -228,8 +279,8 @@ class AuthService extends GetxService {
         // Verify the registered user is a merchant
         if (userData['role'] != 'MERCHANT') {
           showCustomSnackbar(
-              title: 'Error',
-              message: 'Gagal mendaftar sebagai merchant',
+              title: 'Registrasi Gagal',
+              message: 'Akun yang didaftarkan bukan merchant. Silakan hubungi admin.',
               isError: true);
           return false;
         }
@@ -246,26 +297,44 @@ class AuthService extends GetxService {
             final fcmService = Get.find<FCMTokenService>();
             await fcmService.handleLogin();
           } catch (e) {
+            // Silent fail for FCM
             print('Error handling FCM token during registration: $e');
           }
 
           Get.offAllNamed(Routes.merchantMainPage);
+          showCustomSnackbar(
+            title: 'Registrasi Berhasil',
+            message: 'Akun merchant Anda telah berhasil dibuat.',
+          );
           return true;
         }
+        
         showCustomSnackbar(
-            title: 'Error', message: 'Data login tidak valid.', isError: true);
+            title: 'Registrasi Gagal', 
+            message: 'Terjadi kesalahan. Silakan coba lagi.', 
+            isError: true);
         return false;
       }
 
+      // Extract error message from response
+      String errorMessage = 'Registrasi gagal.';
+      if (response.data['meta'] != null && response.data['meta']['message'] != null) {
+        errorMessage = response.data['meta']['message'];
+      } else if (response.data['message'] != null) {
+        errorMessage = response.data['message'];
+      }
+      
       showCustomSnackbar(
           title: 'Registrasi Gagal',
-          message: response.data['meta']['message'] ?? 'Registrasi gagal',
+          message: errorMessage,
           isError: true);
       return false;
     } catch (e) {
+      // Use user-friendly error message
+      String errorMessage = _getUserFriendlyErrorMessage(e);
       showCustomSnackbar(
-          title: 'Error',
-          message: 'Gagal registrasi: ${e.toString()}',
+          title: 'Registrasi Gagal',
+          message: errorMessage,
           isError: true);
       return false;
     }

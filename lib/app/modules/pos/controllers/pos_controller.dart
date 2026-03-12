@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:antarkanma_merchant/app/data/models/merchant_table_model.dart';
 import 'package:antarkanma_merchant/app/data/models/pos_transaction_model.dart';
 import 'package:antarkanma_merchant/app/data/models/product_model.dart';
 import 'package:antarkanma_merchant/app/data/repositories/pos_repository.dart';
@@ -26,16 +27,29 @@ class PosController extends GetxController with GetTickerProviderStateMixin {
   final dailySummary = Rxn<Map<String, dynamic>>();
   final isLoadingSummary = false.obs;
 
+  // Tables
+  final tables = <MerchantTableModel>[].obs;
+  final isLoadingTables = false.obs;
+
+  // Queue
+  final activeQueue = <PosTransactionModel>[].obs;
+  final isLoadingQueue = false.obs;
+
   // Processing state
   final isProcessing = false.obs;
 
-  // Tab controller for POS sub-tabs
+  // Tab controller for POS sub-tabs (6 tabs)
   late TabController tabController;
 
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(length: 4, vsync: this);
+    tabController = TabController(length: 6, vsync: this);
+    // Load tables and queue when those tabs are selected
+    tabController.addListener(() {
+      if (tabController.index == 2) fetchTables();
+      if (tabController.index == 3) fetchActiveQueue();
+    });
     _loadProductsFromExisting();
     fetchDailySummary();
   }
@@ -224,4 +238,94 @@ class PosController extends GetxController with GetTickerProviderStateMixin {
       isLoadingSummary.value = false;
     }
   }
+
+  // ─── Table Management ───────────────────────────────────
+
+  Future<void> fetchTables() async {
+    try {
+      isLoadingTables.value = true;
+      final result = await _repository.getTables();
+      if (result != null) {
+        tables.assignAll(result);
+      }
+    } catch (e) {
+      debugPrint('Error fetching tables: $e');
+    } finally {
+      isLoadingTables.value = false;
+    }
+  }
+
+  Future<void> addTable(String tableNumber, {int capacity = 4}) async {
+    try {
+      isProcessing.value = true;
+      await _repository.createTable({
+        'table_number': tableNumber,
+        'capacity': capacity,
+      });
+      Get.snackbar('Berhasil', 'Meja $tableNumber berhasil ditambahkan',
+          backgroundColor: Colors.green, colorText: Colors.white);
+      fetchTables();
+    } catch (e) {
+      Get.snackbar('Gagal', '$e',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isProcessing.value = false;
+    }
+  }
+
+  Future<void> updateTableStatus(int id, String status) async {
+    try {
+      await _repository.updateTable(id, {'status': status});
+      fetchTables();
+    } catch (e) {
+      debugPrint('Error updating table status: $e');
+    }
+  }
+
+  Future<void> removeTable(int id) async {
+    try {
+      final success = await _repository.deleteTable(id);
+      if (success) {
+        Get.snackbar('Berhasil', 'Meja berhasil dihapus',
+            backgroundColor: Colors.green, colorText: Colors.white);
+        fetchTables();
+      }
+    } catch (e) {
+      debugPrint('Error removing table: $e');
+    }
+  }
+
+  // ─── Queue Management ───────────────────────────────────
+
+  Future<void> fetchActiveQueue() async {
+    try {
+      isLoadingQueue.value = true;
+      final result = await _repository.getActiveQueue();
+      if (result != null) {
+        activeQueue.assignAll(result);
+      }
+    } catch (e) {
+      debugPrint('Error fetching active queue: $e');
+    } finally {
+      isLoadingQueue.value = false;
+    }
+  }
+
+  Future<void> updateTransactionStatus(int id, String status) async {
+    try {
+      final result = await _repository.updateTransactionStatus(id, status);
+      if (result != null) {
+        Get.snackbar('Berhasil', 'Status diubah ke $status',
+            backgroundColor: Colors.green, colorText: Colors.white);
+        fetchActiveQueue();
+        fetchDailySummary();
+      }
+    } catch (e) {
+      debugPrint('Error updating transaction status: $e');
+    }
+  }
+
+  // Helper: count tables by status
+  int get availableTableCount => tables.where((t) => t.isAvailable).length;
+  int get occupiedTableCount => tables.where((t) => t.isOccupied).length;
 }

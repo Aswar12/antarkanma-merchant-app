@@ -242,41 +242,8 @@ class AuthController extends GetxController {
 
       return true;
     } catch (e) {
-      print('Login error: $e');
-      if (!isAutoLogin) {
-        String errorMessage = 'Terjadi kesalahan';
-
-        if (e is DioException) {
-          switch (e.type) {
-            case DioExceptionType.connectionTimeout:
-            case DioExceptionType.sendTimeout:
-            case DioExceptionType.receiveTimeout:
-              errorMessage =
-                  'Server sedang tidak merespon. Silakan coba lagi nanti.';
-              break;
-            case DioExceptionType.connectionError:
-              errorMessage =
-                  'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
-              break;
-            default:
-              if (e.response?.statusCode == 503) {
-                errorMessage =
-                    'Server sedang dalam pemeliharaan. Silakan coba lagi nanti.';
-              } else if (e.response?.statusCode == 401) {
-                errorMessage = 'Email/nomor telepon atau password salah.';
-              } else {
-                errorMessage =
-                    'Server sedang bermasalah. Silakan coba lagi nanti.';
-              }
-          }
-        }
-
-        showCustomSnackbar(
-          title: 'Login Gagal',
-          message: errorMessage,
-          isError: true,
-        );
-      }
+      // Error already handled by AuthService
+      // Don't show duplicate error message here
       return false;
     } finally {
       isLoading.value = false;

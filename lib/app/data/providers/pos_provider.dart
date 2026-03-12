@@ -96,4 +96,40 @@ class PosProvider {
       if (date != null) 'date': date,
     });
   }
+
+  // ─── Table Management ────────────────────────
+
+  /// Get all merchant tables
+  Future<dio.Response> getTables() async {
+    return await _dio.get('/merchant/pos/tables');
+  }
+
+  /// Create a new table
+  Future<dio.Response> createTable(Map<String, dynamic> data) async {
+    return await _dio.post('/merchant/pos/tables', data: data);
+  }
+
+  /// Update a table
+  Future<dio.Response> updateTable(int id, Map<String, dynamic> data) async {
+    return await _dio.put('/merchant/pos/tables/$id', data: data);
+  }
+
+  /// Delete a table
+  Future<dio.Response> deleteTable(int id) async {
+    return await _dio.delete('/merchant/pos/tables/$id');
+  }
+
+  // ─── Queue Management ────────────────────────
+
+  /// Get active POS queue
+  Future<dio.Response> getActiveQueue() async {
+    return await _dio.get('/merchant/pos/queue');
+  }
+
+  /// Update transaction status
+  Future<dio.Response> updateTransactionStatus(int id, String status) async {
+    return await _dio.put('/merchant/pos/transactions/$id/status', data: {
+      'status': status,
+    });
+  }
 }

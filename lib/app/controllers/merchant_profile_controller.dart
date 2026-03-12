@@ -11,7 +11,12 @@ import 'package:mime/mime.dart';
 
 class MerchantProfileController extends GetxController {
   // Constants for image validation
-  static const List<String> _supportedImageTypes = ['jpg', 'jpeg', 'png', 'heic'];
+  static const List<String> _supportedImageTypes = [
+    'jpg',
+    'jpeg',
+    'png',
+    'heic'
+  ];
   static const double _maxFileSizeMB = 2.0;
   static const double _maxImageDimension = 800.0;
   static const int _imageQuality = 80;
@@ -77,7 +82,6 @@ class MerchantProfileController extends GetxController {
     }
   }
 
-
   @override
   void onClose() {
     nameController.dispose();
@@ -136,7 +140,7 @@ class MerchantProfileController extends GetxController {
         isUploadingLogo(true);
 
         final file = File(pickedFile.path);
-        
+
         // Validate the image file
         await _validateImageFile(file);
 
@@ -242,14 +246,14 @@ class MerchantProfileController extends GetxController {
       if (success) {
         // Clear cache before fetching new data
         await merchantService.clearCache();
-        
+
         // Refresh merchant data
         await fetchMerchantData();
-        
+
         // Update UI with unique days
         operatingDays.value = uniqueDays;
         operatingDays.refresh();
-        
+
         // Close bottom sheet and show success message
         Get.back();
         Get.snackbar(
@@ -259,7 +263,7 @@ class MerchantProfileController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        
+
         // Force rebuild profile page
         update(); // Force UI update
       } else {
@@ -360,7 +364,8 @@ class MerchantProfileController extends GetxController {
   }
 
   void toggleOperatingDay(String day) {
-    final currentDays = operatingDays.toSet(); // Convert to Set for uniqueness check
+    final currentDays =
+        operatingDays.toSet(); // Convert to Set for uniqueness check
 
     if (currentDays.contains(day)) {
       currentDays.remove(day);
@@ -402,24 +407,27 @@ class MerchantProfileController extends GetxController {
 
       // Upload QRIS
       isUploadingQris(true);
-      
-      // TODO: Implement QRIS upload API call
-      // For now, just simulate upload
-      await Future.delayed(Duration(seconds: 2));
-      
-      isUploadingQris(false);
-      Get.back(); // Close dialog
-      Get.snackbar(
-        'Sukses',
-        'QRIS berhasil diupload',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+
+      final success = await profileService.updateMerchantQris(
+        merchant!.id!,
+        pickedFile.path,
       );
-      
-      // Refresh merchant data
-      await fetchMerchantData();
-      
+
+      if (success) {
+        await merchantService.clearCache(); // Clear cache before fetching
+        await fetchMerchantData();
+        Get.back(); // Close dialog
+        Get.snackbar(
+          'Sukses',
+          'QRIS berhasil diperbarui',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        update(); // Force UI update
+      } else {
+        throw 'Gagal memperbarui QRIS. Silakan coba lagi';
+      }
     } catch (e) {
       isUploadingQris(false);
       Get.snackbar(

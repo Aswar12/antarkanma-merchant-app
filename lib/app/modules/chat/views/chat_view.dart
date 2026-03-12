@@ -52,53 +52,87 @@ class ChatView extends GetView<ChatController> {
                     );
                   }
 
-                  return ListView.builder(
-                    controller: controller.scrollController,
-                    padding: EdgeInsets.only(
-                      top: 16,
-                      bottom: 180, // Space for input area + quick replies
-                      left: 16,
-                      right: 16,
-                    ),
-                    reverse: true, // Show newest messages at bottom
-                    itemCount: controller.messages.length,
-                    itemBuilder: (context, index) {
-                      final message = controller.messages[index];
-                      final bool isMe =
-                          message.senderId == controller.currentUserId;
+                  return Obx(() {
+                    // Add loading indicator at top when loading more
+                    final showLoadingAtTop = controller.hasMorePages && controller.isLoadingMore.value;
 
-                      // Show date separator at the LAST message of each day (oldest message of that day)
-                      // This ensures the badge stays in place and doesn't move when new messages arrive
-                      bool showDateSeparator = false;
-                      
-                      // Check if this is the LAST message of its day (next message is from different day)
-                      if (index == controller.messages.length - 1) {
-                        // Last item in list (oldest message) always show date separator
-                        showDateSeparator = true;
-                      } else {
-                        // Check if next message is from a different day
-                        final nextDate = DateTime.parse(
-                                controller.messages[index + 1].createdAt)
-                            .toLocal();
-                        final currDate =
-                            DateTime.parse(message.createdAt).toLocal();
-                        // If next message is from different day, this is the last message of current day
-                        if (nextDate.year != currDate.year ||
-                            nextDate.month != currDate.month ||
-                            nextDate.day != currDate.day) {
-                          showDateSeparator = true;
+                    return NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        // Load more messages when scrolling to top
+                        if (notification is ScrollEndNotification &&
+                            !controller.isLoadingMore.value &&
+                            controller.hasMorePages) {
+                          // Check if scrolled near top (within 200px threshold)
+                          if (notification.metrics.pixels < 200.0) {
+                            controller.loadMoreMessages();
+                          }
                         }
-                      }
+                        return false;
+                      },
+                      child: ListView.builder(
+                        controller: controller.scrollController,
+                        padding: EdgeInsets.only(
+                          top: 16,
+                          bottom: 180, // Space for input area + quick replies
+                          left: 16,
+                          right: 16,
+                        ),
+                        reverse: true, // Show newest messages at bottom
+                        itemCount: controller.messages.length +
+                            (controller.hasMorePages ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          // Show loading indicator at top when loading more
+                          if (index == controller.messages.length &&
+                              controller.hasMorePages) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      chatSecondary),
+                                ),
+                              ),
+                            );
+                          }
 
-                      return Column(
-                        children: [
-                          if (showDateSeparator)
-                            _buildDateSeparator(message.createdAt),
-                          _buildMessageBubble(message, isMe),
-                        ],
-                      );
-                    },
-                  );
+                          final message = controller.messages[index];
+                          final bool isMe =
+                              message.senderId == controller.currentUserId;
+
+                          // Show date separator at the LAST message of each day (oldest message of that day)
+                          // This ensures the badge stays in place and doesn't move when new messages arrive
+                          bool showDateSeparator = false;
+
+                          // Check if this is the LAST message of its day (next message is from different day)
+                          if (index == controller.messages.length - 1) {
+                            // Last item in list (oldest message) always show date separator
+                            showDateSeparator = true;
+                          } else {
+                            // Check if next message is from a different day
+                            final nextDate = DateTime.parse(
+                                    controller.messages[index + 1].createdAt)
+                                .toLocal();
+                            final currDate =
+                                DateTime.parse(message.createdAt).toLocal();
+                            // If next message is from different day, this is the last message of current day
+                            if (nextDate.year != currDate.year ||
+                                nextDate.month != currDate.month ||
+                                nextDate.day != currDate.day) {
+                              showDateSeparator = true;
+                            }
+                          }
+
+                          return Column(
+                            children: [
+                              if (showDateSeparator && !showLoadingAtTop)
+                                _buildDateSeparator(message.createdAt),
+                              _buildMessageBubble(message, isMe),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  });
                 }),
               ),
             ],
