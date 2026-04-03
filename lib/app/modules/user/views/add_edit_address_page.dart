@@ -433,7 +433,7 @@ class _AddressFormState extends State<AddressForm> {
               'Jadikan Alamat Utama',
               style: primaryTextStyle,
             ),
-            tileColor: backgroundColor1,
+            tileColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
             onTap: () {
               setState(() {
                 _isDefault = !_isDefault;

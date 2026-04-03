@@ -14,12 +14,12 @@ class AddressSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor1,
+      backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(Dimenssions.height100),
         child: Container(
           decoration: BoxDecoration(
-            color: backgroundColor1,
+            color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.08),
@@ -163,14 +163,14 @@ class AddressSelectionPage extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.add_location,
-                    color: backgroundColor1,
+                    color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
                     size: Dimenssions.height22,
                   ),
                   SizedBox(width: Dimenssions.width10),
                   Text(
                     'Tambah Alamat Baru',
                     style: primaryTextStyle.copyWith(
-                      color: backgroundColor1,
+                      color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
                       fontSize: Dimenssions.font14,
                       fontWeight: medium,
                     ),

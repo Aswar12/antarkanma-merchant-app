@@ -12,27 +12,27 @@ class MerchantAnalyticsPage extends StatelessWidget {
     final controller = Get.put(AnalyticsController());
 
     return Scaffold(
-      backgroundColor: dashBackgroundLight,
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Text(
           'Analytics',
           style: primaryTextStyle.copyWith(
             fontSize: 18,
             fontWeight: semiBold,
-            color: dashTextDark,
+            color: context.textColor,
           ),
         ),
-        backgroundColor: dashCardLight,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: dashTextDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Get.back(),
         ),
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(
-            child: CircularProgressIndicator(color: dashPrimary),
+            child: CircularProgressIndicator(color: AppColors.orange),
           );
         }
         return RefreshIndicator(
@@ -43,13 +43,13 @@ class MerchantAnalyticsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSummaryCards(controller),
+                _buildSummaryCards(context, controller),
                 const SizedBox(height: 20),
-                _buildSalesChart(controller),
+                _buildSalesChart(context, controller),
                 const SizedBox(height: 20),
-                _buildTopProducts(controller),
+                _buildTopProducts(context, controller),
                 const SizedBox(height: 20),
-                _buildPeakHours(controller),
+                _buildPeakHours(context, controller),
                 const SizedBox(height: 20),
               ],
             ),
@@ -59,7 +59,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCards(AnalyticsController controller) {
+  Widget _buildSummaryCards(BuildContext context, AnalyticsController controller) {
     final summary = controller.salesSummary.value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +69,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
           style: primaryTextStyle.copyWith(
             fontSize: 16,
             fontWeight: semiBold,
-            color: dashTextDark,
+            color: context.textColor,
           ),
         ),
         const SizedBox(height: 12),
@@ -77,6 +77,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
           children: [
             Expanded(
               child: _summaryCard(
+                context,
                 'Total Penjualan',
                 controller.formatCurrency(summary['total_sales'] ?? 0),
                 Icons.payments_outlined,
@@ -86,6 +87,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _summaryCard(
+                context,
                 'Total Order',
                 '${summary['total_orders'] ?? 0}',
                 Icons.shopping_bag_outlined,
@@ -99,6 +101,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
           children: [
             Expanded(
               child: _summaryCard(
+                context,
                 'Transaksi',
                 '${summary['total_transactions'] ?? 0}',
                 Icons.receipt_long_outlined,
@@ -108,6 +111,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _summaryCard(
+                context,
                 'Ongkir',
                 controller.formatCurrency(summary['total_shipping'] ?? 0),
                 Icons.local_shipping_outlined,
@@ -120,15 +124,15 @@ class MerchantAnalyticsPage extends StatelessWidget {
     );
   }
 
-  Widget _summaryCard(String title, String value, IconData icon, Color color) {
+  Widget _summaryCard(BuildContext context, String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: context.isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -142,7 +146,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -154,7 +158,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
             title,
             style: primaryTextStyle.copyWith(
               fontSize: 11,
-              color: Colors.grey.shade600,
+              color: context.textHintColor,
             ),
           ),
           const SizedBox(height: 4),
@@ -163,7 +167,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
             style: primaryTextStyle.copyWith(
               fontSize: 16,
               fontWeight: bold,
-              color: dashTextDark,
+              color: context.textColor,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -173,15 +177,15 @@ class MerchantAnalyticsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSalesChart(AnalyticsController controller) {
+  Widget _buildSalesChart(BuildContext context, AnalyticsController controller) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: context.isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -198,7 +202,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
                 style: primaryTextStyle.copyWith(
                   fontSize: 14,
                   fontWeight: semiBold,
-                  color: dashTextDark,
+                  color: context.textColor,
                 ),
               ),
               // Period selector
@@ -206,6 +210,8 @@ class MerchantAnalyticsPage extends StatelessWidget {
                     value: controller.selectedPeriod.value,
                     underline: const SizedBox(),
                     isDense: true,
+                    style: TextStyle(color: context.textColor),
+                    dropdownColor: context.surfaceColor,
                     items: const [
                       DropdownMenuItem(value: 'daily', child: Text('Harian')),
                       DropdownMenuItem(
@@ -227,18 +233,18 @@ class MerchantAnalyticsPage extends StatelessWidget {
                     child: Text(
                       'Belum ada data penjualan',
                       style: primaryTextStyle.copyWith(
-                        color: Colors.grey.shade500,
+                        color: context.textHintColor,
                         fontSize: 13,
                       ),
                     ),
                   )
                 : SfCartesianChart(
-                    primaryXAxis: const CategoryAxis(
+                    primaryXAxis: CategoryAxis(
                       labelRotation: -45,
-                      labelStyle: TextStyle(fontSize: 10),
+                      labelStyle: TextStyle(fontSize: 10, color: context.textColor),
                     ),
-                    primaryYAxis: const NumericAxis(
-                      labelStyle: TextStyle(fontSize: 10),
+                    primaryYAxis: NumericAxis(
+                      labelStyle: TextStyle(fontSize: 10, color: context.textColor),
                     ),
                     tooltipBehavior: TooltipBehavior(enable: true),
                     series: <CartesianSeries>[
@@ -255,8 +261,8 @@ class MerchantAnalyticsPage extends StatelessWidget {
                         borderWidth: 2,
                         gradient: LinearGradient(
                           colors: [
-                            const Color(0xFF3B82F6).withOpacity(0.3),
-                            const Color(0xFF3B82F6).withOpacity(0.05),
+                            const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                            const Color(0xFF3B82F6).withValues(alpha: 0.05),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -270,15 +276,15 @@ class MerchantAnalyticsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTopProducts(AnalyticsController controller) {
+  Widget _buildTopProducts(BuildContext context, AnalyticsController controller) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: context.isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -292,7 +298,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
             style: primaryTextStyle.copyWith(
               fontSize: 14,
               fontWeight: semiBold,
-              color: dashTextDark,
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 12),
@@ -303,7 +309,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
                 child: Text(
                   'Belum ada data produk',
                   style: primaryTextStyle.copyWith(
-                    color: Colors.grey.shade500,
+                    color: context.textHintColor,
                     fontSize: 13,
                   ),
                 ),
@@ -337,7 +343,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: idx < 3
                             ? const Color(0xFFF59E0B)
-                            : Colors.grey.shade300,
+                            : context.isDark ? AppColors.darkCard : Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -345,7 +351,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
                         style: primaryTextStyle.copyWith(
                           fontSize: 12,
                           fontWeight: bold,
-                          color: idx < 3 ? Colors.white : Colors.grey.shade700,
+                          color: idx < 3 ? Colors.white : context.textSecondaryColor,
                         ),
                       ),
                     ),
@@ -368,7 +374,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: progress,
-                              backgroundColor: Colors.grey.shade200,
+                              backgroundColor: context.isDark ? AppColors.darkDivider : Colors.grey.shade200,
                               color: const Color(0xFF3B82F6),
                               minHeight: 6,
                             ),
@@ -392,7 +398,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
                           '${product['total_quantity'] ?? 0} terjual',
                           style: primaryTextStyle.copyWith(
                             fontSize: 10,
-                            color: Colors.grey.shade500,
+                            color: context.textHintColor,
                           ),
                         ),
                       ],
@@ -406,15 +412,15 @@ class MerchantAnalyticsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPeakHours(AnalyticsController controller) {
+  Widget _buildPeakHours(BuildContext context, AnalyticsController controller) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: context.isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -428,7 +434,7 @@ class MerchantAnalyticsPage extends StatelessWidget {
             style: primaryTextStyle.copyWith(
               fontSize: 14,
               fontWeight: semiBold,
-              color: dashTextDark,
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 12),
@@ -439,17 +445,17 @@ class MerchantAnalyticsPage extends StatelessWidget {
                     child: Text(
                       'Belum ada data jam sibuk',
                       style: primaryTextStyle.copyWith(
-                        color: Colors.grey.shade500,
+                        color: context.textHintColor,
                         fontSize: 13,
                       ),
                     ),
                   )
                 : SfCartesianChart(
-                    primaryXAxis: const CategoryAxis(
-                      labelStyle: TextStyle(fontSize: 10),
+                    primaryXAxis: CategoryAxis(
+                      labelStyle: TextStyle(fontSize: 10, color: context.textColor),
                     ),
-                    primaryYAxis: const NumericAxis(
-                      labelStyle: TextStyle(fontSize: 10),
+                    primaryYAxis: NumericAxis(
+                      labelStyle: TextStyle(fontSize: 10, color: context.textColor),
                     ),
                     tooltipBehavior: TooltipBehavior(enable: true),
                     series: <CartesianSeries>[
@@ -471,4 +477,5 @@ class MerchantAnalyticsPage extends StatelessWidget {
       ),
     );
   }
+
 }

@@ -15,7 +15,7 @@ class PosQueuePage extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: dashBackgroundLight,
+      backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       body: Obx(() {
         if (controller.isLoadingQueue.value) {
           return const Center(child: CircularProgressIndicator());
@@ -37,12 +37,6 @@ class PosQueuePage extends StatelessWidget {
           ),
         );
       }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => controller.fetchActiveQueue(),
-        backgroundColor: dashPrimary,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.refresh),
-      ),
     );
   }
 
@@ -51,20 +45,20 @@ class PosQueuePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.queue, size: 80, color: Colors.grey[300]),
+          Icon(Icons.queue, size: 80, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'Tidak ada antrian aktif',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              color: Get.isDarkMode ? AppColors.darkTextSecondary : Colors.grey[600],
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Pesanan baru akan muncul di sini',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 14, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey[500]),
           ),
         ],
       ),
@@ -93,7 +87,7 @@ class PosQueuePage extends StatelessWidget {
         border: isUrgent ? Border.all(color: Colors.red, width: 2) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Get.isDarkMode ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.06),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -196,7 +190,7 @@ class PosQueuePage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: isUrgent ? FontWeight.bold : null,
-                        color: isUrgent ? Colors.red : Colors.grey[600],
+                        color: isUrgent ? Colors.red : Get.isDarkMode ? AppColors.darkTextHint : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -304,15 +298,15 @@ class PosQueuePage extends StatelessWidget {
     String label;
     switch (type) {
       case 'DINE_IN':
-        bgColor = Colors.purple.shade100;
+        bgColor = Get.isDarkMode ? Colors.purple.shade900 : Colors.purple.shade100;
         label = 'Dine-In';
         break;
       case 'DELIVERY':
-        bgColor = Colors.blue.shade100;
+        bgColor = Get.isDarkMode ? Colors.blue.shade900 : Colors.blue.shade100;
         label = 'Delivery';
         break;
       default:
-        bgColor = Colors.grey.shade200;
+        bgColor = Get.isDarkMode ? AppColors.darkSurface : Colors.grey.shade200;
         label = 'Takeaway';
     }
 
@@ -327,11 +321,11 @@ class PosQueuePage extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: bgColor == Colors.grey.shade200
-              ? Colors.grey.shade700
-              : bgColor == Colors.purple.shade100
-                  ? Colors.purple.shade800
-                  : Colors.blue.shade800,
+          color: bgColor == (Get.isDarkMode ? AppColors.darkSurface : Colors.grey.shade200)
+              ? Get.isDarkMode ? AppColors.darkTextSecondary : Colors.grey.shade700
+              : bgColor == (Get.isDarkMode ? Colors.purple.shade900 : Colors.purple.shade100)
+                  ? Get.isDarkMode ? Colors.purple.shade300 : Colors.purple.shade800
+                  : Get.isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800,
         ),
       ),
     );

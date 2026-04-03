@@ -52,7 +52,7 @@ class _AddOperationalHoursBottomSheetState
         final days = merchant.operatingDays!.map((day) {
           return day[0].toUpperCase() + day.substring(1).toLowerCase();
         }).toSet(); // Convert to Set to remove duplicates
-        selectedDays.value = days;
+        selectedDays.addAll(days);
         profileController.operatingDays.value = days.toList();
       }
     }
@@ -192,7 +192,7 @@ class _AddOperationalHoursBottomSheetState
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: backgroundColor1,
+          color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(Dimenssions.radius15),
           ),

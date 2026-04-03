@@ -177,7 +177,7 @@ class ProductModel {
         if (ratingData is! Map) return null;
 
         return {
-          'average_rating': parsePrice(ratingData['average_rating']) ?? 0.0,
+          'average_rating': parsePrice(ratingData['average_rating']),
           'total_reviews': ratingData['total_reviews'] is num
               ? (ratingData['total_reviews'] as num).toInt()
               : int.tryParse(ratingData['total_reviews'].toString()) ?? 0,

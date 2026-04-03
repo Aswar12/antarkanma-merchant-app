@@ -234,10 +234,10 @@ class _MapPickerPageState extends State<MapPickerPage> {
             fontWeight: semiBold,
           ),
         ),
-        backgroundColor: backgroundColor1,
+        backgroundColor: context.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Get.back(),
         ),
       ),
@@ -291,11 +291,11 @@ class _MapPickerPageState extends State<MapPickerPage> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.surfaceColor,
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: context.isDark ? Colors.black54 : Colors.black.withOpacity(0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -336,7 +336,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
                           icon: const Icon(Icons.gps_fixed),
                           label: const Text('Dapatkan Lokasi Akurat'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
+                            backgroundColor: context.surfaceColor,
                             foregroundColor: logoColor,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(

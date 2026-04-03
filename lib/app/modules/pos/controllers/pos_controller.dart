@@ -262,12 +262,24 @@ class PosController extends GetxController with GetTickerProviderStateMixin {
         'table_number': tableNumber,
         'capacity': capacity,
       });
-      Get.snackbar('Berhasil', 'Meja $tableNumber berhasil ditambahkan',
-          backgroundColor: Colors.green, colorText: Colors.white);
-      fetchTables();
+      Get.snackbar(
+        'Berhasil',
+        'Meja $tableNumber berhasil ditambahkan',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+      );
+      await fetchTables();
     } catch (e) {
-      Get.snackbar('Gagal', '$e',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        'Gagal',
+        e.toString().contains('Gagal') ? e.toString() : 'Terjadi kesalahan: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 3),
+      );
     } finally {
       isProcessing.value = false;
     }
@@ -286,12 +298,33 @@ class PosController extends GetxController with GetTickerProviderStateMixin {
     try {
       final success = await _repository.deleteTable(id);
       if (success) {
-        Get.snackbar('Berhasil', 'Meja berhasil dihapus',
-            backgroundColor: Colors.green, colorText: Colors.white);
-        fetchTables();
+        Get.snackbar(
+          'Berhasil',
+          'Meja berhasil dihapus',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 2),
+        );
+        await fetchTables();
+      } else {
+        Get.snackbar(
+          'Gagal',
+          'Gagal menghapus meja',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+        );
       }
     } catch (e) {
       debugPrint('Error removing table: $e');
+      Get.snackbar(
+        'Error',
+        'Terjadi kesalahan: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
     }
   }
 

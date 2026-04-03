@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../theme.dart';
 
 class ShimmerLoading extends StatelessWidget {
@@ -19,7 +20,7 @@ class ShimmerLoading extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.all(Dimenssions.height16),
             decoration: BoxDecoration(
-              color: backgroundColor1,
+              color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
               borderRadius: BorderRadius.circular(Dimenssions.radius12),
               boxShadow: [
                 BoxShadow(

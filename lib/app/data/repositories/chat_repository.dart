@@ -374,7 +374,7 @@ class ChatRepository {
             lastPage: data['data']['last_page'] ?? 1,
             total: data['data']['total'] ?? 0,
             perPage: data['data']['per_page'] ?? perPage,
-            hasMorePages: data['data']['current_page'] < data['data']['last_page'],
+            hasMorePages: (data['data']['current_page'] ?? 1) < (data['data']['last_page'] ?? 1),
           );
         }
       }
@@ -430,6 +430,49 @@ class ChatRepository {
     } catch (e) {
       print('Error fetching order data: $e');
       return null;
+    }
+  }
+
+  Future<bool> deleteMessage(int chatId, int messageId) async {
+    try {
+      final token = await _authService.getToken();
+      if (token == null) {
+        debugPrint('deleteMessage: No auth token');
+        return false;
+      }
+
+      debugPrint('deleteMessage: Deleting message $messageId from chat $chatId');
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/chat/$chatId/messages/$messageId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('deleteMessage: Request timeout');
+          throw Exception('Request timeout');
+        },
+      );
+
+      debugPrint('deleteMessage: Response status: ${response.statusCode}');
+      debugPrint('deleteMessage: Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          debugPrint('deleteMessage: Success - ${data['message']}');
+          return true;
+        }
+      }
+
+      debugPrint('deleteMessage: Failed - ${response.statusCode}');
+      return false;
+    } catch (e) {
+      debugPrint('deleteMessage: Exception: $e');
+      return false;
     }
   }
 }

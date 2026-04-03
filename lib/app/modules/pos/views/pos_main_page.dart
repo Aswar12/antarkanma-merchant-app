@@ -17,7 +17,7 @@ class PosMainPage extends StatelessWidget {
     final controller = Get.find<PosController>();
 
     return Scaffold(
-      backgroundColor: dashBackgroundLight,
+      backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       body: Column(
         children: [
           // ─── Premium Navy Header ─────────────────────────
@@ -44,14 +44,14 @@ class PosMainPage extends StatelessWidget {
   Widget _buildHeader(PosController controller) {
     return Container(
       decoration: BoxDecoration(
-        color: dashNavyDeep,
+        color: AppColors.navy,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
         boxShadow: [
           BoxShadow(
-            color: dashNavyDeep.withOpacity(0.3),
+            color: AppColors.navy.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -68,9 +68,9 @@ class PosMainPage extends StatelessWidget {
                 controller: controller.tabController,
                 isScrollable: true,
                 tabAlignment: TabAlignment.center,
-                labelColor: dashPrimary,
+                labelColor: AppColors.orange,
                 unselectedLabelColor: Colors.orange.withOpacity(0.5),
-                indicatorColor: dashPrimary,
+                indicatorColor: AppColors.orange,
                 indicatorWeight: 3,
                 indicatorSize: TabBarIndicatorSize.label,
                 dividerColor: Colors.transparent,

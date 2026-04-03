@@ -1,0 +1,39 @@
+Analyzing chat_bubble_location.dart...                          
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:179:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:240:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:240:78 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:245:30 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:262:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:265:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:347:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:350:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:361:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:364:38 - deprecated_member_use
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\widgets\chat_bubble_location.dart:383:31 - deprecated_member_use_from_same_package
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\widgets\chat_bubble_location.dart:385:31 - deprecated_member_use_from_same_package
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:422:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:422:80 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:427:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:477:78 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:479:131 - deprecated_member_use
+   info - 'chatTextDark' is deprecated and shouldn't be used. Use AppColors.chatTextLight or AppColors.chatTextDark - lib\app\widgets\chat_bubble_location.dart:505:65 - deprecated_member_use_from_same_package
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:521:44 - deprecated_member_use
+   info - 'chatTextSecondary' is deprecated and shouldn't be used. Use AppColors.chatTextSecondaryLight or AppColors.chatTextSecondaryDark - lib\app\widgets\chat_bubble_location.dart:522:31 - deprecated_member_use_from_same_package
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:538:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:541:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:571:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:574:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:591:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:618:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:623:52 - deprecated_member_use
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\widgets\chat_bubble_location.dart:636:41 - deprecated_member_use_from_same_package
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\widgets\chat_bubble_location.dart:645:45 - deprecated_member_use_from_same_package
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:671:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:676:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:728:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:728:78 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\widgets\chat_bubble_location.dart:733:30 - deprecated_member_use
+   info - 'chatTextDark' is deprecated and shouldn't be used. Use AppColors.chatTextLight or AppColors.chatTextDark - lib\app\widgets\chat_bubble_location.dart:750:53 - deprecated_member_use_from_same_package
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\widgets\chat_bubble_location.dart:853:42 - deprecated_member_use_from_same_package
+

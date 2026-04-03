@@ -42,36 +42,36 @@ class TransactionCard extends StatelessWidget {
         return _StatusConfig(
           label: 'Menunggu',
           icon: Icons.pending_outlined,
-          color: statusWaiting,
-          bgColor: statusWaitingBg,
+          color: Colors.orange,
+          bgColor: Colors.orange.withValues(alpha: 0.1),
         );
       case OrderModel.STATUS_PROCESSING:
         return _StatusConfig(
           label: 'Diproses',
           icon: Icons.autorenew_rounded,
-          color: statusProcessing,
-          bgColor: statusProcessingBg,
+          color: Colors.blue,
+          bgColor: Colors.blue.withValues(alpha: 0.1),
         );
       case OrderModel.STATUS_READY_FOR_PICKUP:
         return _StatusConfig(
           label: 'Siap Diambil',
           icon: Icons.check_circle_rounded,
-          color: statusReady,
-          bgColor: statusReadyBg,
+          color: Colors.green,
+          bgColor: Colors.green.withValues(alpha: 0.1),
         );
       case OrderModel.STATUS_COMPLETED:
         return _StatusConfig(
           label: 'Selesai',
           icon: Icons.done_all_rounded,
-          color: statusCompleted,
-          bgColor: statusCompletedBg,
+          color: Colors.grey,
+          bgColor: Colors.grey.withValues(alpha: 0.1),
         );
       case OrderModel.STATUS_CANCELED:
         return _StatusConfig(
           label: 'Dibatalkan',
           icon: Icons.cancel_rounded,
-          color: statusCanceled,
-          bgColor: statusCanceledBg,
+          color: Colors.red,
+          bgColor: Colors.red.withValues(alpha: 0.1),
         );
       default:
         return _StatusConfig(
@@ -93,9 +93,9 @@ class TransactionCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: backgroundColor1,
+          color: Get.isDarkMode ? AppColors.darkCard : AppColors.lightCard,
           borderRadius: BorderRadius.circular(_kCardRadius),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Get.isDarkMode ? AppColors.darkDivider : AppColors.lightDivider),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -174,7 +174,7 @@ class TransactionCard extends StatelessWidget {
               if (isActionRequired ||
                   order.orderStatus == OrderModel.STATUS_READY_FOR_PICKUP) ...[
                 const SizedBox(height: 12),
-                const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                Divider(height: 1, color: Get.isDarkMode ? AppColors.darkDivider : AppColors.lightDivider),
                 const SizedBox(height: 12),
                 if (isActionRequired) _buildActionArea(),
                 if (order.orderStatus == OrderModel.STATUS_READY_FOR_PICKUP)
@@ -193,15 +193,15 @@ class TransactionCard extends StatelessWidget {
       padding: EdgeInsets.symmetric(
           horizontal: Dimenssions.width10, vertical: Dimenssions.height6),
       decoration: BoxDecoration(
-        color: statusReadyBg,
+        color: Colors.green.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(Dimenssions.radius20),
-        border: Border.all(color: statusReady.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.check_circle_rounded,
-              size: Dimenssions.font12, color: statusReady),
+              size: Dimenssions.font12, color: Colors.green),
           SizedBox(width: Dimenssions.width5),
           Text(
             order.courier != null
@@ -210,7 +210,7 @@ class TransactionCard extends StatelessWidget {
             style: primaryTextStyle.copyWith(
               fontSize: Dimenssions.font11,
               fontWeight: semiBold,
-              color: statusReady,
+              color: Colors.green,
             ),
           ),
         ],
@@ -235,8 +235,8 @@ class TransactionCard extends StatelessWidget {
             icon: Icon(Icons.close_rounded, size: Dimenssions.font16),
             label: const Text('Tolak'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: statusCanceled,
-              side: BorderSide(color: statusCanceled.withValues(alpha: 0.5)),
+              foregroundColor: Colors.red,
+              side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
               padding: EdgeInsets.symmetric(vertical: Dimenssions.height10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(_kPillRadius),
@@ -256,8 +256,8 @@ class TransactionCard extends StatelessWidget {
             icon: Icon(Icons.check_rounded, size: Dimenssions.font16),
             label: const Text('Terima Pesanan'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: statusReady,
-              foregroundColor: backgroundColor1,
+              backgroundColor: Colors.green,
+              foregroundColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
               elevation: 0,
               padding: EdgeInsets.symmetric(vertical: Dimenssions.height10),
               shape: RoundedRectangleBorder(
@@ -296,7 +296,7 @@ class TransactionCard extends StatelessWidget {
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: logoColorSecondary,
-            foregroundColor: backgroundColor1,
+            foregroundColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(_kPillRadius),
@@ -367,7 +367,7 @@ class _PaymentChip extends StatelessWidget {
       padding: EdgeInsets.symmetric(
           horizontal: Dimenssions.width8, vertical: Dimenssions.height4),
       decoration: BoxDecoration(
-        color: backgroundColor3.withValues(alpha: 0.3),
+        color: Get.isDarkMode ? AppColors.darkDivider : AppColors.lightDivider.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(Dimenssions.radius20),
       ),
       child: Row(

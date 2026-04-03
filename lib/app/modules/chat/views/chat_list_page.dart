@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/theme.dart';
+import 'package:antarkanma_merchant/app/controllers/theme_controller.dart';
 import '../controllers/chat_list_controller.dart';
 import 'widgets/chat_list_tile.dart';
 
@@ -14,6 +15,7 @@ class ChatListPage extends StatefulWidget {
 class _ChatListPageState extends State<ChatListPage>
     with WidgetsBindingObserver {
   final controller = Get.put(ChatListController());
+  final themeController = Get.find<ThemeController>();
 
   @override
   void initState() {
@@ -39,46 +41,48 @@ class _ChatListPageState extends State<ChatListPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor3,
-      appBar: AppBar(
-        title: Text(
-          'Chat Saya',
-          style: primaryTextStyle.copyWith(
-            fontSize: 20,
-            fontWeight: semiBold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: backgroundColor2,
-        elevation: 0,
-      ),
-      body: Obx(() {
-        if (controller.isLoading.value && controller.chats.isEmpty) {
-          return Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(logoColorSecondary),
+    return Obx(() {
+      final isDark = themeController.themeMode.value == ThemeMode.dark;
+      return Scaffold(
+        backgroundColor:
+            isDark ? AppColors.darkBackground : AppColors.lightBackground,
+        appBar: AppBar(
+          title: Text(
+            'Chat Saya',
+            style: primaryTextStyle.copyWith(
+              fontSize: 20,
+              fontWeight: semiBold,
+              color: isDark
+                  ? AppColors.darkTextPrimary
+                  : AppColors.lightTextPrimary,
             ),
-          );
-        }
-
-        if (controller.chats.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        return RefreshIndicator(
-          onRefresh: () => controller.refresh(),
-          child: ListView.builder(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            itemCount: controller.chats.length,
-            itemBuilder: (context, index) {
-              final chat = controller.chats[index];
-              return ChatListTile(chat: chat);
-            },
           ),
-        );
-      }),
-    );
+          centerTitle: true,
+          backgroundColor: isDark ? AppColors.darkCard : AppColors.lightCard,
+          elevation: 0,
+        ),
+          body: controller.isLoading.value && controller.chats.isEmpty
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(logoColorSecondary),
+                  ),
+                )
+              : controller.chats.isEmpty
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: () => controller.refresh(),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: controller.chats.length,
+                        itemBuilder: (context, index) {
+                          final chat = controller.chats[index];
+                          return ChatListTile(chat: chat);
+                        },
+                      ),
+                    ),
+      );
+    });
   }
 
   Widget _buildEmptyState() {
@@ -89,7 +93,7 @@ class _ChatListPageState extends State<ChatListPage>
           Icon(
             Icons.chat_bubble_outline,
             size: 80,
-            color: secondaryTextColor.withOpacity(0.5),
+            color: Get.isDarkMode ? AppColors.darkTextHint : AppColors.lightTextHint,
           ),
           SizedBox(height: 24),
           Text(
@@ -97,6 +101,7 @@ class _ChatListPageState extends State<ChatListPage>
             style: primaryTextStyle.copyWith(
               fontSize: 18,
               fontWeight: semiBold,
+              color: Get.isDarkMode ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
             ),
           ),
           SizedBox(height: 8),
@@ -106,7 +111,7 @@ class _ChatListPageState extends State<ChatListPage>
               'Mulai chat dengan merchant atau kurir dari halaman pesanan Anda',
               style: secondaryTextStyle.copyWith(
                 fontSize: 14,
-                color: secondaryTextColor,
+                color: Get.isDarkMode ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
               ),
               textAlign: TextAlign.center,
             ),

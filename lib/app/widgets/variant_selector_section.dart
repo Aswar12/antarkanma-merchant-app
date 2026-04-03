@@ -37,7 +37,7 @@ class VariantSelectorSection extends StatelessWidget {
       ),
       padding: EdgeInsets.all(Dimenssions.height16),
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(Dimenssions.radius12),
         border: Border.all(color: backgroundColor3.withOpacity(0.5)),
       ),
@@ -101,7 +101,7 @@ class VariantSelectorSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isSelected
                               ? logoColorSecondary
-                              : backgroundColor1,
+                              : (Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface),
                           border: Border.all(
                             color: isSelected
                                 ? logoColorSecondary
@@ -119,7 +119,7 @@ class VariantSelectorSection extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: Dimenssions.font14,
                                 color: isSelected
-                                    ? backgroundColor1
+                                    ? (Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface)
                                     : primaryTextColor,
                                 fontWeight: medium,
                               ),
@@ -131,7 +131,7 @@ class VariantSelectorSection extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: Dimenssions.font12,
                                   color: isSelected
-                                      ? backgroundColor1
+                                      ? (Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface)
                                       : logoColorSecondary,
                                   fontWeight: medium,
                                 ),

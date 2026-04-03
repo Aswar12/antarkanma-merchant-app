@@ -16,8 +16,8 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: backgroundColor1,
-      systemNavigationBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
+      systemNavigationBarIconBrightness: Get.isDarkMode ? Brightness.light : Brightness.dark,
     ));
 
     final statuses = [
@@ -52,17 +52,17 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
           value: SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: Brightness.light,
-            systemNavigationBarColor: backgroundColor1,
-            systemNavigationBarIconBrightness: Brightness.dark,
+            systemNavigationBarColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
+            systemNavigationBarIconBrightness: Get.isDarkMode ? Brightness.light : Brightness.dark,
           ),
           child: Scaffold(
-            backgroundColor: dashNavyDeep,
+            backgroundColor: AppColors.navy,
             body: SafeArea(
               child: Column(
                 children: [
                   // Custom AppBar
                   Container(
-                    color: dashNavyDeep,
+                    color: AppColors.navy,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -109,7 +109,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                                       value: controller.autoApprove.value,
                                       onChanged: (value) =>
                                           controller.toggleAutoApprove(),
-                                      activeColor: dashPrimary,
+                                      activeColor: AppColors.orange,
                                       inactiveThumbColor: Colors.white,
                                       inactiveTrackColor:
                                           Colors.white.withOpacity(0.5),
@@ -125,12 +125,12 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                   ),
                   // TabBar
                   Container(
-                    color: dashNavyDeep,
+                    color: AppColors.navy,
                     child: Obx(() => TabBar(
                           isScrollable: true,
-                          indicatorColor: dashPrimary,
+                          indicatorColor: AppColors.orange,
                           indicatorWeight: 3,
-                          labelColor: dashPrimary,
+                          labelColor: AppColors.orange,
                           unselectedLabelColor: Colors.white.withOpacity(0.5),
                           labelStyle: TextStyle(
                             fontSize: Dimenssions.font14,
@@ -179,7 +179,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                   // TabBarView
                   Expanded(
                     child: Container(
-                      color: backgroundColor1,
+                      color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
                       child: TabBarView(
                         physics: const BouncingScrollPhysics(),
                         children:
@@ -232,8 +232,8 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
   Widget _buildOrderList() {
     return RefreshIndicator(
       onRefresh: () => controller.refreshOrders(),
-      color: dashPrimary,
-      backgroundColor: backgroundColor1,
+      color: AppColors.orange,
+      backgroundColor: Get.isDarkMode ? AppColors.darkCard : AppColors.lightCard,
       strokeWidth: 3,
       displacement: 40,
       child: Obx(() {
@@ -271,7 +271,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                         icon: const Icon(Icons.refresh),
                         label: const Text('Coba Lagi'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: dashPrimary,
+                          backgroundColor: AppColors.orange,
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(
                             horizontal: Dimenssions.width16,
@@ -335,7 +335,7 @@ class MerchantOrderPage extends GetView<MerchantOrderController> {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(dashPrimary),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.orange),
                       ),
                     ),
                   ),

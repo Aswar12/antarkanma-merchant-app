@@ -11,7 +11,7 @@ class AddressPage extends GetView<UserLocationController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor1,
+      backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(
@@ -21,7 +21,7 @@ class AddressPage extends GetView<UserLocationController> {
           ),
           onPressed: () => Get.back(),
         ),
-        backgroundColor: backgroundColor1,
+        backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
         elevation: 0,
         title: Text(
           'Alamat Saya',
@@ -88,7 +88,7 @@ class AddressPage extends GetView<UserLocationController> {
                   child: Text(
                     'Coba Lagi',
                     style: primaryTextStyle.copyWith(
-                      color: backgroundColor1,
+                      color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
                       fontSize: Dimenssions.font14,
                       fontWeight: medium,
                     ),
@@ -149,7 +149,7 @@ class AddressPage extends GetView<UserLocationController> {
               child: Text(
                 'Tambah Alamat',
                 style: primaryTextStyle.copyWith(
-                  color: backgroundColor1,
+                  color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
                   fontSize: Dimenssions.font14,
                   fontWeight: medium,
                 ),
@@ -304,7 +304,7 @@ class AddressPage extends GetView<UserLocationController> {
     Get.bottomSheet(
       Container(
         decoration: BoxDecoration(
-          color: backgroundColor1,
+          color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(Dimenssions.radius20),
           ),

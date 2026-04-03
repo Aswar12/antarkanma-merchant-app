@@ -115,7 +115,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
               Icon(
                 icon,
                 size: Dimenssions.height24,
-                color: isSelected ? dashPrimary : Colors.grey.shade400,
+                color: isSelected ? AppColors.orange : Colors.grey.shade400,
               ),
               const SizedBox(height: 2),
             ],
@@ -129,7 +129,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
               Icon(
                 icon,
                 size: Dimenssions.height24,
-                color: dashPrimary,
+                color: AppColors.orange,
               ),
               const SizedBox(height: 2),
             ],
@@ -142,10 +142,10 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
     Widget customBottomNav() {
       return Container(
         decoration: BoxDecoration(
-          color: dashCardLight,
+          color: Get.isDarkMode ? AppColors.darkCard : AppColors.lightCard,
           border: Border(
             top: BorderSide(
-              color: dashBorderLight,
+              color: Get.isDarkMode ? AppColors.darkDivider : AppColors.lightDivider,
               width: 1,
             ),
           ),
@@ -159,7 +159,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
           ],
         ),
         child: Obx(() => BottomNavigationBar(
-              selectedItemColor: dashPrimary,
+              selectedItemColor: AppColors.orange,
               unselectedItemColor: Colors.grey.shade400,
               selectedLabelStyle: primaryTextStyle.copyWith(
                 fontSize: 10,
@@ -194,7 +194,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
           homeController.changePage(0);
         },
         child: Scaffold(
-          backgroundColor: dashBackgroundLight,
+          backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
           extendBody: true, // Allow content to flow under the bottom nav
           bottomNavigationBar:
               controller.merchant.value != null ? customBottomNav() : null,
@@ -204,7 +204,7 @@ class _MerchantMainPageState extends State<MerchantMainPage> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(color: dashPrimary),
+                      CircularProgressIndicator(color: AppColors.orange),
                       const SizedBox(height: 16),
                       Text(
                         'Memuat data...',

@@ -19,11 +19,11 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     final merchantController = Get.find<MerchantController>();
 
     return Scaffold(
-      backgroundColor: dashBackgroundLight,
+      backgroundColor: context.backgroundColor,
       body: RefreshIndicator(
         onRefresh: () => controller.refreshData(),
-        color: dashPrimary,
-        backgroundColor: Colors.white,
+        color: AppColors.orange,
+        backgroundColor: context.cardColor,
         strokeWidth: 3,
         displacement: 40,
         child: CustomScrollView(
@@ -38,13 +38,13 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 maxHeight: 75 + MediaQuery.of(context).padding.top,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: dashNavyDeep,
+                    color: AppColors.navy,
                     borderRadius: const BorderRadius.vertical(
                       bottom: Radius.circular(32),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: dashNavyDeep.withOpacity(0.3),
+                        color: (context.isDark ? Colors.black : AppColors.navy).withOpacity(0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -54,7 +54,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                     bottom: false,
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: _buildHeader(merchantController),
+                      child: _buildHeader(context, merchantController),
                     ),
                   ),
                 ),
@@ -63,17 +63,17 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
 
             // Stats Section (Ringkasan Hari Ini)
             SliverToBoxAdapter(
-              child: _buildSummarySection(),
+              child: _buildSummarySection(context),
             ),
 
             // Sales Trend Section
             SliverToBoxAdapter(
-              child: _buildSalesTrendSection(),
+              child: _buildSalesTrendSection(context),
             ),
 
             // Active Orders Section
             SliverToBoxAdapter(
-              child: _buildActiveOrdersSection(),
+              child: _buildActiveOrdersSection(context),
             ),
 
             // Add some bottom padding so it doesn't collide with BottomNav
@@ -86,7 +86,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     );
   }
 
-  Widget _buildHeader(MerchantController merchantController) {
+  Widget _buildHeader(BuildContext context, MerchantController merchantController) {
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: Dimenssions.width20, vertical: Dimenssions.height12),
@@ -104,7 +104,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 Text(
                   'MERCHANT',
                   style: primaryTextStyle.copyWith(
-                    color: dashPrimary.withOpacity(0.8),
+                    color: AppColors.orange.withValues(alpha: 0.8),
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
@@ -146,7 +146,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                         borderRadius:
                             BorderRadius.circular(Dimenssions.radius12),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.notifications_outlined,
                         color: Colors.white,
                         size: 22,
@@ -165,10 +165,10 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           width: 16,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: dashPrimary,
+                            color: AppColors.orange,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: dashNavyDeep,
+                              color: AppColors.navy,
                               width: 2.5,
                             ),
                           ),
@@ -201,8 +201,8 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           vertical: Dimenssions.height8),
                       decoration: BoxDecoration(
                         color: controller.isOpen.value
-                            ? dashPrimary
-                            : Colors.grey.shade600,
+                            ? AppColors.orange
+                            : context.isDark ? AppColors.darkTextHint : Colors.grey.shade600,
                         borderRadius:
                             BorderRadius.circular(Dimenssions.radius30),
                       ),
@@ -239,7 +239,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     );
   }
 
-  Widget _buildSummarySection() {
+  Widget _buildSummarySection(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
         top: Dimenssions.height10,
@@ -248,12 +248,12 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
       ),
       padding: EdgeInsets.all(Dimenssions.height16),
       decoration: BoxDecoration(
-        color: dashCardLight,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(Dimenssions.radius16),
-        border: Border.all(color: dashBorderLight),
+        border: Border.all(color: context.dividerColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: context.isDark ? Colors.black26 : Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -267,7 +267,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
               Text(
                 'Ringkasan Hari Ini',
                 style: primaryTextStyle.copyWith(
-                  color: dashTextDark,
+                  color: context.textColor,
                   fontSize: Dimenssions.font14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -275,7 +275,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
               Text(
                 DateFormat('dd MMM yyyy', 'id_ID').format(DateTime.now()),
                 style: primaryTextStyle.copyWith(
-                  color: Colors.grey.shade500,
+                  color: context.textHintColor,
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
                 ),
@@ -291,6 +291,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           ?.statusCounts['WAITING_APPROVAL'] ??
                       0;
                   return _buildSummaryItem(
+                    context,
                     icon: Icons.pending_actions,
                     label: 'Pesanan Baru',
                     value: waitingCount.toString(),
@@ -306,6 +307,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                       .format(controller.todayRevenue.value);
 
                   return _buildSummaryItem(
+                    context,
                     icon: Icons.payments_outlined,
                     label: 'Pendapatan',
                     value: formattedRevenue,
@@ -316,6 +318,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
               Expanded(
                 child: Obx(() {
                   return _buildSummaryItem(
+                    context,
                     icon: Icons.check_circle_outline,
                     label: 'Selesai',
                     value: controller.todayCompletedOrders.value.toString(),
@@ -329,23 +332,23 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     );
   }
 
-  Widget _buildSummaryItem(
+  Widget _buildSummaryItem(BuildContext context,
       {required IconData icon, required String label, required String value}) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: Dimenssions.height12),
       decoration: BoxDecoration(
-        color: dashBackgroundLight,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(Dimenssions.radius12),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: context.dividerColor),
       ),
       child: Column(
         children: [
-          Icon(icon, color: dashPrimary, size: 20),
+          Icon(icon, color: AppColors.orange, size: 20),
           SizedBox(height: Dimenssions.height4),
           Text(
             label,
             style: primaryTextStyle.copyWith(
-              color: Colors.grey.shade500,
+              color: context.textHintColor,
               fontSize: 10,
               fontWeight: FontWeight.w500,
             ),
@@ -354,7 +357,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
           Text(
             value,
             style: primaryTextStyle.copyWith(
-              color: dashNavyDeep,
+              color: context.textColor,
               fontSize: Dimenssions.font16,
               fontWeight: FontWeight.w800,
             ),
@@ -364,7 +367,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     );
   }
 
-  Widget _buildSalesTrendSection() {
+  Widget _buildSalesTrendSection(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
           left: Dimenssions.width20,
@@ -372,9 +375,9 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
           top: Dimenssions.height8),
       padding: EdgeInsets.all(Dimenssions.height16),
       decoration: BoxDecoration(
-        color: dashCardLight,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(Dimenssions.radius16),
-        border: Border.all(color: dashBorderLight),
+        border: Border.all(color: context.dividerColor),
       ),
       child: Column(
         children: [
@@ -384,7 +387,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
               Text(
                 'Tren Penjualan',
                 style: primaryTextStyle.copyWith(
-                  color: dashTextDark,
+                  color: context.textColor,
                   fontSize: Dimenssions.font14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -393,17 +396,17 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 onTap: () => Get.toNamed(Routes.merchantAnalytics),
                 child: Row(
                   children: [
-                    Icon(Icons.bar_chart, color: dashPrimary, size: 16),
+                    Icon(Icons.bar_chart, color: AppColors.orange, size: 16),
                     SizedBox(width: 4),
                     Text(
                       'Lihat Detail',
                       style: primaryTextStyle.copyWith(
-                        color: dashPrimary,
+                        color: AppColors.orange,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: dashPrimary, size: 14),
+                    Icon(Icons.chevron_right, color: AppColors.orange, size: 14),
                   ],
                 ),
               ),
@@ -421,23 +424,23 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  dashPrimary.withOpacity(0.2),
-                  dashPrimary.withOpacity(0.0),
+                  AppColors.orange.withValues(alpha: 0.2),
+                  AppColors.orange.withValues(alpha: 0.0),
                 ],
               ),
             ),
             child: CustomPaint(
-              painter: MockChartPainter(color: dashPrimary),
+              painter: MockChartPainter(color: AppColors.orange),
             ),
           ),
           SizedBox(height: Dimenssions.height8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildChartLabel('08:00'),
-              _buildChartLabel('12:00'),
-              _buildChartLabel('16:00'),
-              _buildChartLabel('20:00'),
+              _buildChartLabel(context, '08:00'),
+              _buildChartLabel(context, '12:00'),
+              _buildChartLabel(context, '16:00'),
+              _buildChartLabel(context, '20:00'),
             ],
           )
         ],
@@ -445,17 +448,17 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     );
   }
 
-  Widget _buildChartLabel(String text) {
+  Widget _buildChartLabel(BuildContext context, String text) {
     return Text(
       text,
       style: primaryTextStyle.copyWith(
-        color: Colors.grey.shade400,
+        color: context.textHintColor,
         fontSize: 10,
       ),
     );
   }
 
-  Widget _buildActiveOrdersSection() {
+  Widget _buildActiveOrdersSection(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
         left: Dimenssions.width20,
@@ -471,7 +474,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
               Text(
                 'Pesanan Aktif',
                 style: primaryTextStyle.copyWith(
-                  color: dashNavyDeep,
+                  color: context.textColor,
                   fontSize: Dimenssions.font16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -484,13 +487,13 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: dashPrimary.withOpacity(0.1),
+                    color: AppColors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     '$activeCount AKTIF',
                     style: primaryTextStyle.copyWith(
-                      color: dashPrimary,
+                      color: AppColors.orange,
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
                     ),
@@ -506,7 +509,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 padding: EdgeInsets.all(Dimenssions.height32),
                 child: Center(
                   child: CircularProgressIndicator(
-                    color: dashPrimary,
+                    color: AppColors.orange,
                   ),
                 ),
               );
@@ -521,13 +524,13 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                       Icon(
                         Icons.inbox_outlined,
                         size: 48,
-                        color: Colors.grey.shade300,
+                        color: context.textHintColor,
                       ),
                       SizedBox(height: Dimenssions.height12),
                       Text(
                         'Tidak ada pesanan aktif',
                         style: primaryTextStyle.copyWith(
-                          color: Colors.grey.shade500,
+                          color: context.textSecondaryColor,
                           fontSize: Dimenssions.font14,
                         ),
                       ),
@@ -550,6 +553,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 return Padding(
                   padding: EdgeInsets.only(bottom: Dimenssions.height16),
                   child: _buildOrderCard(
+                    context,
                     orderId: order.id,
                     orderNumber: '#ORD-${order.id}',
                     customerName: order.customerName,
@@ -569,7 +573,8 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     );
   }
 
-  Widget _buildOrderCard({
+  Widget _buildOrderCard(
+    BuildContext context, {
     required int orderId,
     required String orderNumber,
     required String customerName,
@@ -587,13 +592,13 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
       child: Container(
         padding: EdgeInsets.all(Dimenssions.height16),
         decoration: BoxDecoration(
-          color: dashCardLight,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(Dimenssions.radius12),
-          border: Border.all(color: dashBorderLight),
+          border: Border.all(color: context.dividerColor),
           boxShadow: [
             if (isNew)
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: context.isDark ? Colors.black26 : Colors.black.withOpacity(0.02),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               ),
@@ -609,7 +614,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                 child: Container(
                   width: 4,
                   decoration: BoxDecoration(
-                    color: dashPrimary,
+                    color: AppColors.orange,
                     borderRadius: BorderRadius.horizontal(
                       left: Radius.circular(Dimenssions.radius12),
                     ),
@@ -631,7 +636,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           Text(
                             orderNumber,
                             style: primaryTextStyle.copyWith(
-                              color: Colors.grey.shade400,
+                              color: context.textHintColor,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -640,7 +645,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           Text(
                             customerName,
                             style: primaryTextStyle.copyWith(
-                              color: dashTextDark,
+                              color: context.textColor,
                               fontSize: Dimenssions.font14,
                               fontWeight: FontWeight.bold,
                             ),
@@ -649,7 +654,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           Text(
                             createdAt,
                             style: primaryTextStyle.copyWith(
-                              color: Colors.grey.shade400,
+                              color: context.textHintColor,
                               fontSize: 10,
                             ),
                           ),
@@ -662,13 +667,13 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: _getStatusColor(status).withOpacity(0.1),
+                              color: _getStatusColor(context, status).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               _getStatusText(status),
                               style: primaryTextStyle.copyWith(
-                                color: _getStatusColor(status),
+                                color: _getStatusColor(context, status),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -678,7 +683,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           Text(
                             price,
                             style: primaryTextStyle.copyWith(
-                              color: dashPrimary,
+                              color: AppColors.orange,
                               fontSize: Dimenssions.font14,
                               fontWeight: FontWeight.bold,
                             ),
@@ -686,7 +691,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           Text(
                             paymentMethod,
                             style: primaryTextStyle.copyWith(
-                              color: Colors.grey.shade400,
+                              color: context.textHintColor,
                               fontSize: 10,
                             ),
                           ),
@@ -700,13 +705,13 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                         child: Row(
                           children: [
                             Icon(Icons.restaurant,
-                                size: 14, color: Colors.grey.shade600),
+                                size: 14, color: context.textHintColor),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 item,
                                 style: primaryTextStyle.copyWith(
-                                  color: Colors.grey.shade600,
+                                  color: context.textHintColor,
                                   fontSize: 12,
                                 ),
                               ),
@@ -722,7 +727,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           child: ElevatedButton(
                             onPressed: () => _acceptOrder(orderId),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: dashPrimary,
+                              backgroundColor: AppColors.orange,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -746,7 +751,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                           child: ElevatedButton(
                             onPressed: () => _markAsReady(orderId),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: dashPrimary,
+                              backgroundColor: AppColors.orange,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -773,7 +778,7 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
                             onPressed: () => _rejectOrder(orderId),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.red,
-                              side: BorderSide(color: Colors.red.shade200),
+                              side: BorderSide(color: context.isDark ? Colors.red.shade900 : Colors.red.shade200),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius:
@@ -802,19 +807,19 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(BuildContext context, String status) {
     switch (status) {
       case 'PENDING':
       case 'WAITING_APPROVAL':
-        return Colors.orange;
+        return AppColors.warning;
       case 'PROCESSING':
-        return Colors.blue;
+        return Colors.blueAccent;
       case 'READY_FOR_PICKUP':
-        return Colors.green;
+        return AppColors.success;
       case 'COMPLETED':
-        return Colors.grey;
+        return context.textSecondaryColor;
       default:
-        return Colors.grey;
+        return context.textSecondaryColor;
     }
   }
 
@@ -902,177 +907,6 @@ class MerchantHomePage extends GetView<MerchantHomeController> {
     }
   }
 
-  Widget _buildMockOrderCard({
-    required String orderNumber,
-    required String customerName,
-    required String price,
-    required String paymentMethod,
-    required List<String> items,
-    required bool isNew,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(Dimenssions.height16),
-      decoration: BoxDecoration(
-        color: dashCardLight,
-        borderRadius: BorderRadius.circular(Dimenssions.radius12),
-        border: Border.all(color: dashBorderLight),
-        boxShadow: [
-          if (isNew)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Left border indicator
-          if (isNew)
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: dashPrimary,
-                  borderRadius: BorderRadius.horizontal(
-                    left: Radius.circular(Dimenssions.radius12),
-                  ),
-                ),
-              ),
-            ),
-          Padding(
-            padding: EdgeInsets.only(left: isNew ? 8 : 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          orderNumber,
-                          style: primaryTextStyle.copyWith(
-                            color: Colors.grey.shade400,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          customerName,
-                          style: primaryTextStyle.copyWith(
-                            color: dashTextDark,
-                            fontSize: Dimenssions.font14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          price,
-                          style: primaryTextStyle.copyWith(
-                            color: dashPrimary,
-                            fontSize: Dimenssions.font14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          paymentMethod,
-                          style: primaryTextStyle.copyWith(
-                            color: Colors.grey.shade400,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: Dimenssions.height12),
-                ...items.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.restaurant,
-                              size: 14, color: Colors.grey.shade600),
-                          SizedBox(width: 8),
-                          Text(
-                            item,
-                            style: primaryTextStyle.copyWith(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
-                SizedBox(height: Dimenssions.height16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: dashPrimary,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(Dimenssions.radius8),
-                          ),
-                        ),
-                        child: Text(
-                          'TERIMA',
-                          style: primaryTextStyle.copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: Dimenssions.width12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.grey.shade700,
-                          side: BorderSide(color: Colors.grey.shade200),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(Dimenssions.radius8),
-                          ),
-                        ),
-                        child: Text(
-                          'DETAIL',
-                          style: primaryTextStyle.copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // Delegate for SliverPersistentHeader to make sticky header

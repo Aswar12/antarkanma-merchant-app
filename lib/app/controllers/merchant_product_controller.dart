@@ -194,10 +194,10 @@ class MerchantProductController extends GetxController {
         filtered.sort((a, b) => b.name.compareTo(a.name));
         break;
       case 'price_asc':
-        filtered.sort((a, b) => (a.price ?? 0).compareTo(b.price ?? 0));
+        filtered.sort((a, b) => (a.price).compareTo(b.price));
         break;
       case 'price_desc':
-        filtered.sort((a, b) => (b.price ?? 0).compareTo(a.price ?? 0));
+        filtered.sort((a, b) => (b.price).compareTo(a.price));
         break;
       case 'Baru':
       default:

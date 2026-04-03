@@ -1,15 +1,13 @@
 import 'package:antarkanma_merchant/app/controllers/merchant_order_controller.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_profile_controller.dart';
 import 'package:antarkanma_merchant/app/data/models/order_model.dart';
-import 'package:antarkanma_merchant/app/services/receipt_service.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:antarkanma_merchant/app/services/print_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -50,7 +48,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor1,
+      backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: _buildAppBar(),
       body: Stack(
         children: [
@@ -69,7 +67,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   PreferredSizeWidget _buildAppBar() {
     final color = _getStatusColor();
     return AppBar(
-      backgroundColor: backgroundColor1,
+      backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       elevation: 0,
       leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.grey),
@@ -114,7 +112,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         Icon(
                           Icons.copy,
                           size: 14,
-                          color: secondaryTextColor.withOpacity(0.6),
+                          color: secondaryTextColor.withValues(alpha: 0.6),
                         ),
                       ],
                     ),
@@ -142,30 +140,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 style: secondaryTextStyle.copyWith(fontSize: 10)),
           ]),
       actions: [
-        // Print button only - action buttons moved to bottom for better UX
+        // Print button - ORANGE color for better visibility
         IconButton(
             icon: Icon(_isPrinting ? Icons.hourglass_empty : Icons.print,
-                color: logoColor),
+                color: AppColors.orange),
             onPressed: _isPrinting ? null : _handlePrintReceipt,
             tooltip: 'Cetak Struk'),
       ],
     );
   }
 
-  Widget _buildSmallActionButton(
-      String label, Color color, VoidCallback onPressed) {
-    return ElevatedButton(
-        onPressed: onPressed,
-        child: Text(label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-        style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            elevation: 0));
-  }
 
   Widget _buildContent() {
     return SingleChildScrollView(
@@ -217,10 +201,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: backgroundColor3, borderRadius: BorderRadius.circular(12)),
+          color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface, borderRadius: BorderRadius.circular(12)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Icon(Icons.receipt_long, size: 18, color: logoColorSecondary),
+          Icon(Icons.receipt_long, size: 18, color: AppColors.orange),
           const SizedBox(width: 8),
           Text('Detail Order',
               style:
@@ -259,7 +243,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       bool showArrow = true}) {
     return Container(
       decoration: BoxDecoration(
-          color: backgroundColor3, borderRadius: BorderRadius.circular(12)),
+          color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface, borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
         InkWell(
           onTap: onToggle,
@@ -267,7 +251,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(children: [
-              Icon(icon, size: 18, color: logoColorSecondary),
+              Icon(icon, size: 18, color: AppColors.orange),
               const SizedBox(width: 8),
               Text(title,
                   style: primaryTextStyle.copyWith(
@@ -276,8 +260,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               if (showArrow)
                 RotationTransition(
                     turns: AlwaysStoppedAnimation(isExpanded ? 0.5 : 0),
-                    child: const Icon(Icons.expand_more,
-                        size: 20, color: Colors.grey)),
+                    child: Icon(Icons.expand_more,
+                        size: 20, color: Get.isDarkMode ? AppColors.darkTextHint : AppColors.lightTextHint)),
             ]),
           ),
         ),
@@ -311,11 +295,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         height: 50,
                         fit: BoxFit.cover,
                         placeholder: (_, __) => Container(
-                            width: 50, height: 50, color: Colors.grey[200]),
+                            width: 50, height: 50, 
+                            color: Get.isDarkMode ? AppColors.darkSurface : Colors.grey[200]),
                         errorWidget: (_, __, ___) => Container(
-                            width: 50, height: 50, color: Colors.grey[200]))
+                            width: 50, height: 50, 
+                            color: Get.isDarkMode ? AppColors.darkSurface : Colors.grey[200]))
                     : Container(
-                        width: 50, height: 50, color: Colors.grey[200])),
+                        width: 50, height: 50, 
+                        color: Get.isDarkMode ? AppColors.darkSurface : Colors.grey[200])),
             const SizedBox(width: 10),
             Expanded(
                 child: Column(
@@ -336,7 +323,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: Get.isDarkMode ? AppColors.darkSurface : Colors.grey[200],
                             borderRadius: BorderRadius.circular(4)),
                         child: Text('${item.quantity}x',
                             style: secondaryTextStyle.copyWith(fontSize: 10))),
@@ -350,7 +337,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     const SizedBox(height: 4),
                     Text('📝 ${item.customerNote}',
                         style: secondaryTextStyle.copyWith(
-                            fontSize: 10, color: Colors.blue),
+                            fontSize: 10, 
+                            color: Get.isDarkMode ? Colors.lightBlueAccent : Colors.blue),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis)
                   ],
@@ -374,7 +362,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   fit: BoxFit.cover,
                   placeholder: (context, url) => CircleAvatar(
                     radius: 20,
-                    backgroundColor: logoColorSecondary.withOpacity(0.2),
+                    backgroundColor: logoColorSecondary.withValues(alpha: 0.2),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: CircularProgressIndicator(
@@ -383,7 +371,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   ),
                   errorWidget: (context, url, error) => CircleAvatar(
                     radius: 20,
-                    backgroundColor: logoColorSecondary.withOpacity(0.2),
+                    backgroundColor: logoColorSecondary.withValues(alpha: 0.2),
                     child: Text(
                       widget.order.customerName.isNotEmpty
                           ? widget.order.customerName[0].toUpperCase()
@@ -396,7 +384,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               )
             : CircleAvatar(
                 radius: 20,
-                backgroundColor: logoColorSecondary.withOpacity(0.2),
+                backgroundColor: logoColorSecondary.withValues(alpha: 0.2),
                 child: Text(
                     widget.order.customerName.isNotEmpty
                         ? widget.order.customerName[0].toUpperCase()
@@ -456,7 +444,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.05),
+            color: Colors.blue.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Alamat Pengiriman',
@@ -504,9 +492,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-              color: Colors.grey[100], borderRadius: BorderRadius.circular(6)),
+              color: Get.isDarkMode ? AppColors.darkSurface : Colors.grey[100], borderRadius: BorderRadius.circular(6)),
           child: Row(children: [
-            Icon(Icons.payment, size: 16, color: Colors.grey[600]),
+            Icon(Icons.payment, size: 16, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey[600]),
             const SizedBox(width: 8),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('Metode', style: secondaryTextStyle.copyWith(fontSize: 9)),
@@ -532,10 +520,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildBottomAction() {
-    if (isLoadingAction) return _buildLoadingBottom();
+    if (isLoadingAction) {
+      return _buildLoadingBottom();
+    }
     final status = widget.order.orderStatus;
 
-    if (status == OrderModel.STATUS_WAITING_APPROVAL)
+    if (status == OrderModel.STATUS_WAITING_APPROVAL) {
       return _buildActionBottom(children: [
         Expanded(
             child: _buildButton('Tolak', Icons.close, Colors.red, () {
@@ -549,8 +539,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Get.back();
         }, isPrimary: true))
       ]);
+    }
 
-    if (status == OrderModel.STATUS_PROCESSING)
+    if (status == OrderModel.STATUS_PROCESSING) {
       return _buildActionBottom(children: [
         // Chat Customer button - ORANGE background, white text/icon (PRIMARY)
         Expanded(
@@ -562,14 +553,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           });
         }, isPrimary: true)),
         const SizedBox(width: 8),
-        // Siap Diambil - NAVY outline, navy text (SECONDARY)
+        // Siap Diambil - ORANGE outline, orange text (better visibility on dark mode)
         Expanded(
             child: _buildButton(
-                'Siap Diambil', Icons.check_circle_outline, logoColor, () {
+                'Siap Diambil', Icons.check_circle_outline, AppColors.orange, () {
           orderController.markOrderReady(widget.order.id);
           Get.back();
         }, isPrimary: false))
       ]);
+    }
 
     // For completed/canceled orders, show chat button only
     if (status == OrderModel.STATUS_READY_FOR_PICKUP ||
@@ -592,9 +584,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   Widget _buildLoadingBottom() {
     return Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: backgroundColor1, boxShadow: [
+        decoration: BoxDecoration(color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground, boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, -2))
         ]),
@@ -610,9 +602,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   Widget _buildActionBottom({required List<Widget> children}) {
     return Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: backgroundColor1, boxShadow: [
+        decoration: BoxDecoration(color: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground, boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, -2))
         ]),
@@ -672,22 +664,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  IconData _getStatusIcon() {
-    switch (widget.order.orderStatus) {
-      case OrderModel.STATUS_WAITING_APPROVAL:
-        return Icons.access_time;
-      case OrderModel.STATUS_PROCESSING:
-        return Icons.kitchen;
-      case OrderModel.STATUS_READY_FOR_PICKUP:
-        return Icons.local_shipping;
-      case OrderModel.STATUS_COMPLETED:
-        return Icons.check_circle;
-      case OrderModel.STATUS_CANCELED:
-        return Icons.cancel;
-      default:
-        return Icons.help_outline;
-    }
-  }
 
   Future<void> _handlePrintReceipt() async {
     final merchant = merchantController.merchant;
@@ -698,97 +674,34 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           colorText: Colors.white);
       return;
     }
-    final result = await Get.dialog<String>(AlertDialog(
-        title: const Text('Pilih Metode Cetak'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(
-              leading: const Icon(Icons.print),
-              title: const Text('Printer Bluetooth'),
-              subtitle: const Text('Cetak menggunakan printer thermal'),
-              onTap: () => Get.back(result: 'bluetooth')),
-          ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Bagikan'),
-              subtitle: const Text('Bagikan struk dalam format teks'),
-              onTap: () => Get.back(result: 'share'))
-        ])));
-    if (result == null) return;
+    
     try {
       setState(() => _isPrinting = true);
-      if (result == 'bluetooth') {
-        final hasPermissions = await _requestBluetoothPermissions();
-        if (!hasPermissions) {
-          setState(() => _isPrinting = false);
-          return;
-        }
-        setState(() => _isScanning = true);
-        final devices = await PrintBluetoothThermal.pairedBluetooths;
-        setState(() => _isScanning = false);
-        if (devices.isEmpty) {
-          Get.snackbar('Error', 'Tidak ada printer yang terpasang.',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 3));
-          setState(() => _isPrinting = false);
-          return;
-        }
-        final selectedPrinter = await Get.dialog<Map<String, dynamic>>(
-            AlertDialog(
-                title: const Text('Pilih Printer'),
-                content: SizedBox(
-                    height: 300,
-                    child: ListView.builder(
-                        itemCount: devices.length,
-                        itemBuilder: (c, i) => ListTile(
-                            leading: const Icon(Icons.print),
-                            title: Text(devices[i].name ?? 'Unknown'),
-                            subtitle: Text(devices[i].macAdress ?? ''),
-                            onTap: () => Get.back(result: {
-                                  'name': devices[i].name ?? '',
-                                  'address': devices[i].macAdress ?? ''
-                                }))))));
-        if (selectedPrinter == null) {
-          setState(() => _isPrinting = false);
-          return;
-        }
-        await ReceiptService.printReceipt(
-            widget.order, merchant, selectedPrinter);
-        Get.back();
-      } else if (result == 'share') {
-        await ReceiptService.shareReceipt(widget.order, merchant);
-        Get.back();
+      
+      // Print directly like POS - auto-connect and print
+      final success = await PrintService().printReceipt(
+        order: widget.order,
+        merchantName: merchant.name,
+        merchantAddress: merchant.address,
+        merchantPhone: merchant.phoneNumber,
+      );
+
+      if (success) {
+        Get.snackbar('Sukses', 'Struk sedang dicetak...',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2));
       }
     } catch (e) {
-      Get.snackbar('Error', 'Gagal: $e',
+      Get.snackbar('Error', 'Gagal mencetak: $e',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white);
     } finally {
       setState(() {
         _isPrinting = false;
-        _isScanning = false;
       });
-    }
-  }
-
-  Future<bool> _requestBluetoothPermissions() async {
-    try {
-      final s = await Permission.bluetooth.status;
-      final s2 = await Permission.bluetoothScan.status;
-      final s3 = await Permission.bluetoothConnect.status;
-      final s4 = await Permission.location.status;
-      if (s.isGranted && s2.isGranted && s3.isGranted && s4.isGranted)
-        return true;
-      final p = <Permission>[];
-      if (!s.isGranted) p.add(Permission.bluetooth);
-      if (!s2.isGranted) p.add(Permission.bluetoothScan);
-      if (!s3.isGranted) p.add(Permission.bluetoothConnect);
-      if (!s4.isGranted) p.add(Permission.location);
-      final st = await p.request();
-      return st.values.every((x) => x.isGranted);
-    } catch (_) {
-      return false;
     }
   }
 

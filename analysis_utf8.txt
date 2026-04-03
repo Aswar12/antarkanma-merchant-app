@@ -1,0 +1,38 @@
+Analyzing chat...                                               
+
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:99:26 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:112:26 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:137:28 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:149:26 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:409:30 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:421:28 - deprecated_member_use_from_same_package
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\modules\chat\controllers\chat_controller.dart:764:26 - deprecated_member_use_from_same_package
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\modules\chat\controllers\chat_controller.dart:773:26 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:857:28 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\controllers\chat_controller.dart:866:26 - deprecated_member_use_from_same_package
+   info - Unnecessary override - lib\app\modules\chat\controllers\chat_list_controller.dart:24:8 - unnecessary_overrides
+   info - Parameter 'key' could be a super parameter - lib\app\modules\chat\views\chat_list_page.dart:9:9 - use_super_parameters
+   info - 'logoColorSecondary' is deprecated and shouldn't be used. Use AppColors.orange - lib\app\modules\chat\views\chat_list_page.dart:68:55 - deprecated_member_use_from_same_package
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\modules\chat\views\chat_view.dart:92:65 - deprecated_member_use_from_same_package
+   info - 'chatTextSecondary' is deprecated and shouldn't be used. Use AppColors.chatTextSecondaryLight or AppColors.chatTextSecondaryDark - lib\app\modules\chat\views\chat_view.dart:104:36 - deprecated_member_use_from_same_package
+   info - 'chatTextSecondary' is deprecated and shouldn't be used. Use AppColors.chatTextSecondaryLight or AppColors.chatTextSecondaryDark - lib\app\modules\chat\views\chat_view.dart:109:38 - deprecated_member_use_from_same_package
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\modules\chat\views\chat_view.dart:154:37 - deprecated_member_use_from_same_package
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\chat_view.dart:321:45 - deprecated_member_use
+   info - 'chatTextSecondary' is deprecated and shouldn't be used. Use AppColors.chatTextSecondaryLight or AppColors.chatTextSecondaryDark - lib\app\modules\chat\views\chat_view.dart:381:56 - deprecated_member_use_from_same_package
+   info - Statements in an if should be enclosed in a block - lib\app\modules\chat\views\chat_view.dart:557:51 - curly_braces_in_flow_control_structures
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\modules\chat\views\chat_view.dart:581:63 - deprecated_member_use_from_same_package
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\modules\chat\views\chat_view.dart:759:32 - deprecated_member_use_from_same_package
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\modules\chat\views\chat_view.dart:764:32 - deprecated_member_use_from_same_package
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\modules\chat\views\chat_view.dart:785:67 - deprecated_member_use_from_same_package
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\modules\chat\views\chat_view.dart:805:13 - deprecated_member_use_from_same_package
+   info - 'chatPrimary' is deprecated and shouldn't be used. Use AppColors.chatSentBubble - lib\app\modules\chat\views\chat_view.dart:808:13 - deprecated_member_use_from_same_package
+   info - 'chatSecondary' is deprecated and shouldn't be used. Use AppColors.chatAccent - lib\app\modules\chat\views\chat_view.dart:846:59 - deprecated_member_use_from_same_package
+   info - 'alertColor' is deprecated and shouldn't be used. Use AppColors.error - lib\app\modules\chat\views\chat_view.dart:999:32 - deprecated_member_use_from_same_package
+   info - 'chatTextDark' is deprecated and shouldn't be used. Use AppColors.chatTextLight or AppColors.chatTextDark - lib\app\modules\chat\views\chat_view.dart:1041:52 - deprecated_member_use_from_same_package
+   info - Parameter 'key' could be a super parameter - lib\app\modules\chat\views\widgets\chat_list_tile.dart:13:9 - use_super_parameters
+   info - 'logoColorSecondary' is deprecated and shouldn't be used. Use AppColors.orange - lib\app\modules\chat\views\widgets\chat_list_tile.dart:60:32 - deprecated_member_use_from_same_package
+   info - 'logoColorSecondary' is deprecated and shouldn't be used. Use AppColors.orange - lib\app\modules\chat\views\widgets\chat_list_tile.dart:66:34 - deprecated_member_use_from_same_package
+   info - 'logoColorSecondary' is deprecated and shouldn't be used. Use AppColors.orange - lib\app\modules\chat\views\widgets\chat_list_tile.dart:173:16 - deprecated_member_use_from_same_package
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\app\modules\chat\views\widgets\chat_list_tile.dart:173:35 - deprecated_member_use
+   info - 'logoColorSecondary' is deprecated and shouldn't be used. Use AppColors.orange - lib\app\modules\chat\views\widgets\chat_list_tile.dart:178:16 - deprecated_member_use_from_same_package
+

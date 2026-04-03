@@ -118,7 +118,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor1,
+      backgroundColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
       body: SafeArea(
         child: CustomScrollView(
           controller: scrollController,
@@ -148,13 +148,13 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
       expandedHeight: MediaQuery.of(context).size.width,
       floating: false,
       pinned: true,
-      backgroundColor: backgroundColor1,
+      backgroundColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
       elevation: 0,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: backgroundColor1.withOpacity(0.9),
+            color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface.withOpacity(0.9),
             shape: BoxShape.circle,
           ),
           child: Icon(Icons.arrow_back, color: logoColor),
@@ -205,7 +205,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                       dotHeight: 8,
                       spacing: 6,
                       activeDotColor: logoColor,
-                      dotColor: backgroundColor1.withOpacity(0.5),
+                      dotColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -217,7 +217,14 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
               child: Container(
                 height: 30,
                 decoration: BoxDecoration(
-                  color: backgroundColor1,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
+                    ],
+                  ),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),
@@ -376,7 +383,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -410,7 +417,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: backgroundColor1,
+                        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
                         border: Border.all(
                             color: logoColor.withValues(alpha: 0.15)),
                         borderRadius: BorderRadius.circular(12),
@@ -472,7 +479,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -528,7 +535,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -703,7 +710,7 @@ class _MerchantProductDetailPageState extends State<MerchantProductDetailPage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),

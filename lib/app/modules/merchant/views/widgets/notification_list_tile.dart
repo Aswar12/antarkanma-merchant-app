@@ -26,7 +26,7 @@ class NotificationListTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: notification.isRead ? Colors.white : backgroundColor1,
+        color: notification.isRead ? context.cardColor : context.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: notification.isRead

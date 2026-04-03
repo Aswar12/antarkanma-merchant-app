@@ -64,6 +64,19 @@ class FinanceProvider {
     return _dio.get('/merchant/finance/expenses', queryParameters: params);
   }
 
+  /// GET /merchant/finance/payment-methods?from=&to=
+  Future<dio.Response> getPaymentMethods({String? from, String? to}) async {
+    final params = <String, dynamic>{};
+    if (from != null) params['from'] = from;
+    if (to != null) params['to'] = to;
+    return _dio.get('/merchant/finance/payment-methods', queryParameters: params);
+  }
+
+  /// GET /merchant/finance/wallet-balance
+  Future<dio.Response> getWalletBalance() async {
+    return _dio.get('/merchant/finance/wallet-balance');
+  }
+
   /// POST /merchant/finance/expenses
   Future<dio.Response> createExpense(Map<String, dynamic> data) async {
     return _dio.post('/merchant/finance/expenses', data: data);

@@ -104,6 +104,7 @@ class ChatMessage {
   final String? locationName; // Location name/label
   final bool isRead;
   final String createdAt;
+  final bool isSending; // Loading state for optimistic UI
 
   ChatMessage({
     required this.id,
@@ -119,6 +120,7 @@ class ChatMessage {
     this.locationName,
     required this.isRead,
     required this.createdAt,
+    this.isSending = false,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {

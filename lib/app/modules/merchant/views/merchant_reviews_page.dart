@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:antarkanma_merchant/app/data/providers/review_provider.dart';
-import 'package:antarkanma_merchant/app/constants/app_colors.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 class MerchantReviewsPage extends StatefulWidget {
   final int merchantId;
@@ -93,10 +93,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
     final productReviewCount = _stats['product_review_count'] ?? 0;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Text('Review ${widget.merchantName}'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.navy,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -106,9 +106,16 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.navy,
+                  AppColors.navy.withOpacity(0.8),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
               ),
@@ -206,12 +213,12 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
 
           // Tab Bar
           Container(
-            color: AppColors.surface,
+            color: context.cardColor,
             child: TabBar(
               controller: _tabController,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.primary,
+              labelColor: AppColors.orange,
+              unselectedLabelColor: context.textSecondaryColor,
+              indicatorColor: AppColors.orange,
               tabs: const [
                 Tab(text: 'Semua'),
                 Tab(text: '🏪 Merchant'),
@@ -227,8 +234,8 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _filterChip('Semua', null),
-                  for (var i = 5; i >= 1; i--) _filterChip('$i ⭐', i),
+                  _filterChip(context, 'Semua', null),
+                  for (var i = 5; i >= 1; i--) _filterChip(context, '$i ⭐', i),
                 ],
               ),
             ),
@@ -250,9 +257,9 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
                                     Icon(Icons.rate_review_outlined,
                                         size: 64, color: Colors.grey.shade300),
                                     const SizedBox(height: 12),
-                                    const Text('Belum ada review',
+                                    Text('Belum ada review',
                                         style: TextStyle(
-                                            color: AppColors.textSecondary,
+                                            color: context.textSecondaryColor,
                                             fontSize: 16)),
                                   ],
                                 ),
@@ -263,7 +270,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
                             padding: const EdgeInsets.only(bottom: 16),
                             itemCount: _reviews.length,
                             itemBuilder: (context, index) =>
-                                _buildReviewCard(_reviews[index]),
+                                _buildReviewCard(context, _reviews[index]),
                           ),
                   ),
           ),
@@ -272,7 +279,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
     );
   }
 
-  Widget _filterChip(String label, int? rating) {
+  Widget _filterChip(BuildContext context, String label, int? rating) {
     final isSelected = _selectedRating == rating;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -283,15 +290,15 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
           setState(() => _selectedRating = rating);
           _loadReviews(rating: rating);
         },
-        selectedColor: AppColors.primary,
+        selectedColor: AppColors.orange,
         labelStyle:
-            TextStyle(color: isSelected ? Colors.white : AppColors.textPrimary),
+            TextStyle(color: isSelected ? Colors.white : context.textColor),
         visualDensity: VisualDensity.compact,
       ),
     );
   }
 
-  Widget _buildReviewCard(dynamic review) {
+  Widget _buildReviewCard(BuildContext context, dynamic review) {
     final userName = review['user']?['name'] ?? 'Anonim';
     final rating = review['rating'] ?? 0;
     final comment = review['comment'] ?? '';
@@ -303,7 +310,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -319,12 +326,12 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
             children: [
               // User avatar
               CircleAvatar(
-                backgroundColor: AppColors.primary.withOpacity(0.1),
+                backgroundColor: AppColors.orange.withOpacity(0.1),
                 radius: 18,
                 child: Text(
                   userName.isNotEmpty ? userName[0].toUpperCase() : '?',
                   style: const TextStyle(
-                      color: AppColors.primary, fontWeight: FontWeight.bold),
+                      color: AppColors.orange, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(width: 10),
@@ -333,7 +340,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(userName,
-                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                        style: TextStyle(fontWeight: FontWeight.w600, color: context.textColor)),
                     Row(
                       children: [
                         ...List.generate(
@@ -374,8 +381,8 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
               ),
               Text(
                 _formatDate(createdAt),
-                style: const TextStyle(
-                    color: AppColors.textSecondary, fontSize: 12),
+                style: TextStyle(
+                    color: context.textSecondaryColor, fontSize: 12),
               ),
             ],
           ),
@@ -384,13 +391,13 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(Icons.fastfood,
-                    size: 14, color: AppColors.textSecondary),
+                Icon(Icons.fastfood,
+                    size: 14, color: context.textSecondaryColor),
                 const SizedBox(width: 4),
                 Text(
                   productName,
-                  style: const TextStyle(
-                      color: AppColors.textSecondary,
+                  style: TextStyle(
+                      color: context.textSecondaryColor,
                       fontSize: 12,
                       fontStyle: FontStyle.italic),
                 ),
@@ -399,7 +406,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage>
           ],
           if (comment.toString().isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(comment.toString(), style: const TextStyle(fontSize: 14)),
+            Text(comment.toString(), style: TextStyle(fontSize: 14, color: context.textColor)),
           ],
         ],
       ),

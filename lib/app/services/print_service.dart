@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'permission_service.dart';
 import '../data/models/order_model.dart';
 import '../data/models/pos_transaction_model.dart';
 
@@ -16,47 +17,126 @@ class PrintService {
   final _storage = GetStorage();
   static const String _printerKey = 'last_printer_address';
 
-  bool _isConnected = false;
-  String? _printerName;
+  final _isConnected = false.obs;
+  final _printerName = RxnString();
 
-  bool get isConnected => _isConnected;
-  String? get printerName => _printerName;
+  bool get isConnected => _isConnected.value;
+  String? get printerName => _printerName.value;
 
   final _numberFormat = NumberFormat('#,##0', 'id_ID');
 
   /// Connect to Bluetooth printer
   Future<bool> connect({String? macAddress}) async {
     try {
+      final hasPermission = await PermissionService.requestBluetoothPermissions();
+      if (!hasPermission) return false;
+
       final isBluetoothEnabled = await PrintBluetoothThermal.bluetoothEnabled;
       if (!isBluetoothEnabled) {
-        await openAppSettings();
+        Get.snackbar(
+          'Bluetooth Mati',
+          'Silakan nyalakan Bluetooth Anda terlebih dahulu.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return false;
       }
 
       final address = macAddress ?? _storage.read(_printerKey);
       if (address == null) {
         debugPrint('⚠️ No printer address provided or saved');
+        // Auto-scan for printers
+        final printers = await scanPrinters();
+        debugPrint('📱 Scanned printers: ${printers.length}');
+        for (var p in printers) {
+          debugPrint('  - ${p.name}: ${p.macAdress}');
+        }
+        if (printers.isEmpty) {
+          Get.snackbar(
+            'Printer Tidak Ditemukan',
+            'Pastikan printer thermal Bluetooth sudah:\n1. Menyala (lampu indikator berkedip)\n2. Dipairing di Bluetooth settings\n3. Tidak terhubung ke device lain',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 5),
+          );
+          showPrinterSetupDialog();
+          return false;
+        }
+        // Use first available printer
+        final printer = printers.first;
+        _storage.write(_printerKey, printer.macAdress);
+        debugPrint('📍 Using printer: ${printer.name} (${printer.macAdress})');
+      }
+
+      final finalAddress = macAddress ?? _storage.read(_printerKey);
+      if (finalAddress == null) {
+        debugPrint('❌ No printer address available');
         return false;
       }
 
-      _isConnected = await PrintBluetoothThermal.connect(
-        macPrinterAddress: address,
+      debugPrint('🔵 Attempting to connect to: $finalAddress');
+      
+      // Disconnect first to ensure clean connection
+      await PrintBluetoothThermal.disconnect;
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      _isConnected.value = await PrintBluetoothThermal.connect(
+        macPrinterAddress: finalAddress,
       );
 
-      if (_isConnected) {
-        _storage.write(_printerKey, address);
+      debugPrint('🔗 Connection result: ${_isConnected.value}');
+
+      if (_isConnected.value) {
+        _storage.write(_printerKey, finalAddress);
         final devices = await PrintBluetoothThermal.pairedBluetooths;
+        debugPrint('📋 Paired devices: ${devices.length}');
         final currentDevice = devices.firstWhere(
-          (d) => d.macAdress == address,
-          orElse: () => BluetoothInfo(name: 'Printer', macAdress: address),
+          (d) => d.macAdress == finalAddress,
+          orElse: () => BluetoothInfo(name: 'Printer', macAdress: finalAddress),
         );
-        _printerName = currentDevice.name;
-        debugPrint('✅ Connected to printer: $_printerName');
+        _printerName.value = currentDevice.name;
+        debugPrint('✅ Connected to printer: ${_printerName.value} ($finalAddress)');
+
+        Get.snackbar(
+          'Terhubung',
+          'Printer ${_printerName.value} siap digunakan',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        debugPrint('❌ Failed to connect to: $finalAddress');
+        debugPrint('💡 Possible causes:');
+        debugPrint('  - Printer is connected to another device');
+        debugPrint('  - Printer is out of range');
+        debugPrint('  - Printer battery is low');
+        debugPrint('  - MAC address format is incorrect');
+        
+        Get.snackbar(
+          'Gagal Koneksi',
+          'Tidak dapat terhubung ke printer.\n\nCoba:\n• Putus koneksi dari device lain\n• Restart printer (matikan & nyalakan)\n• Unpair & pair ulang di Bluetooth settings',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
+        );
       }
 
-      return _isConnected;
-    } catch (e) {
+      return _isConnected.value;
+    } catch (e, stackTrace) {
       debugPrint('❌ Printer connection error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      Get.snackbar(
+        'Error Koneksi',
+        'Gagal terhubung ke printer: ${e.toString()}\n\nPastikan:\n• Printer sudah dipairing\n• Bluetooth aktif\n• Printer tidak terhubung ke device lain',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+      );
       return false;
     }
   }
@@ -64,8 +144,8 @@ class PrintService {
   /// Disconnect from printer
   Future<void> disconnect() async {
     await PrintBluetoothThermal.disconnect;
-    _isConnected = false;
-    _printerName = null;
+    _isConnected.value = false;
+    _printerName.value = null;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -81,14 +161,10 @@ class PrintService {
     String? logoUrl,
   }) async {
     try {
-      if (!_isConnected) {
+      if (!_isConnected.value) {
         final connected = await connect();
         if (!connected) {
-          Get.snackbar(
-              'Error', 'Printer tidak terhubung. Silakan cek Bluetooth.',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white);
+          // No need to show snackbar here if address was null, it's handled in connect()
           return false;
         }
       }
@@ -130,25 +206,30 @@ class PrintService {
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
     StringBuffer receipt = StringBuffer();
 
-    receipt.writeln('================================');
-    receipt.writeln(merchantName ?? 'MERCHANT');
-    receipt.writeln(merchantAddress ?? '');
-    receipt.writeln('Telp: ${merchantPhone ?? '-'}');
-    receipt.writeln('================================');
+    // Header - 38 chars width (standard 58mm thermal printer)
+    receipt.writeln('======================================');
+    receipt.writeln('  ${merchantName ?? 'MERCHANT'}');
+    if (merchantAddress != null && merchantAddress.isNotEmpty) {
+      receipt.writeln('  $merchantAddress');
+    }
+    if (merchantPhone != null && merchantPhone.isNotEmpty) {
+      receipt.writeln('  Telp: $merchantPhone');
+    }
+    receipt.writeln('======================================');
     receipt.writeln('');
     receipt.writeln('ORDER #ANTAR-${order.id}');
     receipt.writeln(dateFormat.format(order.createdAt));
     receipt.writeln('Status: ${_getStatusText(order.orderStatus)}');
-    receipt.writeln('================================');
+    receipt.writeln('======================================');
     receipt.writeln('');
     receipt.writeln('Customer: ${order.customer.name ?? '-'}');
     if (order.customer.phone != null && order.customer.phone!.isNotEmpty) {
       receipt.writeln('Phone: ${order.customer.phone}');
     }
     receipt.writeln('');
-    receipt.writeln('--------------------------------');
+    receipt.writeln('--------------------------------------');
     receipt.writeln('ITEMS');
-    receipt.writeln('--------------------------------');
+    receipt.writeln('--------------------------------------');
 
     for (var item in order.orderItems) {
       receipt.writeln('${item.quantity}x ${item.product.name}');
@@ -162,7 +243,7 @@ class PrintService {
     }
 
     receipt.writeln('');
-    receipt.writeln('--------------------------------');
+    receipt.writeln('--------------------------------------');
     receipt.writeln('Subtotal: Rp ${_numberFormat.format(order.subtotal)}');
     if (order.shippingCost > 0) {
       receipt.writeln('Ongkir: Rp ${_numberFormat.format(order.shippingCost)}');
@@ -170,10 +251,10 @@ class PrintService {
     if (order.discount != null && order.discount! > 0) {
       receipt.writeln('Discount: -Rp ${_numberFormat.format(order.discount!)}');
     }
-    receipt.writeln('================================');
+    receipt.writeln('======================================');
     receipt.writeln('TOTAL: Rp ${_numberFormat.format(order.totalAmount)}');
     receipt.writeln('Payment: ${order.paymentMethod}');
-    receipt.writeln('================================');
+    receipt.writeln('======================================');
     receipt.writeln('');
     receipt.writeln('Terima kasih atas pesanan Anda!');
     receipt.writeln('Order ID: ${order.id}');
@@ -189,7 +270,7 @@ class PrintService {
     String? merchantName,
   }) async {
     try {
-      if (!_isConnected) {
+      if (!_isConnected.value) {
         final connected = await connect();
         if (!connected) return false;
       }
@@ -224,14 +305,15 @@ class PrintService {
     final dateFormat = DateFormat('HH:mm');
     StringBuffer receipt = StringBuffer();
 
-    receipt.writeln('================================');
+    // Kitchen receipt - 38 chars width
+    receipt.writeln('======================================');
     receipt.writeln('  ${merchantName ?? 'KITCHEN'}');
-    receipt.writeln('================================');
+    receipt.writeln('======================================');
     receipt.writeln('');
     receipt.writeln('ORDER #ANTAR-${order.id}');
     receipt.writeln(dateFormat.format(order.createdAt));
     receipt.writeln('');
-    receipt.writeln('--------------------------------');
+    receipt.writeln('--------------------------------------');
 
     for (var item in order.orderItems) {
       receipt.writeln('${item.quantity}x ${item.product.name}');
@@ -241,7 +323,7 @@ class PrintService {
     }
 
     receipt.writeln('');
-    receipt.writeln('--------------------------------');
+    receipt.writeln('--------------------------------------');
     receipt.writeln('Customer: ${order.customer.name ?? '-'}');
     receipt.writeln('\n\n\n');
 
@@ -260,14 +342,9 @@ class PrintService {
     String? merchantPhone,
   }) async {
     try {
-      if (!_isConnected) {
+      if (!_isConnected.value) {
         final connected = await connect();
         if (!connected) {
-          Get.snackbar('Printer Tidak Terhubung',
-              'Silakan hubungkan printer Bluetooth terlebih dahulu.',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white);
           return false;
         }
       }
@@ -310,8 +387,8 @@ class PrintService {
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
     StringBuffer r = StringBuffer();
 
-    // Header
-    r.writeln('================================');
+    // Header - 38 chars width (standard 58mm thermal printer)
+    r.writeln('======================================');
     r.writeln('  ${merchantName ?? 'MERCHANT'}');
     if (merchantAddress != null && merchantAddress.isNotEmpty) {
       r.writeln('  $merchantAddress');
@@ -319,7 +396,7 @@ class PrintService {
     if (merchantPhone != null && merchantPhone.isNotEmpty) {
       r.writeln('  Telp: $merchantPhone');
     }
-    r.writeln('================================');
+    r.writeln('======================================');
     r.writeln('');
 
     // Transaction Info
@@ -334,7 +411,7 @@ class PrintService {
     if (tx.customerName != null && tx.customerName!.isNotEmpty) {
       r.writeln('Pelanggan: ${tx.customerName}');
     }
-    r.writeln('================================');
+    r.writeln('======================================');
     r.writeln('');
 
     // Items
@@ -348,34 +425,34 @@ class PrintService {
     }
 
     r.writeln('');
-    r.writeln('--------------------------------');
+    r.writeln('--------------------------------------');
 
-    // Totals
-    r.writeln('Subtotal     Rp ${_numberFormat.format(tx.subtotal)}');
+    // Totals - 38 chars width
+    r.writeln('Subtotal    Rp ${_numberFormat.format(tx.subtotal)}');
     if (tx.discount > 0) {
-      r.writeln('Diskon      -Rp ${_numberFormat.format(tx.discount)}');
+      r.writeln('Diskon     -Rp ${_numberFormat.format(tx.discount)}');
     }
     if (tx.tax > 0) {
-      r.writeln('Pajak        Rp ${_numberFormat.format(tx.tax)}');
+      r.writeln('Pajak       Rp ${_numberFormat.format(tx.tax)}');
     }
-    r.writeln('================================');
-    r.writeln('TOTAL        Rp ${_numberFormat.format(tx.total)}');
-    r.writeln('================================');
+    r.writeln('======================================');
+    r.writeln('TOTAL       Rp ${_numberFormat.format(tx.total)}');
+    r.writeln('======================================');
     r.writeln('');
 
     // Payment
     r.writeln('Bayar: ${tx.paymentMethodDisplay}');
     if (tx.paymentMethod == 'CASH') {
-      r.writeln('Tunai        Rp ${_numberFormat.format(tx.amountPaid)}');
-      r.writeln('Kembali      Rp ${_numberFormat.format(tx.changeAmount)}');
+      r.writeln('Tunai       Rp ${_numberFormat.format(tx.amountPaid)}');
+      r.writeln('Kembali     Rp ${_numberFormat.format(tx.changeAmount)}');
     }
     r.writeln('');
 
     // Footer
-    r.writeln('--------------------------------');
+    r.writeln('----------------------------------------');
     r.writeln('  Terima Kasih!');
     r.writeln('  Selamat Menikmati');
-    r.writeln('--------------------------------');
+    r.writeln('----------------------------------------');
     r.writeln('\n\n\n');
 
     return r.toString();
@@ -388,14 +465,9 @@ class PrintService {
     String? station, // e.g. "DAPUR", "BAR", "KITCHEN"
   }) async {
     try {
-      if (!_isConnected) {
+      if (!_isConnected.value) {
         final connected = await connect();
         if (!connected) {
-          Get.snackbar('Printer Tidak Terhubung',
-              'Silakan hubungkan printer Bluetooth terlebih dahulu.',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white);
           return false;
         }
       }
@@ -436,10 +508,11 @@ class PrintService {
     final timeFormat = DateFormat('HH:mm');
     StringBuffer t = StringBuffer();
 
-    t.writeln('================================');
+    // Kitchen ticket - 38 chars width
+    t.writeln('======================================');
     t.writeln('  ${station ?? 'DAPUR'}');
     t.writeln('  ${merchantName ?? ''}');
-    t.writeln('================================');
+    t.writeln('======================================');
     t.writeln('');
 
     // Large order info for kitchen visibility
@@ -455,7 +528,7 @@ class PrintService {
       t.writeln('PELANGGAN: ${tx.customerName}');
     }
     t.writeln('');
-    t.writeln('================================');
+    t.writeln('======================================');
 
     // Items — large and clear for kitchen staff
     for (var item in tx.items) {
@@ -467,9 +540,9 @@ class PrintService {
     }
 
     t.writeln('');
-    t.writeln('================================');
+    t.writeln('======================================');
     t.writeln('Total Item: ${tx.totalItems}');
-    t.writeln('================================');
+    t.writeln('======================================');
     t.writeln('\n\n\n');
 
     return t.toString();
@@ -506,7 +579,7 @@ class PrintService {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Pengaturan Printer',
+                    'Setup Printer Thermal',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   Obx(() => isScanning.value
@@ -524,35 +597,77 @@ class PrintService {
                         )),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
+              // Pairing instructions
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Cara Pairing:',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.blue.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '1. Buka Settings → Bluetooth\n'
+                      '2. Scan & pair printer thermal (PIN: 0000/1234)\n'
+                      '3. Tekan tombol refresh di atas\n'
+                      '4. Tap printer untuk connect',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.blue.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               // Current status
               Obx(() => Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: _isConnected
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
+                      color: _isConnected.value
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
                         Icon(
-                          _isConnected
+                          _isConnected.value
                               ? Icons.bluetooth_connected
                               : Icons.bluetooth_disabled,
                           size: 18,
-                          color: _isConnected ? Colors.green : Colors.orange,
+                          color: _isConnected.value ? Colors.green : Colors.orange,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          _isConnected
-                              ? 'Terhubung: ${_printerName ?? 'Printer'}'
-                              : 'Tidak terhubung',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: _isConnected ? Colors.green : Colors.orange,
+                        Expanded(
+                          child: Text(
+                            _isConnected.value
+                                ? 'Terhubung: ${_printerName.value ?? 'Printer'}'
+                                : 'Tidak terhubung',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: _isConnected.value ? Colors.green : Colors.orange,
+                            ),
                           ),
                         ),
                       ],
@@ -560,7 +675,7 @@ class PrintService {
                   )),
               const SizedBox(height: 12),
               const Text(
-                'Perangkat Bluetooth Tersedia:',
+                'Printer Tersedia:',
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -570,36 +685,56 @@ class PrintService {
               // Printer list
               Obx(() {
                 if (printers.isEmpty && !isScanning.value) {
-                  return const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(
-                      child: Text(
-                        'Tidak ada printer ditemukan.\nPastikan Bluetooth aktif dan printer sudah dipasangkan.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
+                  return Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(Icons.bluetooth_disabled, size: 40, color: Colors.grey.shade400),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Tidak ada printer ditemukan',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Pastikan printer sudah dipairing\ndi Bluetooth Settings',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }
                 return ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 250),
+                  constraints: const BoxConstraints(maxHeight: 200),
                   child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: printers.length,
                     itemBuilder: (_, i) {
                       final printer = printers[i];
                       final isCurrent =
-                          _printerName == printer.name && _isConnected;
+                          _printerName.value == printer.name && _isConnected.value;
                       return Container(
                         margin: const EdgeInsets.only(bottom: 6),
                         decoration: BoxDecoration(
                           color: isCurrent
-                              ? Colors.green.withOpacity(0.05)
+                              ? Colors.green.withValues(alpha: 0.05)
                               : Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isCurrent
-                                ? Colors.green.withOpacity(0.3)
+                                ? Colors.green.withValues(alpha: 0.3)
                                 : Colors.grey.shade200,
                           ),
                         ),
@@ -726,7 +861,22 @@ class PrintService {
 
   Future<List<BluetoothInfo>> scanPrinters() async {
     try {
-      return await PrintBluetoothThermal.pairedBluetooths;
+      final hasPermission = await PermissionService.requestBluetoothPermissions();
+      if (!hasPermission) return [];
+
+      final allDevices = await PrintBluetoothThermal.pairedBluetooths;
+      
+      // Filter the list to only show likely printers based on common names
+      final printerKeywords = [
+        'print', 'pos', 'mtp', 'mpt', 'bt', 'rp', 'pt', 
+        '58', '80', 'blue', 'zj', 'ther', 'receipt', 
+        'bill', 'mini', 'sunmi', 'inner'
+      ];
+      
+      return allDevices.where((d) {
+        final name = d.name.toLowerCase();
+        return printerKeywords.any((k) => name.contains(k));
+      }).toList();
     } catch (e) {
       debugPrint('❌ Scan error: $e');
       return [];

@@ -16,7 +16,7 @@ class PosTablePage extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: dashBackgroundLight,
+      backgroundColor: AppColors.lightBackground,
       body: Obx(() {
         if (controller.isLoadingTables.value) {
           return const Center(child: CircularProgressIndicator());
@@ -29,17 +29,11 @@ class PosTablePage extends StatelessWidget {
         return Column(
           children: [
             _buildSummaryBar(controller),
+            _buildAddTableButton(context, controller),
             Expanded(child: _buildTableGrid(controller)),
           ],
         );
       }),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTableDialog(context, controller),
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah Meja'),
-        backgroundColor: dashPrimary,
-        foregroundColor: Colors.white,
-      ),
     );
   }
 
@@ -48,20 +42,38 @@ class PosTablePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.table_restaurant, size: 80, color: Colors.grey[300]),
+          Icon(Icons.table_restaurant, size: 80, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'Belum ada meja',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              color: Get.isDarkMode ? AppColors.darkTextSecondary : Colors.grey[600],
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap tombol + untuk menambahkan meja dine-in',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            'Tap tombol di bawah untuk menambahkan meja dine-in',
+            style: TextStyle(fontSize: 14, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey[500]),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _showAddTableDialog(Get.context!, controller),
+            icon: const Icon(Icons.add, size: 20),
+            label: const Text(
+              'Tambah Meja',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.orange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
           ),
         ],
       ),
@@ -73,11 +85,11 @@ class PosTablePage extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: dashNavyDeep,
+        color: AppColors.navy,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: dashNavyDeep.withOpacity(0.2),
+            color: AppColors.navy.withOpacity(0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -104,6 +116,29 @@ class PosTablePage extends StatelessWidget {
             Colors.redAccent,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAddTableButton(BuildContext context, PosController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ElevatedButton.icon(
+        onPressed: () => _showAddTableDialog(context, controller),
+        icon: const Icon(Icons.table_restaurant, size: 20),
+        label: const Text(
+          'Tambah Meja',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.orange,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
       ),
     );
   }
@@ -249,7 +284,7 @@ class PosTablePage extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Get.isDarkMode ? AppColors.darkDivider : Colors.grey[300],
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -336,7 +371,7 @@ class PosTablePage extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: dashPrimary,
+              backgroundColor: AppColors.orange,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),

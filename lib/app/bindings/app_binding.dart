@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable, avoid_print
+
 import 'package:antarkanma_merchant/app/services/profile_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';

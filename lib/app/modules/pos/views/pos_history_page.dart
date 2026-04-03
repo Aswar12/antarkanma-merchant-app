@@ -30,7 +30,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
         // Filter chips
         Container(
           padding: const EdgeInsets.all(12),
-          color: Colors.white,
+          color: Get.isDarkMode ? AppColors.darkSurface : Colors.white,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -57,7 +57,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
           child: Obx(() {
             if (controller.isLoadingTransactions.value) {
               return Center(
-                child: CircularProgressIndicator(color: dashPrimary),
+                child: CircularProgressIndicator(color: AppColors.orange),
               );
             }
 
@@ -67,11 +67,11 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.receipt_long,
-                        size: 64, color: Colors.grey.shade300),
+                        size: 64, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade300),
                     const SizedBox(height: 12),
                     Text('Belum ada transaksi',
                         style: subtitleTextStyle.copyWith(
-                            color: Colors.grey.shade500)),
+                            color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade500)),
                   ],
                 ),
               );
@@ -106,7 +106,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? dashPrimary : Colors.grey.shade100,
+          color: isSelected ? AppColors.orange : Get.isDarkMode ? AppColors.darkSurface : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -114,7 +114,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.grey.shade600,
+            color: isSelected ? Colors.white : Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade600,
           ),
         ),
       ),
@@ -135,7 +135,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [dashPrimary, dashPrimary.withOpacity(0.8)],
+          colors: [AppColors.orange, AppColors.orange.withOpacity(0.8)],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -189,10 +189,10 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isVoided ? Colors.red.shade50 : Colors.white,
+          color: isVoided ? (Get.isDarkMode ? Colors.red.shade900 : Colors.red.shade50) : Get.isDarkMode ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isVoided ? Colors.red.shade200 : Colors.grey.shade200,
+            color: isVoided ? Colors.red.shade200 : Get.isDarkMode ? AppColors.darkInputBorder : Colors.grey.shade200,
           ),
         ),
         child: Column(
@@ -233,7 +233,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                   style: primaryTextStyle.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isVoided ? Colors.red : dashPrimary,
+                    color: isVoided ? Colors.red : AppColors.orange,
                     decoration: isVoided ? TextDecoration.lineThrough : null,
                   ),
                 ),
@@ -249,7 +249,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                 Text(
                   tx.formattedDate,
                   style: subtitleTextStyle.copyWith(
-                      fontSize: 11, color: Colors.grey.shade500),
+                      fontSize: 11, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade500),
                 ),
               ],
             ),
@@ -282,16 +282,16 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Get.isDarkMode ? AppColors.darkSurface : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: Colors.grey.shade600),
+          Icon(icon, size: 12, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade600),
           const SizedBox(width: 4),
           Text(label,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+              style: TextStyle(fontSize: 11, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade600)),
         ],
       ),
     );
@@ -358,7 +358,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                       const SizedBox(height: 2),
                       Text(tx.formattedDate,
                           style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade500)),
+                              fontSize: 12, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade500)),
                     ],
                   ),
                   if (isVoided)
@@ -394,10 +394,10 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                 const SizedBox(height: 6),
                 Text('Pelanggan: ${tx.customerName}',
                     style:
-                        TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        TextStyle(fontSize: 12, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade600)),
               ],
               const SizedBox(height: 12),
-              Divider(color: Colors.grey.shade200, height: 1),
+              Divider(color: Get.isDarkMode ? AppColors.darkDivider : Colors.grey.shade200, height: 1),
               const SizedBox(height: 12),
               // Items
               Text('Detail Pesanan',
@@ -420,7 +420,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                             width: 24,
                             height: 24,
                             decoration: BoxDecoration(
-                              color: dashPrimary.withOpacity(0.1),
+                              color: AppColors.orange.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             alignment: Alignment.center,
@@ -428,7 +428,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: dashPrimary)),
+                                    color: AppColors.orange)),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -444,7 +444,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                                   Text('Catatan: ${item.notes}',
                                       style: TextStyle(
                                           fontSize: 11,
-                                          color: Colors.grey.shade500,
+                                          color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade500,
                                           fontStyle: FontStyle.italic)),
                               ],
                             ),
@@ -460,7 +460,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                   },
                 ),
               ),
-              Divider(color: Colors.grey.shade200, height: 16),
+              Divider(color: Get.isDarkMode ? AppColors.darkDivider : Colors.grey.shade200, height: 16),
               // Totals
               _detailRow('Subtotal', currencyFormat.format(tx.subtotal)),
               if (tx.discount > 0)
@@ -470,7 +470,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                 _detailRow('Pajak', currencyFormat.format(tx.tax)),
               const SizedBox(height: 4),
               _detailRow('Total', currencyFormat.format(tx.total),
-                  isBold: true, color: dashPrimary),
+                  isBold: true, color: AppColors.orange),
               if (tx.amountPaid > 0) ...[
                 _detailRow('Dibayar', currencyFormat.format(tx.amountPaid)),
                 if (tx.changeAmount > 0)
@@ -494,7 +494,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: Get.isDarkMode ? AppColors.darkInputBorder : Colors.grey.shade300),
                       ),
                     ),
                   ),
@@ -512,7 +512,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: Get.isDarkMode ? AppColors.darkInputBorder : Colors.grey.shade300),
                       ),
                     ),
                   ),
@@ -524,7 +524,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
                 child: ElevatedButton(
                   onPressed: () => Get.back(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: dashPrimary,
+                    backgroundColor: AppColors.orange,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -550,7 +550,7 @@ class _PosHistoryPageState extends State<PosHistoryPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              style: TextStyle(fontSize: 12, color: Get.isDarkMode ? AppColors.darkTextHint : Colors.grey.shade600)),
           Text(value,
               style: TextStyle(
                 fontSize: isBold ? 16 : 13,

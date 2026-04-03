@@ -46,7 +46,7 @@ class ProductReviewSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: backgroundColor1,
+            color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: backgroundColor3.withAlpha(51)), // 0.2 opacity = 51 in alpha
           ),
@@ -122,7 +122,7 @@ class ProductReviewSection extends StatelessWidget {
             vertical: 4,
           ),
           decoration: BoxDecoration(
-            color: isSelected ? logoColorSecondary : backgroundColor1,
+            color: isSelected ? logoColorSecondary : (Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface),
             border: Border.all(
               color: isSelected ? logoColorSecondary : backgroundColor3,
               width: 1,
@@ -133,7 +133,7 @@ class ProductReviewSection extends StatelessWidget {
             label,
             style: primaryTextStyle.copyWith(
               fontSize: 12,
-              color: isSelected ? backgroundColor1 : primaryTextColor,
+              color: isSelected ? (Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface) : primaryTextColor,
               fontWeight: medium,
             ),
           ),
@@ -212,7 +212,7 @@ class ProductReviewSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: backgroundColor3.withAlpha(38)), // 0.15 opacity = 38 in alpha
       ),

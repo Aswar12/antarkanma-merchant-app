@@ -74,7 +74,7 @@ class OrderDetailsBottomSheet extends StatelessWidget {
   void _showProcessDialog() {
     Get.dialog(
       AlertDialog(
-        backgroundColor: backgroundColor1,
+        backgroundColor: AppColors.darkSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Dimenssions.radius12),
         ),
@@ -131,7 +131,7 @@ class OrderDetailsBottomSheet extends StatelessWidget {
     final reasonController = TextEditingController();
     Get.dialog(
       AlertDialog(
-        backgroundColor: backgroundColor1,
+        backgroundColor: AppColors.darkSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Dimenssions.radius12),
         ),

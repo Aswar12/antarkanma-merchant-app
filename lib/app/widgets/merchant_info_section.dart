@@ -40,7 +40,7 @@ class MerchantInfoSection extends StatelessWidget {
       ),
       padding: EdgeInsets.all(Dimenssions.height20),
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(Dimenssions.radius16),
         boxShadow: [
           BoxShadow(

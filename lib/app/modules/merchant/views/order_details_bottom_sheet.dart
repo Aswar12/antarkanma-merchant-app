@@ -7,8 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:antarkanma_merchant/app/services/print_service.dart';
 
 class OrderDetailsBottomSheet extends StatefulWidget {
   final OrderModel order;
@@ -50,20 +49,6 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
 
   bool get isLoadingAction =>
       orderController.loadingOrders[widget.order.id.toString()] == true;
-
-  Future<void> _openBluetoothSettings() async {
-    try {
-      final isOn = await PrintBluetoothThermal.bluetoothEnabled;
-      if (isOn) {
-        await openAppSettings();
-      } else {
-        await openAppSettings(); // Fallback to system settings since there's no direct method
-      }
-    } catch (e) {
-      debugPrint('Error opening settings: $e');
-      await openAppSettings();
-    }
-  }
 
   Future<void> _handlePrintReceipt() async {
     final merchant = merchantController.merchant;
@@ -107,105 +92,19 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
       setState(() => _isPrinting = true);
 
       if (result == 'bluetooth') {
-        // Request permissions first
-        final hasPermissions = await _requestBluetoothPermissions();
-        if (!hasPermissions) {
-          setState(() => _isPrinting = false);
-          return;
-        }
-
-        setState(() => _isScanning = true);
-
-        // Get list of paired devices
-        final devices = await PrintBluetoothThermal.pairedBluetooths;
-        setState(() => _isScanning = false);
-
-        if (devices.isEmpty) {
-          Get.snackbar(
-            'Error',
-            'Tidak ada printer yang terpasang. Silakan pasangkan printer terlebih dahulu di pengaturan Bluetooth.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 5),
-            mainButton: TextButton(
-              onPressed: _openBluetoothSettings,
-              child: const Text(
-                'Buka Pengaturan',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          );
-          setState(() => _isPrinting = false);
-          return;
-        }
-
-        // Show printer selection dialog
-        final selectedPrinter = await Get.dialog<Map<String, dynamic>>(
-          AlertDialog(
-            title: Text('Pilih Printer'),
-            content: Container(
-              width: double.maxFinite,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.5,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: devices.length,
-                      itemBuilder: (context, index) {
-                        final printer = devices[index];
-                        return ListTile(
-                          leading: Icon(Icons.print),
-                          title: Text(printer.name ?? 'Unknown Printer'),
-                          subtitle: Text(printer.macAdress ?? ''),
-                          onTap: () => Get.back(result: {
-                            'name': printer.name ?? 'Unknown Printer',
-                            'address': printer.macAdress ?? '',
-                          }),
-                        );
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      'Tidak menemukan printer?\nSilakan pasangkan printer di pengaturan Bluetooth',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Get.back(),
-                child: Text('Batal'),
-              ),
-              TextButton(
-                onPressed: _openBluetoothSettings,
-                child: Text('Buka Pengaturan'),
-              ),
-            ],
-          ),
-          barrierDismissible: false,
+        final success = await PrintService().printReceipt(
+          order: widget.order,
+          merchantName: merchant.name,
+          merchantAddress: merchant.address,
+          merchantPhone: merchant.phoneNumber,
         );
-
-        if (selectedPrinter == null) {
-          setState(() => _isPrinting = false);
-          return;
+        
+        if (success) {
+          Get.snackbar('Sukses', 'Struk sedang dicetak...',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green,
+              colorText: Colors.white);
         }
-
-        // Print receipt
-        await ReceiptService.printReceipt(
-            widget.order, merchant, selectedPrinter);
         Get.back(); // Close bottom sheet after successful printing
       } else if (result == 'share') {
         await ReceiptService.shareReceipt(widget.order, merchant);
@@ -227,98 +126,11 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
     }
   }
 
-  Future<bool> _requestBluetoothPermissions() async {
-    try {
-      // Check if permissions are already granted
-      final bluetoothStatus = await Permission.bluetooth.status;
-      final scanStatus = await Permission.bluetoothScan.status;
-      final connectStatus = await Permission.bluetoothConnect.status;
-      final locationStatus = await Permission.location.status;
-
-      // If all permissions are already granted, return true
-      if (bluetoothStatus.isGranted &&
-          scanStatus.isGranted &&
-          connectStatus.isGranted &&
-          locationStatus.isGranted) {
-        return true;
-      }
-
-      // Request permissions that are not granted
-      final permissionsToRequest = <Permission>[];
-
-      if (!bluetoothStatus.isGranted) {
-        permissionsToRequest.add(Permission.bluetooth);
-      }
-      if (!scanStatus.isGranted) {
-        permissionsToRequest.add(Permission.bluetoothScan);
-      }
-      if (!connectStatus.isGranted) {
-        permissionsToRequest.add(Permission.bluetoothConnect);
-      }
-      if (!locationStatus.isGranted) {
-        permissionsToRequest.add(Permission.location);
-      }
-
-      // Request permissions
-      final statuses = await permissionsToRequest.request();
-
-      // Check if all requested permissions are granted
-      final allGranted = statuses.values.every((status) => status.isGranted);
-
-      if (!allGranted) {
-        // Check if any permission is permanently denied
-        final permanentlyDenied =
-            statuses.values.any((status) => status.isPermanentlyDenied);
-
-        if (permanentlyDenied) {
-          // Show settings dialog
-          final openSettings = await Get.dialog<bool>(
-            AlertDialog(
-              title: Text('Izin Diperlukan'),
-              content: Text(
-                'Beberapa izin diperlukan untuk menggunakan printer Bluetooth. '
-                'Silakan aktifkan izin tersebut di pengaturan aplikasi.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Get.back(result: false),
-                  child: Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () => Get.back(result: true),
-                  child: Text('Buka Pengaturan'),
-                ),
-              ],
-            ),
-            barrierDismissible: false,
-          );
-
-          if (openSettings == true) {
-            await openAppSettings();
-          }
-        }
-        return false;
-      }
-
-      return true;
-    } catch (e) {
-      debugPrint('Error requesting permissions: $e');
-      Get.snackbar(
-        'Error',
-        'Terjadi kesalahan saat meminta izin: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(Dimenssions.radius15),
         ),
@@ -768,7 +580,7 @@ class _OrderDetailsBottomSheetState extends State<OrderDetailsBottomSheet> {
           icon: const Icon(Icons.check_circle_outline, size: 20),
           label: const Text('Tandai Siap Diambil'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: logoColorSecondary,
+            backgroundColor: AppColors.orange,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(

@@ -5,9 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/app/data/models/product_model.dart';
 import 'package:antarkanma_merchant/app/modules/merchant/views/merchant_product_detail_page.dart';
-import 'package:antarkanma_merchant/app/widgets/search_input_field.dart';
-import 'package:antarkanma_merchant/app/widgets/product_card.dart';
 import 'product_form_page.dart';
+import 'package:antarkanma_merchant/app/widgets/product_card.dart';
 
 class ProductManagementPage extends GetView<MerchantProductController> {
   const ProductManagementPage({super.key});
@@ -17,52 +16,115 @@ class ProductManagementPage extends GetView<MerchantProductController> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: backgroundColor1,
-        systemNavigationBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness:
+            context.isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: context.backgroundColor,
+        systemNavigationBarIconBrightness:
+            context.isDark ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: backgroundColor1, // Changed to match header
+        backgroundColor: context.backgroundColor,
         body: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             Expanded(
               child: GetX<MerchantProductController>(
                 builder: (controller) {
                   if (controller.isLoading.value &&
                       controller.products.isEmpty) {
-                    return _buildLoadingState();
+                    return _buildLoadingState(context);
                   }
 
                   if (controller.errorMessage.value.isNotEmpty) {
-                    return _buildErrorState();
+                    return _buildErrorState(context);
                   }
 
                   if (controller.filteredProducts.isEmpty) {
-                    return _buildEmptyState();
+                    return _buildEmptyState(context);
                   }
 
-                  return _buildProductGrid();
+                  return _buildProductGrid(context);
                 },
               ),
             ),
           ],
         ),
         floatingActionButton: _buildFloatingActionButton(),
+        bottomNavigationBar: _buildBottomNavigationBar(context),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildBottomNavigationBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor1,
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(20),
+        color: context.cardColor,
+        border: Border(
+          top: BorderSide(
+            color: context.dividerColor,
+            width: 1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
-            color: logoColor.withValues(alpha: 0.1),
+            color: context.isDark
+                ? Colors.black26
+                : Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: context.cardColor,
+        selectedItemColor: AppColors.orange,
+        unselectedItemColor: context.textSecondaryColor,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.grid_view, size: 22),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.point_of_sale, size: 22),
+            label: 'Kasir',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.delivery_dining, size: 22),
+            label: 'Online',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline, size: 22),
+            label: 'Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline, size: 22),
+            label: 'Profil',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: context.isDark ? Colors.black26 : Colors.grey.shade100,
             offset: const Offset(0, 4),
             blurRadius: 20,
             spreadRadius: 0,
@@ -71,7 +133,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
       ),
       child: Column(
         children: [
-          // Title Row - Compact
+          // Title Row - Compact with Dynamic Text Color
           Padding(
             padding: EdgeInsets.fromLTRB(
               Dimenssions.width16,
@@ -83,7 +145,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
               children: [
                 Icon(
                   Icons.inventory_2_rounded,
-                  color: logoColor,
+                  color: context.textColor,
                   size: Dimenssions.iconSize20,
                 ),
                 SizedBox(width: Dimenssions.width12),
@@ -91,7 +153,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                   child: Text(
                     'Manajemen Produk',
                     style: primaryTextStyle.copyWith(
-                      color: logoColor,
+                      color: context.textColor,
                       fontSize: Dimenssions.font16,
                       fontWeight: bold,
                       letterSpacing: 0.5,
@@ -103,7 +165,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
               ],
             ),
           ),
-          // Search Bar with Icon Filters - Compact
+          // Search & Filter - Navy Dark Style (Always Navy)
           Padding(
             padding: EdgeInsets.fromLTRB(
               Dimenssions.width16,
@@ -111,90 +173,187 @@ class ProductManagementPage extends GetView<MerchantProductController> {
               Dimenssions.width16,
               Dimenssions.height12,
             ),
-            child: Row(
-              children: [
-                // Search Input - Expanded
-                Expanded(
-                  child: SearchInputField(
-                    controller: controller.searchController,
-                    hintText: 'Cari produk...',
-                    onChanged: controller.searchProducts,
-                    onClear: () {
-                      controller.searchController.clear();
-                      controller.searchProducts('');
-                    },
-                  ),
-                ),
-                // Category Filter Icon
-                SizedBox(width: Dimenssions.width8),
-                Obx(() => _buildFilterIconButton(
-                      icon: controller.selectedCategory.value == 'Semua'
-                          ? Icons.category_outlined
-                          : Icons.category,
-                      color: controller.selectedCategory.value == 'Semua'
-                          ? logoColor
-                          : dashPrimary,
-                      onTap: () => _showCategoryFilterDialog(),
-                    )),
-                // Sort Icon
-                SizedBox(width: Dimenssions.width4),
-                Obx(() => _buildFilterIconButton(
-                      icon: _getSortIcon(controller.sortBy.value),
-                      color: controller.sortBy.value == 'Baru'
-                          ? logoColor
-                          : dashPrimary,
-                      onTap: () => _showSortFilterDialog(),
-                    )),
-              ],
-            ),
+            child: _buildPremiumSearchFilter(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterIconButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(Dimenssions.height8),
+  Widget _buildPremiumSearchFilter(BuildContext context) {
+    final controller = Get.find<MerchantProductController>();
+    return Obx(() {
+      final selectedCategory = controller.selectedCategory.value;
+      final sortBy = controller.sortBy.value;
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
-          color: backgroundColor8,
-          borderRadius: BorderRadius.circular(Dimenssions.radius12),
-          border: Border.all(color: Colors.grey.shade200),
+          color: context.isDark ? AppColors.navyDark : AppColors.navy,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: color,
+        child: Row(
+          children: [
+            // Search Input - 60%
+            Expanded(
+              flex: 60,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.search,
+                      color: Colors.white30,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: controller.searchController,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Cari produk...',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.4),
+                            fontSize: 13,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onChanged: controller.searchProducts,
+                      ),
+                    ),
+                    // Clear Button
+                    if (controller.searchController.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          controller.searchController.clear();
+                          controller.searchProducts('');
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(
+                            Icons.clear,
+                            color: Colors.white70,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            // Vertical Divider
+            Container(
+              width: 1,
+              height: 20,
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              color: Colors.white.withOpacity(0.1),
+            ),
+            // Category Selector - 20% (Icon Only)
+            Expanded(
+              flex: 20,
+              child: GestureDetector(
+                onTap: () => _showCategoryFilterDialog(context),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: selectedCategory == 'Semua'
+                        ? AppColors.orange
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: selectedCategory == 'Semua'
+                        ? null
+                        : Border.all(
+                            color: AppColors.orange,
+                            width: 1.5,
+                          ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        selectedCategory == 'Semua'
+                            ? Icons.category
+                            : Icons.category_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Vertical Divider
+            Container(
+              width: 1,
+              height: 20,
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              color: Colors.white.withOpacity(0.1),
+            ),
+            // Sort Filter - 20% (Icon Only)
+            Expanded(
+              flex: 20,
+              child: GestureDetector(
+                onTap: () => _showSortFilterDialog(context),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: sortBy == 'Baru'
+                        ? AppColors.orange
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: sortBy == 'Baru'
+                        ? null
+                        : Border.all(
+                            color: AppColors.orange,
+                            width: 1.5,
+                          ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        sortBy == 'Baru' ? Icons.tune : Icons.sort,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-    );
+      );
+    });
   }
 
-  IconData _getSortIcon(String sortBy) {
-    switch (sortBy) {
-      case 'A-Z':
-        return Icons.sort_by_alpha;
-      case 'Z-A':
-        return Icons.sort_by_alpha;
-      case 'price_asc':
-        return Icons.arrow_downward;
-      case 'price_desc':
-        return Icons.arrow_upward;
-      default:
-        return Icons.sort;
-    }
-  }
-
-  void _showCategoryFilterDialog() {
+  void _showCategoryFilterDialog(BuildContext context) {
     final controller = Get.find<MerchantProductController>();
     Get.dialog(
       AlertDialog(
+        backgroundColor: context.cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Dimenssions.radius20),
         ),
@@ -203,6 +362,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
           style: primaryTextStyle.copyWith(
             fontSize: Dimenssions.font16,
             fontWeight: bold,
+            color: context.textColor,
           ),
         ),
         contentPadding: EdgeInsets.zero,
@@ -213,20 +373,26 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                 shrinkWrap: true,
                 itemCount: controller.categories.length + 1,
                 itemBuilder: (context, index) {
-                  final category = index == 0 ? 'Semua' : controller.categories[index - 1];
-                  final isSelected = controller.selectedCategory.value == category;
-                  
+                  final category =
+                      index == 0 ? 'Semua' : controller.categories[index - 1];
+                  final isSelected =
+                      controller.selectedCategory.value == category;
+
                   return ListTile(
                     leading: Icon(
                       isSelected ? Icons.check_circle : Icons.circle_outlined,
-                      color: isSelected ? dashPrimary : Colors.grey,
+                      color: isSelected
+                          ? AppColors.orange
+                          : context.textSecondaryColor,
                     ),
                     title: Text(
                       category,
                       style: primaryTextStyle.copyWith(
                         fontSize: Dimenssions.font14,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? dashPrimary : Colors.black,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color:
+                            isSelected ? AppColors.orange : context.textColor,
                       ),
                     ),
                     onTap: () {
@@ -241,10 +407,11 @@ class ProductManagementPage extends GetView<MerchantProductController> {
     );
   }
 
-  void _showSortFilterDialog() {
+  void _showSortFilterDialog(BuildContext context) {
     final controller = Get.find<MerchantProductController>();
     Get.dialog(
       AlertDialog(
+        backgroundColor: context.cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Dimenssions.radius20),
         ),
@@ -253,6 +420,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
           style: primaryTextStyle.copyWith(
             fontSize: Dimenssions.font16,
             fontWeight: bold,
+            color: context.textColor,
           ),
         ),
         contentPadding: EdgeInsets.zero,
@@ -264,28 +432,52 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                 itemCount: 5,
                 itemBuilder: (context, index) {
                   final options = [
-                    {'value': 'Baru', 'label': 'Terbaru', 'icon': Icons.new_releases},
-                    {'value': 'A-Z', 'label': 'A-Z', 'icon': Icons.sort_by_alpha},
-                    {'value': 'Z-A', 'label': 'Z-A', 'icon': Icons.sort_by_alpha},
-                    {'value': 'price_asc', 'label': 'Harga: Rendah ke Tinggi', 'icon': Icons.arrow_downward},
-                    {'value': 'price_desc', 'label': 'Harga: Tinggi ke Rendah', 'icon': Icons.arrow_upward},
+                    {
+                      'value': 'Baru',
+                      'label': 'Terbaru',
+                      'icon': Icons.new_releases
+                    },
+                    {
+                      'value': 'A-Z',
+                      'label': 'A-Z',
+                      'icon': Icons.sort_by_alpha
+                    },
+                    {
+                      'value': 'Z-A',
+                      'label': 'Z-A',
+                      'icon': Icons.sort_by_alpha
+                    },
+                    {
+                      'value': 'price_asc',
+                      'label': 'Harga: Rendah ke Tinggi',
+                      'icon': Icons.arrow_downward
+                    },
+                    {
+                      'value': 'price_desc',
+                      'label': 'Harga: Tinggi ke Rendah',
+                      'icon': Icons.arrow_upward
+                    },
                   ];
                   final option = options[index];
                   final value = option['value'] as String;
                   final label = option['label'] as String;
                   final isSelected = controller.sortBy.value == value;
-                  
+
                   return ListTile(
                     leading: Icon(
                       isSelected ? Icons.check_circle : Icons.circle_outlined,
-                      color: isSelected ? dashPrimary : Colors.grey,
+                      color: isSelected
+                          ? AppColors.orange
+                          : context.textSecondaryColor,
                     ),
                     title: Text(
                       label,
                       style: primaryTextStyle.copyWith(
                         fontSize: Dimenssions.font14,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? dashPrimary : Colors.black,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color:
+                            isSelected ? AppColors.orange : context.textColor,
                       ),
                     ),
                     onTap: () {
@@ -301,59 +493,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
     );
   }
 
-  Widget _buildCompactDropdown({
-    required String value,
-    required List<String> items,
-    List<String>? displayLabels,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      height: Dimenssions.height35,
-      decoration: BoxDecoration(
-        color: backgroundColor1,
-        borderRadius: BorderRadius.circular(Dimenssions.radius8),
-        border: Border.all(
-          color: logoColor.withValues(alpha: 0.1),
-        ),
-      ),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        isDense: true,
-        isExpanded: true,
-        icon: Icon(
-          Icons.keyboard_arrow_down_rounded,
-          color: logoColor,
-          size: Dimenssions.iconSize16,
-        ),
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: Dimenssions.width12,
-          ),
-          border: InputBorder.none,
-        ),
-        dropdownColor: backgroundColor1,
-        items: items.asMap().entries.map((entry) {
-          final index = entry.key;
-          final item = entry.value;
-          final label = displayLabels != null && index < displayLabels.length
-              ? displayLabels[index]
-              : item;
-          return DropdownMenuItem(
-            value: item,
-            child: Text(
-              label,
-              style: primaryTextStyle.copyWith(
-                fontSize: Dimenssions.font12,
-              ),
-            ),
-          );
-        }).toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -363,7 +503,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
             width: Dimenssions.width40,
             height: Dimenssions.height40,
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(logoColor),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.orange),
               strokeWidth: 3,
             ),
           ),
@@ -372,6 +512,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
             'Memuat produk...',
             style: primaryTextStyle.copyWith(
               fontSize: Dimenssions.font14,
+              color: context.textColor,
             ),
           ),
         ],
@@ -379,13 +520,13 @@ class ProductManagementPage extends GetView<MerchantProductController> {
     );
   }
 
-  Widget _buildProductGrid() {
+  Widget _buildProductGrid(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
         await controller.refreshProducts();
       },
-      color: logoColor,
-      backgroundColor: backgroundColor1,
+      color: AppColors.orange,
+      backgroundColor: context.cardColor,
       strokeWidth: 3,
       displacement: 20,
       child: NotificationListener<ScrollNotification>(
@@ -447,7 +588,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
           width: Dimenssions.width20,
           height: Dimenssions.height20,
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(logoColor),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.orange),
             strokeWidth: 2,
           ),
         ),
@@ -455,11 +596,11 @@ class ProductManagementPage extends GetView<MerchantProductController> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () => controller.refreshProducts(),
-      color: logoColor,
-      backgroundColor: backgroundColor1,
+      color: AppColors.orange,
+      backgroundColor: context.cardColor,
       strokeWidth: 3,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -472,14 +613,14 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                 Icon(
                   Icons.error_outline_rounded,
                   size: Dimenssions.iconSize24 * 2,
-                  color: Colors.red[400],
+                  color: context.isDark ? AppColors.error : Colors.red[400],
                 ),
                 SizedBox(height: Dimenssions.height16),
                 Text(
                   controller.errorMessage.value,
                   style: primaryTextStyle.copyWith(
                     fontSize: Dimenssions.font14,
-                    color: Colors.red[400],
+                    color: context.textColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -489,7 +630,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('Coba Lagi'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: logoColor,
+                    backgroundColor: AppColors.orange,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(
                       horizontal: Dimenssions.width20,
@@ -508,11 +649,11 @@ class ProductManagementPage extends GetView<MerchantProductController> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () => controller.refreshProducts(),
-      color: logoColor,
-      backgroundColor: backgroundColor1,
+      color: AppColors.orange,
+      backgroundColor: context.cardColor,
       strokeWidth: 3,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -525,7 +666,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                 Icon(
                   Icons.inventory_2_outlined,
                   size: Dimenssions.iconSize24 * 3,
-                  color: logoColor.withValues(alpha: 0.2),
+                  color: context.textSecondaryColor,
                 ),
                 SizedBox(height: Dimenssions.height16),
                 Text(
@@ -533,6 +674,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                   style: primaryTextStyle.copyWith(
                     fontSize: Dimenssions.font18,
                     fontWeight: bold,
+                    color: context.textColor,
                   ),
                 ),
                 SizedBox(height: Dimenssions.height8),
@@ -540,6 +682,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                   'Tambahkan produk pertama Anda',
                   style: secondaryTextStyle.copyWith(
                     fontSize: Dimenssions.font14,
+                    color: context.textSecondaryColor,
                   ),
                 ),
                 SizedBox(height: Dimenssions.height24),
@@ -548,7 +691,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('Tambah Produk'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: logoColor,
+                    backgroundColor: AppColors.orange,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(
                       horizontal: Dimenssions.width20,
@@ -572,7 +715,7 @@ class ProductManagementPage extends GetView<MerchantProductController> {
       padding: EdgeInsets.only(bottom: Dimenssions.height65),
       child: FloatingActionButton(
         onPressed: () => _navigateToProductForm(),
-        backgroundColor: logoColor,
+        backgroundColor: AppColors.orange,
         foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(

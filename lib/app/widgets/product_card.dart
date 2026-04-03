@@ -23,11 +23,11 @@ class ProductCard extends StatelessWidget {
           vertical: Dimenssions.height4,
         ),
         decoration: BoxDecoration(
-          color: backgroundColor2,
-          borderRadius: BorderRadius.circular(Dimenssions.radius20),
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: context.isDark ? Colors.black45 : Colors.black.withOpacity(0.08),
               spreadRadius: 0,
               blurRadius: 15,
               offset: const Offset(0, 4),
@@ -35,7 +35,7 @@ class ProductCard extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(Dimenssions.radius20),
+          borderRadius: BorderRadius.circular(16),
           child: Stack(
             children: [
               // Product Image with Gradient
@@ -53,32 +53,31 @@ class ProductCard extends StatelessWidget {
                               imageUrl: product.firstImageUrl,
                               fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
-                                color: backgroundColor3,
+                                color: context.backgroundColor,
                                 child: Center(
                                   child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        logoColor),
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.orange),
                                     strokeWidth: 2,
                                   ),
                                 ),
                               ),
                               errorWidget: (context, url, error) => Container(
-                                color: backgroundColor3,
+                                color: context.backgroundColor,
                                 child: Center(
                                   child: Icon(
                                     Icons.image_not_supported_outlined,
-                                    color: secondaryTextColor.withOpacity(0.5),
+                                    color: context.textHintColor,
                                     size: Dimenssions.iconSize24 * 2,
                                   ),
                                 ),
                               ),
                             )
                           : Container(
-                              color: backgroundColor3,
+                              color: context.backgroundColor,
                               child: Center(
                                 child: Icon(
                                   Icons.image_outlined,
-                                  color: secondaryTextColor.withOpacity(0.5),
+                                  color: context.textHintColor,
                                   size: Dimenssions.iconSize24 * 2,
                                 ),
                               ),
@@ -122,16 +121,15 @@ class ProductCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: product.isActive
                                   ? Colors.green.withOpacity(0.9)
-                                  : alertColor.withOpacity(0.9),
-                              borderRadius:
-                                  BorderRadius.circular(Dimenssions.radius20),
+                                  : Colors.red.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               product.isActive ? 'Aktif' : 'Nonaktif',
                               style: primaryTextStyle.copyWith(
-                                fontSize: Dimenssions.font12,
+                                fontSize: Dimenssions.font11,
                                 color: Colors.white,
-                                fontWeight: medium,
+                                fontWeight: semiBold,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

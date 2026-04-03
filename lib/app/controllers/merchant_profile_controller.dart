@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -290,10 +292,10 @@ class MerchantProfileController extends GetxController {
         merchantData(merchant);
 
         // Initialize text controllers with current data
-        nameController.text = merchant.name ?? '';
-        descriptionController.text = merchant.description ?? '';
-        addressController.text = merchant.address ?? '';
-        phoneController.text = merchant.phoneNumber ?? '';
+        nameController.text = merchant.name;
+        descriptionController.text = merchant.description!;
+        addressController.text = merchant.address;
+        phoneController.text = merchant.phoneNumber;
         openingTimeController.text = merchant.openingTime ?? '';
         closingTimeController.text = merchant.closingTime ?? '';
 

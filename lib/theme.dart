@@ -1,82 +1,223 @@
-// ignore_for_file: use_full_hex_values_for_flutter_colors, deprecated_member_use
-
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 double defaultMargin = Dimenssions.height10;
 
-// Unified Color Palette
-Color primaryColor = const Color(0xff38ABBE); // Teal
-Color secondaryColor = const Color(0xffF66000); // Orange
-Color logoColor = const Color(0xff0d2841);
-Color navyColor = const Color(0xff000040);
-Color primaryOrange = const Color(0xffFF6600);
-Color backgroundLight = const Color(0xfff8f9fa);
-Color backgroundDark = const Color(0xff000020);
-Color logoColorSecondary =
-    const Color(0xffFF6600); // Updated to match primaryOrange // Orange
-Color alertColor = const Color(0xffED6363); // Red
-Color priceColor = const Color(0xff2C96F1); // Blue
+// ============================================
+// 🎨 NEW COLOR SYSTEM - Clean & Simple
+// ============================================
+// Primary Brand Colors
+// - Navy Logo: Main brand color (headers, buttons, accents)
+// - Orange Logo: Accent color (CTA, highlights, badges)
+// ============================================
 
-// Backgrounds
-Color backgroundColor1 = const Color(0xFFFFFFFF); // White
-Color backgroundColor2 = const Color(0xFFFEFEFF); // Off-White
-Color backgroundColor3 = const Color(0xFFDDDDDD);
-Color backgroundColor4 = const Color(0xff252836);
-Color backgroundColor5 = const Color(0xFFD4D1D1);
-Color backgroundColor6 = const Color(0xFF000000);
-Color backgroundColor7 = const Color(0xFF000000);
-Color backgroundColor8 = const Color(0XFFf3f5f4);
+// Brand Colors
+Color navyColor = const Color(0xFF000033);      // Antarkanma Navy - Matches Logo Background
+Color orangeColor = const Color(0xFFFF6600);    // Orange Logo - Accent
 
-// Text Colors
-Color primaryTextColor = const Color(0xFF0C0C0C);
-Color secondaryTextColor = const Color(0xFF585858);
-Color subtitleColor = const Color(0xFF8E8E97);
+// Background Colors (Black & White Only)
+Color backgroundLight = const Color(0xFFFFFFFF);     // Pure White (Light Mode)
+Color backgroundLightAlt = const Color(0xFFF8F9FA);  // Off-White (subtle variation)
+Color backgroundDark = const Color(0xFF000000);      // Pure Black (Dark Mode)
+Color backgroundDarkAlt = const Color(0xFF1A1A1A);   // Off-Black (subtle variation)
+
+// Legacy - Will be removed in future
+Color get priceColor => Get.isDarkMode ? Colors.white : const Color(0xff2C96F1);
+
+// Transparent color helper
 Color transparentColor = Colors.transparent;
-Color blackColor = const Color(0xff2E2E2E);
-Color textwhiteColor = const Color(0xFFFFFFFF);
 
-// New Dashboard Colors
-Color dashBackgroundLight = const Color(0xFFF8F7F6);
-Color dashBackgroundDark = const Color(0xFF211711);
-Color dashPrimary = const Color(0xFFE66C19);
-Color dashNavyDeep = const Color(0xFF000040);
-Color dashCardLight = Colors.white;
-Color dashCardDark = const Color(0xFF262626); // Neutral 800 approx
-Color dashTextDark = const Color(0xFF0F172A); // Slate 900
-Color dashTextLight = const Color(0xFFFFFFFF);
-Color dashBorderLight = const Color(0xFFF1F5F9); // Slate 100
-Color dashBorderDark = Colors.white.withOpacity(0.05);
+// Dark Mode Color Palette
+class AppColors {
+  // ============================================
+  // 🎨 BRAND COLORS
+  // ============================================
+  static const Color navy = Color(0xFF000033);      // Navy Logo Background - Matches Logo
+  static const Color navyDark = Color(0xFF020206);  // Darker Navy for App Bars
+  static const Color orange = Color(0xFFFF6600);    // Orange Logo - Accent
 
-// Legacy/Other Colors (Keep for compatibility but encourage standard usage)
-Color mainColor = const Color(0xff82dad0);
-Color iconColor1 = const Color(0xffffd28d);
-Color iconColor = const Color(0xFFfcab88);
-Color paraColor = const Color(0xff8f837f);
-Color buttonBackgroundColor = const Color(0xFFf7f6f4);
-Color signColor = const Color(0xffa9a29f);
-Color titlecoler = const Color(0xff5c524f);
-Color mainBlackColor = const Color(0xff332d2b);
-Color yellowColor = const Color(0xffffd379);
+  // ============================================
+  // 🔄 LEGACY ALIASES - For backward compatibility
+  // ============================================
+  // These are used by existing merchant/courier code
+  // dashPrimary = orange (brand accent color)
+  // dashNavyDeep = navy (brand primary color)
+  static const Color dashPrimary = orange;
+  static const Color dashNavyDeep = navy;
+  static const Color dashTextDark = navy;
 
-// Order Status Colors
-Color statusWaiting = const Color(0xFFF59E0B); // Amber
-Color statusWaitingBg = const Color(0xFFFFFBEB);
-Color statusProcessing = const Color(0xFF3B82F6); // Blue
-Color statusProcessingBg = const Color(0xFFEFF6FF);
-Color statusReady = const Color(0xFF10B981); // Emerald
-Color statusReadyBg = const Color(0xFFECFDF5);
-Color statusCompleted = const Color(0xFF0D9488); // Teal
-Color statusCompletedBg = const Color(0xFFEFFEFD);
-Color statusCanceled = const Color(0xFFEF4444); // Red
-Color statusCanceledBg = const Color(0xFFFEF2F2);
+  // ============================================
+  // 🌈 LIGHT MODE COLORS
+  // ============================================
+  static const Color lightBackground = Color(0xFFFFFFFF);
+  static const Color lightBackgroundAlt = Color(0xFFF8F9FA);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
+  static const Color lightTextPrimary = Color(0xFF000000);
+  static const Color lightTextSecondary = Color(0xFF666666);
+  static const Color lightTextHint = Color(0xFF999999);
+  static const Color lightDivider = Color(0xFFE0E0E0);
+  static const Color lightInputBorder = Color(0xFFDDDDDD);
 
-// Chat Specific Colors
-Color chatPrimary = const Color(0xFF1E3A8A); // Navy Blue
-Color chatSecondary = const Color(0xFFF97316); // Bright Orange
-Color chatBackgroundLight = const Color(0xFFF8FAFC);
-Color chatBubbleMerchant = const Color(0xFFFFFFFF);
-Color chatTextDark = const Color(0xFF0F172A);
-Color chatTextSecondary = const Color(0xFF64748B); // Slate-500 equivalent
+  // ============================================
+  // 🌙 DARK MODE COLORS
+  // ============================================
+  static const Color darkBackground = Color(0xFF000000);
+  static const Color darkBackgroundAlt = Color(0xFF1A1A1A);
+  static const Color darkSurface = Color(0xFF1A1A1A);
+  static const Color darkCard = Color(0xFF2C2C2C);
+  static const Color darkTextPrimary = Color(0xFFFFFFFF);
+  static const Color darkTextSecondary = Color(0xFFCCCCCC);
+  static const Color darkTextHint = Color(0xFF666666);
+  static const Color darkDivider = Color(0xFF333333);
+  static const Color darkInputBorder = Color(0xFF444444);
+
+  // ============================================
+  // ⚡ FUNCTIONAL COLORS
+  // ============================================
+  static const Color error = Color(0xFFED6363);
+  static const Color success = Color(0xFF4CAF50);
+  static const Color warning = Color(0xFFFF9800);
+
+  // ============================================
+  // 🔄 BACK COMPATIBILITY ALIASES
+  // ============================================
+  // These are aliases for backward compatibility
+  // Use navy/orange instead in new code
+  static const Color primary = navy;      // Alias for navy
+  static const Color secondary = orange;  // Alias for orange
+  static const Color accent = orange;     // Alias for orange
+
+  // ============================================
+  // 💬 CHAT COLORS (Keep Existing - Already Good)
+  // ============================================
+  static const Color chatBubbleLight = Color(0xFFFFFFFF);
+  static const Color chatBubbleDark = Color(0xFF2C2C2C);
+  static const Color chatSentBubble = Color(0xFF1E3A8A); // Navy Blue
+  static const Color chatAccent = Color(0xFFF97316); // Bright Orange
+  static const Color chatTextLight = Color(0xFF0F172A);
+  static const Color chatTextDark = Color(0xFFE0E0E0);
+  static const Color chatTextSecondaryLight = Color(0xFF64748B);
+  static const Color chatTextSecondaryDark = Color(0xFF9E9E9E);
+  static const Color chatBackgroundLight = Color(0xFFF8FAFC);
+  static const Color chatBackgroundDark = Color(0xFF1A1A1A);
+}
+
+// ============================================
+// ⚠️ DEPRECATED - Use AppColors Instead
+// ============================================
+// These are kept for backward compatibility but should NOT be used in new code.
+// Please use AppColors.navy, AppColors.orange, AppColors.lightBackground, etc.
+
+// Old Background Colors
+@Deprecated('Use AppColors.lightBackground or AppColors.darkBackground')
+Color get backgroundColor1 => Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground;
+
+@Deprecated('Use AppColors.lightSurface or AppColors.darkSurface')
+Color get backgroundColor2 => Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface;
+
+@Deprecated('Use AppColors.lightBackground or AppColors.darkBackground')
+Color get backgroundColor3 => Get.isDarkMode ? AppColors.darkBackgroundAlt : AppColors.lightBackgroundAlt;
+
+@Deprecated('Use AppColors.darkBackground')
+Color get backgroundColor4 => AppColors.darkBackground;
+
+@Deprecated('Use AppColors.lightBackground or AppColors.darkBackground')
+Color get backgroundColor5 => Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground;
+
+@Deprecated('Use AppColors.darkBackground')
+Color get backgroundColor6 => AppColors.darkBackground;
+
+@Deprecated('Use AppColors.darkBackground')
+Color get backgroundColor7 => AppColors.darkBackground;
+
+@Deprecated('Use AppColors.lightBackground or AppColors.lightSurface')
+Color get backgroundColor8 => Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface;
+
+// Old Text Colors
+@Deprecated('Use AppColors.lightTextPrimary or AppColors.darkTextPrimary')
+Color get primaryTextColor => Get.isDarkMode ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+
+@Deprecated('Use AppColors.lightTextSecondary or AppColors.darkTextSecondary')
+Color get secondaryTextColor => Get.isDarkMode ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+@Deprecated('Use AppColors.lightTextHint or AppColors.darkTextHint')
+Color get subtitleColor => Get.isDarkMode ? AppColors.darkTextHint : AppColors.lightTextHint;
+
+// Legacy Colors (Will be removed in future)
+@Deprecated('Use AppColors.navy')
+Color primaryColor = AppColors.navy;
+
+@Deprecated('Use AppColors.orange')
+Color secondaryColor = AppColors.orange;
+
+@Deprecated('Use AppColors.navy')
+Color logoColor = AppColors.navy;
+
+@Deprecated('Use AppColors.orange')
+Color logoColorSecondary = AppColors.orange;
+
+@Deprecated('Use AppColors.orange')
+Color primaryOrange = AppColors.orange;
+
+@Deprecated('Use AppColors.error')
+Color alertColor = AppColors.error;
+
+@Deprecated('Use AppColors.lightTextPrimary or AppColors.darkTextPrimary')
+Color blackColor = AppColors.lightTextPrimary;
+
+@Deprecated('Use AppColors.lightTextPrimary or AppColors.darkTextPrimary')
+Color textwhiteColor = AppColors.lightTextPrimary;
+
+// Chat Legacy Aliases
+@Deprecated('Use AppColors.chatSentBubble')
+Color get chatPrimary => AppColors.chatSentBubble;
+
+@Deprecated('Use AppColors.chatAccent')
+Color get chatSecondary => AppColors.chatAccent;
+
+@Deprecated('Use AppColors.chatBackgroundLight or AppColors.chatBackgroundDark')
+Color get chatBackgroundLight => Get.isDarkMode ? AppColors.chatBackgroundDark : AppColors.chatBackgroundLight;
+
+@Deprecated('Use AppColors.chatBubbleLight or AppColors.chatBubbleDark')
+Color get chatBubbleMerchant => Get.isDarkMode ? AppColors.chatBubbleDark : AppColors.chatBubbleLight;
+
+@Deprecated('Use AppColors.chatTextLight or AppColors.chatTextDark')
+Color get chatTextDark => Get.isDarkMode ? AppColors.chatTextDark : AppColors.chatTextLight;
+
+@Deprecated('Use AppColors.chatTextSecondaryLight or AppColors.chatTextSecondaryDark')
+Color get chatTextSecondary => Get.isDarkMode ? AppColors.chatTextSecondaryDark : AppColors.chatTextSecondaryLight;
+
+
+// ============================================
+// 📏 DIMENSIONS & HELPER EXTENSIONS
+// ============================================
+
+extension ThemeContext on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  Color get primaryColor => Theme.of(this).primaryColor;
+  Color get scaffoldBackgroundColor => Theme.of(this).scaffoldBackgroundColor;
+  TextTheme get textTheme => Theme.of(this).textTheme;
+
+  // Semantic Colors
+  Color get backgroundColor =>
+      isDark ? AppColors.darkBackground : AppColors.lightBackground;
+  Color get backgroundColorAlt =>
+      isDark ? AppColors.darkBackgroundAlt : AppColors.lightBackgroundAlt;
+  Color get surfaceColor =>
+      isDark ? AppColors.darkSurface : AppColors.lightSurface;
+  Color get cardColor => isDark ? AppColors.darkCard : AppColors.lightCard;
+  Color get textColor =>
+      isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+  Color get textSecondaryColor =>
+      isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+  Color get textHintColor =>
+      isDark ? AppColors.darkTextHint : AppColors.lightTextHint;
+  Color get dividerColor =>
+      isDark ? AppColors.darkDivider : AppColors.lightDivider;
+  Color get inputBorderColor =>
+      isDark ? AppColors.darkInputBorder : AppColors.lightInputBorder;
+}
 
 const MaterialColor primarySwatch = MaterialColor(
   0xFFFF6600,
@@ -94,59 +235,59 @@ const MaterialColor primarySwatch = MaterialColor(
   },
 );
 
-TextStyle primaryTextStyle = TextStyle(
-  color: primaryTextColor,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get primaryTextStyle => TextStyle(
+      color: Get.isDarkMode ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
-TextStyle secondaryTextStyle = TextStyle(
-  color: secondaryTextColor,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get secondaryTextStyle => TextStyle(
+      color: Get.isDarkMode ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
-TextStyle subtitleTextStyle = TextStyle(
-  color: subtitleColor,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get subtitleTextStyle => TextStyle(
+      color: Get.isDarkMode ? AppColors.darkTextHint : AppColors.lightTextHint,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
-TextStyle priceTextStyle = TextStyle(
-  color: logoColor,
-  fontFamily: 'PalanquinDark',
-  fontWeight: medium,
-);
+TextStyle get priceTextStyle => TextStyle(
+      color: Get.isDarkMode ? Colors.white : AppColors.navy,
+      fontFamily: 'PalanquinDark',
+      fontWeight: medium,
+    );
 
-TextStyle purpleTextStyle = TextStyle(
-  color: primaryColor,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get purpleTextStyle => TextStyle(
+      color: Get.isDarkMode ? Colors.white : AppColors.navy,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
-TextStyle blackTextStyle = TextStyle(
-  color: blackColor,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get blackTextStyle => TextStyle(
+      color: Get.isDarkMode ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
-TextStyle alertTextStyle = TextStyle(
-  color: alertColor,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get alertTextStyle => TextStyle(
+      color: AppColors.error,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
-TextStyle textwhite = TextStyle(
-  color: backgroundColor1,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get textwhite => TextStyle(
+      color: Colors.white,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
-TextStyle primaryTextOrange = TextStyle(
-  color: logoColorSecondary,
-  fontFamily: 'PalanquinDark',
-  fontWeight: regular,
-);
+TextStyle get primaryTextOrange => TextStyle(
+      color: AppColors.orange,
+      fontFamily: 'PalanquinDark',
+      fontWeight: regular,
+    );
 
 FontWeight light = FontWeight.w300;
 FontWeight regular = FontWeight.w400;
@@ -225,7 +366,6 @@ class Dimenssions {
   static double width30 = screenHeight / 28.13;
   static double width35 = screenHeight / 23.88;
   static double width40 = screenHeight / 21.1;
-  static double width42 = screenHeight / 20.1;
   static double width45 = screenHeight / 18.76;
   static double width50 = screenHeight / 16.88;
   static double width55 = screenHeight / 15.27;
@@ -248,9 +388,11 @@ class Dimenssions {
 
   // Font sizes
   static double font10 = screenHeight / 85.33;
-  static double font11 = screenHeight / 77.09;
+  static double font11 = screenHeight / 77.64;
   static double font12 = screenHeight / 70.28;
+  static double font13 = screenHeight / 65.0;
   static double font14 = screenHeight / 62;
+  static double font15 = screenHeight / 56.27;
   static double font16 = screenHeight / 53.75;
   static double font18 = screenHeight / 47.78;
   static double font20 = screenHeight / 42.2;
@@ -267,13 +409,20 @@ class Dimenssions {
   static double radius15 = screenHeight / 52.75;
   static double radius16 = screenHeight / 52.75;
   static double radius20 = screenHeight / 42.2;
-
   static double radius30 = screenHeight / 28.13;
-  static double radius40 = screenHeight / 21.1;
 
-  static double iconSize24 = screenHeight / 35.17;
-
+  // Icon sizes
   static double iconSize20 = screenHeight / 42.2;
+  static double iconSize24 = screenHeight / 35.16;
+  static double iconSize16 = screenHeight / 52.75;
 
-  static double iconSize16 = screenHeight / 53.75;
+  // List view sizes
+  static double listViewImgSize = screenWidth / 3.25;
+  static double listViewTextContSize = screenWidth / 3.9;
+
+  // Popular food detail
+  static double popularFoodDetailImgSize = screenHeight / 2.5;
+
+  // Bottom height bar
+  static double boottomHeightBar = screenHeight / 7.03;
 }

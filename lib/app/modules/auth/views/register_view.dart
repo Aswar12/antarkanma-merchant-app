@@ -17,13 +17,13 @@ class RegisterView extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: true,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           controller.resetControllers();
         }
       },
       child: Scaffold(
-        backgroundColor: backgroundColor1,
+        backgroundColor: context.backgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -35,7 +35,7 @@ class RegisterView extends GetView<AuthController> {
                     SizedBox(height: Dimenssions.height20),
                     header(),
                     SizedBox(height: Dimenssions.height40),
-                    registrationForm(),
+                    registrationForm(context),
                     signButton(),
                     footer(),
                     SizedBox(height: Dimenssions.height20),
@@ -76,10 +76,10 @@ class RegisterView extends GetView<AuthController> {
     );
   }
 
-  Widget registrationForm() {
+  Widget registrationForm(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor2,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(Dimenssions.radius15),
         boxShadow: [
           BoxShadow(
@@ -103,6 +103,7 @@ class RegisterView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           _buildInputField(
+            context,
             label: 'Nama Lengkap',
             hintText: 'Masukkan Nama Lengkap Kamu',
             controller: controller.nameController,
@@ -111,6 +112,7 @@ class RegisterView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           _buildInputField(
+            context,
             label: 'Alamat Email',
             hintText: 'Masukkan Alamat Email Kamu',
             controller: controller.emailController,
@@ -119,6 +121,7 @@ class RegisterView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           _buildInputField(
+            context,
             label: 'Telepon/WA',
             hintText: 'Masukkan Nomor Telepon/WA Kamu',
             controller: controller.phoneNumberController,
@@ -127,6 +130,7 @@ class RegisterView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           Obx(() => _buildInputField(
+                context,
                 label: 'Password',
                 hintText: 'Masukkan Password Kamu',
                 controller: controller.passwordController,
@@ -138,6 +142,7 @@ class RegisterView extends GetView<AuthController> {
               )),
           SizedBox(height: Dimenssions.height15),
           Obx(() => _buildInputField(
+                context,
                 label: 'Konfirmasi Password',
                 hintText: 'Masukkan Konfirmasi Password Kamu',
                 controller: controller.confirmPasswordController,
@@ -157,6 +162,7 @@ class RegisterView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           _buildInputField(
+            context,
             label: 'Nama Toko',
             hintText: 'Masukkan Nama Toko',
             controller: controller.merchantNameController,
@@ -165,6 +171,7 @@ class RegisterView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           _buildInputField(
+            context,
             label: 'Alamat Toko',
             hintText: 'Masukkan Alamat Lengkap Toko',
             controller: controller.addressController,
@@ -177,6 +184,7 @@ class RegisterView extends GetView<AuthController> {
             children: [
               Expanded(
                 child: _buildInputField(
+                  context,
                   label: 'Jam Buka',
                   hintText: 'HH:mm',
                   controller: controller.openingTimeController,
@@ -187,6 +195,7 @@ class RegisterView extends GetView<AuthController> {
               SizedBox(width: Dimenssions.width15),
               Expanded(
                 child: _buildInputField(
+                  context,
                   label: 'Jam Tutup',
                   hintText: 'HH:mm',
                   controller: controller.closingTimeController,
@@ -205,7 +214,7 @@ class RegisterView extends GetView<AuthController> {
             ),
           ),
           SizedBox(height: Dimenssions.height10),
-          _buildOperatingDays(),
+          _buildOperatingDays(context),
           SizedBox(height: Dimenssions.height15),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +232,7 @@ class RegisterView extends GetView<AuthController> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: backgroundColor1,
+                        color: context.surfaceColor,
                         borderRadius:
                             BorderRadius.circular(Dimenssions.radius12),
                       ),
@@ -286,7 +295,7 @@ class RegisterView extends GetView<AuthController> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: logoColorSecondary,
+                              backgroundColor: AppColors.orange,
                               shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.only(
                                   bottomLeft: Radius.circular(12),
@@ -322,6 +331,7 @@ class RegisterView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           _buildInputField(
+            context,
             label: 'Deskripsi Toko (Opsional)',
             hintText: 'Masukkan Deskripsi Toko',
             controller: controller.descriptionController,
@@ -329,13 +339,13 @@ class RegisterView extends GetView<AuthController> {
             maxLines: 3,
           ),
           SizedBox(height: Dimenssions.height15),
-          _buildLogoUpload(),
+          _buildLogoUpload(context),
         ],
       ),
     );
   }
 
-  Widget _buildOperatingDays() {
+  Widget _buildOperatingDays(BuildContext context) {
     final days = [
       'senin',
       'selasa',
@@ -354,20 +364,20 @@ class RegisterView extends GetView<AuthController> {
               label: Text(day[0].toUpperCase() + day.substring(1)),
               selected: controller.operatingDays.contains(day),
               onSelected: (selected) => controller.toggleOperatingDay(day),
-              backgroundColor: backgroundColor1,
-              selectedColor: logoColorSecondary,
+              backgroundColor: context.surfaceColor,
+              selectedColor: AppColors.orange,
               checkmarkColor: Colors.white,
               labelStyle: TextStyle(
                 color: controller.operatingDays.contains(day)
                     ? Colors.white
-                    : Colors.black,
+                    : context.textColor,
               ),
             ));
       }).toList(),
     );
   }
 
-  Widget _buildLogoUpload() {
+  Widget _buildLogoUpload(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -385,9 +395,11 @@ class RegisterView extends GetView<AuthController> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: backgroundColor1,
+                    color: context.surfaceColor,
                     borderRadius: BorderRadius.circular(Dimenssions.radius12),
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(
+                      color: context.inputBorderColor,
+                    ),
                   ),
                   child: controller.logoFile.value != null
                       ? ClipRRect(
@@ -412,7 +424,7 @@ class RegisterView extends GetView<AuthController> {
                   ElevatedButton(
                     onPressed: controller.pickLogo,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: logoColorSecondary,
+                      backgroundColor: AppColors.orange,
                       shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(Dimenssions.radius12),
@@ -439,7 +451,8 @@ class RegisterView extends GetView<AuthController> {
     );
   }
 
-  Widget _buildInputField({
+  Widget _buildInputField(
+    BuildContext context, {
     required String label,
     required String hintText,
     required TextEditingController controller,
@@ -453,7 +466,7 @@ class RegisterView extends GetView<AuthController> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(Dimenssions.radius12),
       ),
       child: CustomInputField(
@@ -480,7 +493,7 @@ class RegisterView extends GetView<AuthController> {
         () => CustomButton(
           text: 'Daftar Sekarang',
           isLoading: controller.isLoading.value,
-          backgroundColor: logoColorSecondary,
+          backgroundColor: AppColors.orange,
           onPressed: () {
             if (_signUpFormKey.currentState!.validate()) {
               controller.registerMerchant();

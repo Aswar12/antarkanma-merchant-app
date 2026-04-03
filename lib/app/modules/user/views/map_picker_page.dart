@@ -63,7 +63,7 @@ class _MapPickerViewState extends State<MapPickerView> {
           tooltip: 'Lokasi Saat Ini',
         ),
       ],
-      backgroundColor: backgroundColor1,
+      backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       elevation: 0,
     );
   }

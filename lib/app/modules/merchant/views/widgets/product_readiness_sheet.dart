@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:antarkanma_merchant/app/controllers/merchant_home_controller.dart';
-import 'package:antarkanma_merchant/app/data/models/product_model.dart';
 
 class ProductReadinessSheet extends GetView<MerchantHomeController> {
   const ProductReadinessSheet({super.key});
@@ -12,7 +11,7 @@ class ProductReadinessSheet extends GetView<MerchantHomeController> {
     return Container(
       padding: EdgeInsets.all(Dimenssions.height16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(Dimenssions.radius20),
           topRight: Radius.circular(Dimenssions.radius20),
@@ -27,7 +26,7 @@ class ProductReadinessSheet extends GetView<MerchantHomeController> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: context.dividerColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -75,7 +74,7 @@ class ProductReadinessSheet extends GetView<MerchantHomeController> {
                         ),
                       ),
                       value: isUnavailable,
-                      activeColor: Colors.red,
+                      activeColor: AppColors.error,
                       onChanged: (bool? value) {
                         controller.toggleProductUnavailable(product.id!);
                       },

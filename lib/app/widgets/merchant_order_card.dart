@@ -274,7 +274,7 @@ class MerchantOrderCard extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.only(bottom: Dimenssions.height12),
         decoration: BoxDecoration(
-          color: backgroundColor2,
+          color: Get.isDarkMode ? AppColors.darkCard : AppColors.lightCard,
           borderRadius: BorderRadius.circular(Dimenssions.radius15),
           boxShadow: [
             BoxShadow(

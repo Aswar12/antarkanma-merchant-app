@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:dio/dio.dart' as dio;
 import '../../../config.dart';
 import '../../services/auth_service.dart';
@@ -31,7 +33,6 @@ class TransactionProvider {
           options.headers['Accept'] = 'application/json';
           options.headers['Content-Type'] = 'application/json';
 
-          print('Making request to: ${options.uri}');
           print('Headers: ${options.headers}');
           print('Query Parameters: ${options.queryParameters}');
 
@@ -66,33 +67,31 @@ class TransactionProvider {
           
           // Handle timeout errors with user-friendly messages
           String userMessage = 'Terjadi kesalahan. Silakan coba lagi.';
-          if (error is dio.DioException) {
-            switch (error.type) {
-              case dio.DioExceptionType.connectionTimeout:
-                userMessage = 'Koneksi timeout. Periksa internet Anda.';
-                break;
-              case dio.DioExceptionType.sendTimeout:
-                userMessage = 'Request timeout. Silakan coba lagi.';
-                break;
-              case dio.DioExceptionType.receiveTimeout:
-                userMessage = 'Respon server terlalu lama. Silakan coba lagi.';
-                break;
-              case dio.DioExceptionType.connectionError:
-                userMessage = 'Tidak dapat terhubung ke server. Periksa jaringan.';
-                break;
-              case dio.DioExceptionType.badResponse:
-                if (error.response?.statusCode == 401) {
-                  userMessage = 'Sesi expired. Silakan login ulang.';
-                } else if (error.response?.statusCode == 503) {
-                  userMessage = 'Server sedang maintenance.';
-                }
-                break;
-              default:
-                break;
-            }
-            print('User-friendly error message: $userMessage');
+          switch (error.type) {
+            case dio.DioExceptionType.connectionTimeout:
+              userMessage = 'Koneksi timeout. Periksa internet Anda.';
+              break;
+            case dio.DioExceptionType.sendTimeout:
+              userMessage = 'Request timeout. Silakan coba lagi.';
+              break;
+            case dio.DioExceptionType.receiveTimeout:
+              userMessage = 'Respon server terlalu lama. Silakan coba lagi.';
+              break;
+            case dio.DioExceptionType.connectionError:
+              userMessage = 'Tidak dapat terhubung ke server. Periksa jaringan.';
+              break;
+            case dio.DioExceptionType.badResponse:
+              if (error.response?.statusCode == 401) {
+                userMessage = 'Sesi expired. Silakan login ulang.';
+              } else if (error.response?.statusCode == 503) {
+                userMessage = 'Server sedang maintenance.';
+              }
+              break;
+            default:
+              break;
           }
-          
+          print('User-friendly error message: $userMessage');
+                  
           return handler.next(error);
         },
       ),

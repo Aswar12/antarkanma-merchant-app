@@ -1,4 +1,5 @@
 
+import 'package:antarkanma_merchant/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'firebase_options.dart';
 import 'app/services/notification_service.dart';
 import 'app/services/storage_service.dart';
 import 'app/services/dimensions_service.dart';
+import 'app/controllers/theme_controller.dart';
 
 Future<void> initServices() async {
   try {
@@ -49,6 +51,10 @@ Future<void> initServices() async {
     await notificationService.init();
     Get.put(notificationService, permanent: true);
 
+    // Initialize ThemeController
+    final themeController = ThemeController();
+    Get.put(themeController, permanent: true);
+
     print('All services initialized...');
   } catch (e) {
     print('Error initializing services: $e');
@@ -72,16 +78,84 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+    final themeController = Get.isRegistered<ThemeController>()
+        ? Get.find<ThemeController>()
+        : Get.put(ThemeController(), permanent: true);
+    return Obx(() => GetMaterialApp(
       title: 'Antarkanma Merchant',
       debugShowCheckedModeBanner: false,
       initialBinding: AppBinding(),
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
+        primarySwatch: primarySwatch,
+        primaryColor: AppColors.navy,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: AppColors.lightBackground,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.primary,
+          secondary: AppColors.secondary,
+          surface: AppColors.lightSurface,
+          background: AppColors.lightBackground,
+          error: AppColors.error,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onSurface: AppColors.lightTextPrimary,
+          onBackground: AppColors.lightTextPrimary,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.lightBackground,
+          foregroundColor: AppColors.lightTextPrimary,
+          elevation: 0,
+        ),
+        cardTheme: CardThemeData(
+          color: AppColors.lightCard,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Dimenssions.radius15),
+          ),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: AppColors.lightDivider,
+          thickness: 1,
+        ),
       ),
-    );
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        primarySwatch: primarySwatch,
+        primaryColor: AppColors.navy,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: AppColors.darkBackground,
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.primary,
+          secondary: AppColors.secondary,
+          surface: AppColors.darkSurface,
+          background: AppColors.darkBackground,
+          error: AppColors.error,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onSurface: AppColors.darkTextPrimary,
+          onBackground: AppColors.darkTextPrimary,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.darkBackground,
+          foregroundColor: AppColors.darkTextPrimary,
+          elevation: 0,
+        ),
+        cardTheme: CardThemeData(
+          color: AppColors.darkCard,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Dimenssions.radius15),
+          ),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: AppColors.darkDivider,
+          thickness: 1,
+        ),
+      ),
+      themeMode: themeController.themeMode.value,
+    ));
   }
 }

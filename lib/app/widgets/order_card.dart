@@ -22,7 +22,7 @@ class OrderCard extends StatelessWidget {
     await showDialog(
       context: Get.context!,
       builder: (context) => AlertDialog(
-        backgroundColor: backgroundColor1,
+        backgroundColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         title: Text(
           'Konfirmasi Pembatalan',
           style: primaryTextStyle.copyWith(

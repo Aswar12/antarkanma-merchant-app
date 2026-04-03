@@ -69,7 +69,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
         return false;
       },
       child: Scaffold(
-        backgroundColor: backgroundColor1,
+        backgroundColor: Get.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
         appBar: AppBar(
           title: Text(
             product != null ? 'Edit Produk' : 'Tambah Produk',
@@ -196,7 +196,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
         bottomNavigationBar: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: backgroundColor1,
+            color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             boxShadow: [
               BoxShadow(
@@ -283,7 +283,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
           inputFormatters: inputFormatters,
           validator: validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          style: TextStyle(color: logoColor),
+          style: TextStyle(color: Get.isDarkMode ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: logoColor.withValues(alpha: 0.4)),
@@ -322,8 +322,8 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
       width: double.infinity,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor1,
-        border: Border.all(color: Colors.grey.shade300),
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
+        border: Border.all(color: Get.isDarkMode ? AppColors.darkDivider : AppColors.lightDivider),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -366,7 +366,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Get.isDarkMode ? AppColors.darkBackgroundAlt : AppColors.lightBackgroundAlt,
               borderRadius: BorderRadius.circular(8),
             ),
           ),
@@ -539,7 +539,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                 filled: true,
                 fillColor: logoColor.withValues(alpha: 0.05),
               ),
-              dropdownColor: backgroundColor1,
+              dropdownColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
             );
           },
         ),
@@ -603,7 +603,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                 return Container(
                   margin: EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: backgroundColor1,
+                    color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
                     border: Border.all(color: logoColor),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -633,7 +633,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: backgroundColor1,
+                                    color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
                                     border: Border.all(
                                         color:
                                             logoColor.withValues(alpha: 0.15)),
@@ -735,7 +735,7 @@ class ProductFormPage extends GetView<MerchantProductFormController> {
 
     Get.dialog(
       AlertDialog(
-        backgroundColor: backgroundColor1,
+        backgroundColor: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: logoColor, width: 1),

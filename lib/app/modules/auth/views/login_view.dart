@@ -5,43 +5,48 @@ import '../../../controllers/auth_controller.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_input_field.dart';
 import '../../../routes/app_pages.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/storage_service.dart';
 
 class LoginView extends GetView<AuthController> {
   final GlobalKey<FormState> _signInFormKey = GlobalKey<FormState>();
 
-  LoginView({super.key});
+  LoginView({super.key}) {
+    // Ensure AuthController is initialized
+    if (!Get.isRegistered<AuthController>()) {
+      Get.put(
+        AuthController(
+          authService: AuthService(),
+          storageService: StorageService.instance,
+        ),
+        permanent: true,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          controller.resetControllers();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: backgroundColor1,
-        resizeToAvoidBottomInset: false,
-        body: SafeArea(
-          child: Form(
-            key: _signInFormKey,
-            child: SingleChildScrollView(
-              child: Container(
-                padding: EdgeInsets.all(Dimenssions.height20),
-                child: Column(
-                  children: [
-                    SizedBox(height: Dimenssions.height20),
-                    header(),
-                    SizedBox(height: Dimenssions.height40),
-                    loginForm(),
-                    SizedBox(height: Dimenssions.height30),
-                    signButton(),
-                    SizedBox(height: Dimenssions.height40),
-                    footer(),
-                    SizedBox(height: Dimenssions.height20),
-                  ],
-                ),
+    return Scaffold(
+      backgroundColor: context.backgroundColor,
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Form(
+          key: _signInFormKey,
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(Dimenssions.height20),
+              child: Column(
+                children: [
+                  SizedBox(height: Dimenssions.height20),
+                  header(),
+                  SizedBox(height: Dimenssions.height40),
+                  loginForm(context),
+                  SizedBox(height: Dimenssions.height30),
+                  signButton(),
+                  SizedBox(height: Dimenssions.height40),
+                  footer(),
+                  SizedBox(height: Dimenssions.height20),
+                ],
               ),
             ),
           ),
@@ -77,14 +82,16 @@ class LoginView extends GetView<AuthController> {
     );
   }
 
-  Widget loginForm() {
+  Widget loginForm(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor2,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(Dimenssions.radius20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.08),
+            color: context.isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.grey.withValues(alpha: 0.08),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -116,30 +123,28 @@ class LoginView extends GetView<AuthController> {
           ),
           SizedBox(height: Dimenssions.height15),
           // Remember Me Checkbox
-          Obx(() => Row(
-                children: [
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Checkbox(
+          Obx(() => Container(
+                margin: EdgeInsets.only(top: Dimenssions.height5),
+                child: Row(
+                  children: [
+                    Checkbox(
                       value: controller.rememberMe.value,
-                      onChanged: (value) {
-                        // Remember me is always true
-                      },
+                      onChanged: (value) => controller.toggleRememberMe(),
                       activeColor: logoColorSecondary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                  ),
-                  SizedBox(width: Dimenssions.width8),
-                  Text(
-                    'Ingat Saya',
-                    style: subtitleTextStyle.copyWith(
-                      fontSize: Dimenssions.font14,
+                    SizedBox(width: Dimenssions.width8),
+                    Text(
+                      'Ingat Saya',
+                      style: primaryTextStyle.copyWith(
+                        fontSize: Dimenssions.font14,
+                        fontWeight: medium,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               )),
         ],
       ),
@@ -152,9 +157,9 @@ class LoginView extends GetView<AuthController> {
         text: 'Masuk',
         isLoading: controller.isLoading.value,
         backgroundColor: logoColorSecondary,
-        onPressed: () {
+        onPressed: () async {
           if (_signInFormKey.currentState!.validate()) {
-            controller.login();
+            await controller.login();
           }
         },
       ),
@@ -172,10 +177,7 @@ class LoginView extends GetView<AuthController> {
           ),
         ),
         GestureDetector(
-          onTap: () {
-            controller.resetControllers();
-            Get.toNamed(Routes.register);
-          },
+          onTap: () => Get.toNamed(Routes.register),
           child: Text(
             'Daftar',
             style: primaryTextOrange.copyWith(

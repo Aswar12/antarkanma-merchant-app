@@ -13,7 +13,7 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor1,
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Text(
           'Edit Informasi Toko',
@@ -31,16 +31,16 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLogoSection(),
+            _buildLogoSection(context),
             const SizedBox(height: 24),
-            _buildForm(),
+            _buildForm(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLogoSection() {
+  Widget _buildLogoSection(BuildContext context) {
     return Center(
       child: Column(
         children: [
@@ -64,11 +64,11 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
                 }
                 return CircleAvatar(
                   radius: 60,
-                  backgroundColor: Colors.grey[200],
+                  backgroundColor: context.isDark ? AppColors.darkDivider : Colors.grey[200],
                   child: Icon(
                     Icons.store,
                     size: 40,
-                    color: Colors.grey[400],
+                    color: context.textHintColor,
                   ),
                 );
               }),
@@ -82,7 +82,7 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
                     shape: BoxShape.circle,
                   ),
                   child: InkWell(
-                    onTap: _showImageSourceDialog,
+                    onTap: () => _showImageSourceDialog(context),
                     child: const Icon(
                       Icons.camera_alt,
                       color: Colors.white,
@@ -112,13 +112,14 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm(BuildContext context) {
     return Form(
       key: controller.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTextField(
+            context: context,
             label: 'Nama Toko',
             hint: 'Masukkan nama toko',
             controller: controller.nameController,
@@ -131,6 +132,7 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
           ),
           const SizedBox(height: 16),
           _buildTextField(
+            context: context,
             label: 'Deskripsi',
             hint: 'Masukkan deskripsi toko',
             controller: controller.descriptionController,
@@ -138,6 +140,7 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
           ),
           const SizedBox(height: 16),
           _buildTextField(
+            context: context,
             label: 'Alamat',
             hint: 'Masukkan alamat toko',
             controller: controller.addressController,
@@ -149,9 +152,10 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
             },
           ),
           const SizedBox(height: 8),
-          _buildLocationPicker(),
+          _buildLocationPicker(context),
           const SizedBox(height: 16),
           _buildTextField(
+            context: context,
             label: 'Nomor Telepon',
             hint: 'Masukkan nomor telepon',
             controller: controller.phoneController,
@@ -195,7 +199,7 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
     );
   }
 
-  Widget _buildLocationPicker() {
+  Widget _buildLocationPicker(BuildContext context) {
     return Obx(() {
       final location = controller.location.value;
       return OutlinedButton.icon(
@@ -223,6 +227,7 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
   }
 
   Widget _buildTextField({
+    required BuildContext context,
     required String label,
     required String hint,
     required TextEditingController controller,
@@ -254,11 +259,11 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: BorderSide(color: context.dividerColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: BorderSide(color: context.dividerColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -278,13 +283,13 @@ class EditStoreInfoPage extends GetView<MerchantProfileController> {
     );
   }
 
-  void _showImageSourceDialog() {
+  void _showImageSourceDialog(BuildContext context) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

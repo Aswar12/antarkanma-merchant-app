@@ -1,5 +1,6 @@
 import 'package:antarkanma_merchant/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SearchInputField extends StatefulWidget {
   final TextEditingController controller;
@@ -61,7 +62,7 @@ class _SearchInputFieldState extends State<SearchInputField> {
     return Container(
       height: Dimenssions.height45,
       decoration: BoxDecoration(
-        color: backgroundColor1,
+        color: Get.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(Dimenssions.radius12),
         border: Border.all(
           color: logoColor,

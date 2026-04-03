@@ -62,14 +62,14 @@ class _CategoryWidgetState extends State<CategoryWidget> {
                 border: Border.all(
                   color: isSelected
                       ? logoColorSecondary
-                      : secondaryTextColor.withOpacity(0.3),
+                      : context.dividerColor,
                   width: 1,
                 ),
               ),
               child: Text(
                 category,
                 style: primaryTextStyle.copyWith(
-                  color: isSelected ? logoColorSecondary : secondaryTextColor,
+                  color: isSelected ? logoColorSecondary : context.textSecondaryColor,
                   fontSize: Dimenssions.font14,
                   fontWeight: isSelected ? semiBold : regular,
                 ),
@@ -86,10 +86,10 @@ class _CategoryWidgetState extends State<CategoryWidget> {
     return Obx(() {
       return Container(
         decoration: BoxDecoration(
-          color: backgroundColor1,
+          color: context.surfaceColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: context.isDark ? Colors.black54 : Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 3,
               offset: const Offset(0, 1),

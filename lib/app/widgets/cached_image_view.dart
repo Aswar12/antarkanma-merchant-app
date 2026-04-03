@@ -29,7 +29,7 @@ class CachedImageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!_isValidUrl(imageUrl)) {
-      return _buildPlaceholder();
+      return _buildPlaceholder(context);
     }
 
     return ClipRRect(
@@ -43,22 +43,22 @@ class CachedImageView extends StatelessWidget {
         maxHeightDiskCache: 1000,
         memCacheWidth: 800,
         memCacheHeight: 800,
-        placeholder: (context, url) => _buildLoadingState(),
+        placeholder: (context, url) => _buildLoadingState(context),
         errorWidget: (context, url, error) {
           debugPrint('Error loading image: $url');
           debugPrint('Error details: $error');
-          return _buildPlaceholder();
+          return _buildPlaceholder(context);
         },
         fadeInDuration: const Duration(milliseconds: 300),
       ),
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(BuildContext context) {
     return Container(
       width: width,
       height: height,
-      color: backgroundColor3.withOpacity(0.1),
+      color: context.backgroundColor.withOpacity(0.1),
       child: Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(logoColorSecondary),
@@ -68,12 +68,12 @@ class CachedImageView extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: backgroundColor3.withOpacity(0.1),
+        color: context.backgroundColor.withOpacity(0.1),
         borderRadius: borderRadius,
         image: placeholder != null && placeholder!.isNotEmpty
             ? DecorationImage(
@@ -90,7 +90,7 @@ class CachedImageView extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.image_not_supported,
-                    color: secondaryTextColor,
+                    color: context.textSecondaryColor,
                     size: 24,
                   ),
                   const SizedBox(height: 4),
@@ -98,7 +98,7 @@ class CachedImageView extends StatelessWidget {
                     child: Text(
                       'No Image',
                       style: TextStyle(
-                        color: secondaryTextColor,
+                        color: context.textSecondaryColor,
                         fontSize: 12,
                       ),
                       textAlign: TextAlign.center,

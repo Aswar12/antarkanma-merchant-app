@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:antarkanma_merchant/theme.dart';
 
 enum SnackbarType { success, error, info, warning }
 
@@ -19,7 +20,7 @@ void showCustomSnackbar({
       message,
       snackPosition: snackPosition ?? SnackPosition.TOP,
       backgroundColor: backgroundColor ??
-          (isError ? Colors.red : Colors.green).withOpacity(0.95),
+          (isError ? AppColors.error : AppColors.success).withValues(alpha: 0.95),
       colorText: Colors.white,
       borderRadius: 12,
       margin: const EdgeInsets.all(16),
@@ -36,17 +37,17 @@ void showCustomSnackbar({
       duration: duration ?? const Duration(seconds: 3),
       boxShadows: [
         BoxShadow(
-          color: (backgroundColor ?? (isError ? Colors.red : Colors.green))
-              .withOpacity(0.3),
+          color: (backgroundColor ?? (isError ? AppColors.error : AppColors.success))
+               .withValues(alpha: 0.3),
           spreadRadius: 1,
           blurRadius: 10,
           offset: const Offset(0, 2),
         ),
       ],
-      borderColor: backgroundColor ?? (isError ? Colors.red : Colors.green),
+      borderColor: backgroundColor ?? (isError ? AppColors.error : AppColors.success),
       borderWidth: 1,
       overlayBlur: 0.0,
-      overlayColor: Colors.black.withOpacity(0.1),
+      overlayColor: Colors.black.withValues(alpha: 0.1),
       onTap: (snack) {
         Get.closeCurrentSnackbar();
       },
@@ -67,7 +68,7 @@ class CustomSnackbarX {
     showCustomSnackbar(
       title: title ?? 'Success',
       message: message,
-      backgroundColor: Colors.green,
+      backgroundColor: AppColors.success,
       snackPosition: position,
       duration: duration,
       actionButton: actionButton,
@@ -85,7 +86,7 @@ class CustomSnackbarX {
       title: title ?? 'Error',
       message: message,
       isError: true,
-      backgroundColor: Colors.red,
+      backgroundColor: AppColors.error,
       snackPosition: position,
       duration: duration,
       actionButton: actionButton,
@@ -102,7 +103,7 @@ class CustomSnackbarX {
     showCustomSnackbar(
       title: title ?? 'Information',
       message: message,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.blueAccent,
       snackPosition: position,
       duration: duration,
       actionButton: actionButton,
